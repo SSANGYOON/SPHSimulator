@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Graphics.h"
 #include "PipelineStates.h"
-//#include "Resources.h"
+#include "Resources.h"
 
 HRESULT Graphics::Init(const WindowInfo& info)
 {
@@ -12,7 +12,7 @@ HRESULT Graphics::Init(const WindowInfo& info)
 	sd.BufferCount = 2;
 	sd.BufferDesc.Width = info.width;
 	sd.BufferDesc.Height = info.height;
-	sd.BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.RefreshRate.Numerator = 144;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -34,7 +34,7 @@ HRESULT Graphics::Init(const WindowInfo& info)
 
 	GET_SINGLE(Input)->Init(info.hwnd);
 	GET_SINGLE(Timer)->Init();
-	//GET_SINGLE(Resources)->CreateDefaultResource();
+	GET_SINGLE(Resources)->CreateDefaultResource();
 
 	_swapChain->GetBuffer(0, IID_PPV_ARGS(_renderTarget.GetAddressOf()));
 	_device->CreateRenderTargetView(_renderTarget.Get(), nullptr, _rtv.GetAddressOf());
@@ -75,6 +75,8 @@ HRESULT Graphics::Init(const WindowInfo& info)
 	_constantBuffers[(UINT8)Constantbuffer_Type::LIGHT] = make_shared<ConstantBuffer>();
 	_constantBuffers[(UINT8)Constantbuffer_Type::LIGHT]->Init(Constantbuffer_Type::LIGHT, sizeof(LightCB));
 
+	BindSwapChain();
+
 	return S_OK;
 }
 
@@ -97,11 +99,12 @@ void Graphics::SetViewport(UINT left, UINT right, UINT width, UINT height)
 void Graphics::BindSwapChain()
 {
 	CONTEXT->OMSetRenderTargets(1, _rtv.GetAddressOf(), _dsv.Get());
+	CONTEXT->RSSetViewports(1, &_viewPort);
 }
 
 void Graphics::ClearSwapChain()
 {
-	float clearColor[4] = { 0.1f,0.1f,0.1f,1.f };
+	float clearColor[4] = { 0.5f,0.5f,0.5f,1.f };
 	CONTEXT->ClearRenderTargetView(_rtv.Get(), clearColor);
 
 	CONTEXT->ClearDepthStencilView(_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);

@@ -75,7 +75,6 @@ namespace SY {
 
 	void ImGuiLayer::Begin()
 	{
-
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
@@ -92,8 +91,6 @@ namespace SY {
 		// Rendering
 		ImGui::Render();
 
-		GEngine->BindSwapChain();
-		GEngine->ClearSwapChain();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -102,7 +99,7 @@ namespace SY {
 			ImGui::RenderPlatformWindowsDefault();
 		}
 
-		SWAPCHAIN->Present(0, 0); // Present with vsync
+		SWAPCHAIN->Present(1, 0); // Present with vsync
 	}
 
 	void ImGuiLayer::SetDarkThemeColors()

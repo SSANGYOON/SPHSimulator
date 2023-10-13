@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "ApplicationEvent.h"
 #include "ImguiLayer.h"
+#include "TestLayer.h"
 #include "Graphics.h"
 
 
@@ -74,7 +75,6 @@ namespace SY {
 
 	void Application::Run()
 	{
-
 		while (m_Running)
 		{
 			m_LastFrameTime += TIMER->DeltaTime();
@@ -83,6 +83,7 @@ namespace SY {
 			m_Window->OnUpdate();
 			INPUT->Update();
 			TIMER->Update();
+			GEngine->ClearSwapChain();
 			if (!m_Minimized)
 			{
 				{
@@ -129,5 +130,15 @@ namespace SY {
 			func();
 
 		m_MainThreadQueue.clear();
+	}
+	Application* Application::CreateApplication(const wstring& name, ApplicationCommandLineArgs args)
+	{
+		ApplicationSpecification spec;
+		spec.Name = name;
+		spec.CommandLineArgs = args;
+
+		auto app = new Application(spec);
+		app->PushLayer(new TestLayer());
+		return app;
 	}
 }

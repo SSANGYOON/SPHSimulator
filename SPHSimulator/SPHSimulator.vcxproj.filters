@@ -5,10 +5,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -64,15 +60,33 @@
     <Filter Include="src\Imgui">
       <UniqueIdentifier>{2f785af4-68c9-429b-9fcf-96634ca4b6d8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Resource">
+      <UniqueIdentifier>{ec037857-92bc-4e14-adaf-7591584d5316}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Resource\Shader">
+      <UniqueIdentifier>{9f5e9e4e-e6d8-40cc-85e0-43ebc165e577}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Resource\ComputeShader">
+      <UniqueIdentifier>{e6224f2b-a604-4db4-aa84-0d3afbdcbf43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\SPH">
+      <UniqueIdentifier>{beb7ef1a-5d45-46b2-8cf9-d7785048618e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Layer\TestLayer">
+      <UniqueIdentifier>{6e39d215-f5d3-4b2b-bbc3-23d590918d54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Resource\Mesh">
+      <UniqueIdentifier>{d3e86574-4c81-4002-a93a-78741e86a38b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Resource\Resources">
+      <UniqueIdentifier>{42c29c70-db90-4a56-809b-2e5f3b97e3bf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
@@ -174,6 +188,27 @@
     <ClInclude Include="..\External\imgui\ImZoomSlider.h">
       <Filter>src\Imgui</Filter>
     </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>src\Resource\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeShader.h">
+      <Filter>src\Resource\ComputeShader</Filter>
+    </ClInclude>
+    <ClInclude Include="SPHSystem.h">
+      <Filter>src\SPH</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>src\Resource\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources.h">
+      <Filter>src\Resource\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="TestLayer.h">
+      <Filter>src\Layer\TestLayer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -254,19 +289,27 @@
     <ClCompile Include="..\External\imgui\ImSequencer.cpp">
       <Filter>src\Imgui</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="SPHSimulator.rc">
-      <Filter>리소스 파일</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="small.ico">
-      <Filter>리소스 파일</Filter>
-    </Image>
-    <Image Include="SPHSimulator.ico">
-      <Filter>리소스 파일</Filter>
-    </Image>
+    <ClCompile Include="Resource.cpp">
+      <Filter>src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>src\Resource\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShader.cpp">
+      <Filter>src\Resource\ComputeShader</Filter>
+    </ClCompile>
+    <ClCompile Include="SPHSystem.cpp">
+      <Filter>src\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources.cpp">
+      <Filter>src\Resource\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>src\Resource\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLayer.cpp">
+      <Filter>src\Layer\TestLayer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

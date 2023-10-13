@@ -75,14 +75,7 @@ namespace SY {
 		static Application* s_Instance;
 		friend int ::main(int argc, char** argv);
 
-		static Application* CreateApplication(const wstring& name, ApplicationCommandLineArgs args)
-		{
-			ApplicationSpecification spec;
-			spec.Name = name;
-			spec.CommandLineArgs = args;
-
-			return new Application(spec);
-		}
+		static Application* CreateApplication(const wstring& name, ApplicationCommandLineArgs args);
 	};
 
 }

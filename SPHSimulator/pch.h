@@ -11,8 +11,6 @@
 #define _HAS_STD_BYTE 0
 #define NOMINMAX
 
-#include "imgui.h"
-
 #include <windows.h>
 #include <tchar.h>
 #include <memory>
@@ -57,6 +55,8 @@ public:								\
 	}								\
 
 #define GET_SINGLE(type)	type::GetInstance()
+
+#include "imgui.h"
 
 #include "Input.h"
 #include "Timer.h"
