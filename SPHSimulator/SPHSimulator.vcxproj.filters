@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="src\Simultator">
+      <UniqueIdentifier>{83370225-6312-4945-8a32-3535f519ac5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Window">
+      <UniqueIdentifier>{fdda0827-12ce-41d7-9ad4-36960f2403fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Event">
+      <UniqueIdentifier>{a9cc6108-1ae3-4ac4-b8d1-366e10c748f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Application">
+      <UniqueIdentifier>{8d6bddf5-879c-4cdb-bd66-a4ffcf77cd8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Utils">
+      <UniqueIdentifier>{e1eea1b4-b8f9-4051-b2ce-9adcc2867282}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Utils\SimpileMath">
+      <UniqueIdentifier>{4e2bd3f8-abeb-46e7-a812-29f2295e0372}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\pch">
+      <UniqueIdentifier>{4f29c571-4e7e-4c39-a7d9-f9ebe156c2c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Utils\Input">
+      <UniqueIdentifier>{6aaa5f86-85f7-4e9e-bae6-d3acb4f54315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Utils\Timer">
+      <UniqueIdentifier>{69387eb8-de42-4c7a-90a0-763d0c3b7522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Layer">
+      <UniqueIdentifier>{7cf020cd-b361-43c8-b823-834574a9417e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics">
+      <UniqueIdentifier>{f0017b22-508f-4f89-8bba-9cf272e41ac2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Buffers">
+      <UniqueIdentifier>{6bab9d1b-47c1-4b6a-bef6-eb5ab04762c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Buffers\ConstantBuffer">
+      <UniqueIdentifier>{272b2153-7fe5-4878-a273-bb69e53b55b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Enums">
+      <UniqueIdentifier>{799e3ff9-7db6-4e05-a739-1fad0b58fc54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Layer\ImguiLayer">
+      <UniqueIdentifier>{400715c6-a80f-4bf5-8e57-cc8e9478d504}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Layer\LayerStack">
+      <UniqueIdentifier>{77dafa09-eaaf-4bc4-b185-2a08dfcaea4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Imgui">
+      <UniqueIdentifier>{2f785af4-68c9-429b-9fcf-96634ca4b6d8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>src\pch</Filter>
+    </ClInclude>
+    <ClInclude Include="SPHSimulator.h">
+      <Filter>src\Simultator</Filter>
+    </ClInclude>
+    <ClInclude Include="SyWindow.h">
+      <Filter>src\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleMath.h">
+      <Filter>src\Utils\SimpileMath</Filter>
+    </ClInclude>
+    <ClInclude Include="Event.h">
+      <Filter>src\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyEvent.h">
+      <Filter>src\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>src\Utils\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseEvent.h">
+      <Filter>src\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="ApplicationEvent.h">
+      <Filter>src\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>src\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>src\Utils\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>src\Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Enums.h">
+      <Filter>src\Enums</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineStates.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ImguiLayer.h">
+      <Filter>src\Layer\ImguiLayer</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerStack.h">
+      <Filter>src\Layer\LayerStack</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantBuffer.h">
+      <Filter>src\Buffers\ConstantBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\GraphEditor.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imconfig.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\ImCurveEdit.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\ImGradient.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_dx11.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_impl_win32.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_internal.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imgui_stdlib.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\ImGuizmo.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\ImSequencer.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_rectpack.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_textedit.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\imstb_truetype.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\imgui\ImZoomSlider.h">
+      <Filter>src\Imgui</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp">
+      <Filter>src\pch</Filter>
+    </ClCompile>
+    <ClCompile Include="SPHSimulator.cpp">
+      <Filter>src\Simultator</Filter>
+    </ClCompile>
+    <ClCompile Include="SyWindow.cpp">
+      <Filter>src\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleMath.cpp">
+      <Filter>src\Utils\SimpileMath</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>src\Utils\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>src\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>src\Utils\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="Layer.cpp">
+      <Filter>src\Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineStates.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ImguiLayer.cpp">
+      <Filter>src\Layer\ImguiLayer</Filter>
+    </ClCompile>
+    <ClCompile Include="LayerStack.cpp">
+      <Filter>src\Layer\LayerStack</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantBuffer.cpp">
+      <Filter>src\Buffers\ConstantBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\GraphEditor.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\ImCurveEdit.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\ImGradient.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_demo.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_draw.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_dx11.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_impl_win32.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_stdlib.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_tables.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\imgui_widgets.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\ImGuizmo.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\imgui\ImSequencer.cpp">
+      <Filter>src\Imgui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SPHSimulator.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="SPHSimulator.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl">
+      <Filter>src\Utils\SimpileMath</Filter>
+    </None>
+  </ItemGroup>
+</Project>
