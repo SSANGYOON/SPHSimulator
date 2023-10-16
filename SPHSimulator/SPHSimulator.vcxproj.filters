@@ -209,6 +209,12 @@
     <ClInclude Include="TestLayer.h">
       <Filter>src\Layer\TestLayer</Filter>
     </ClInclude>
+    <ClInclude Include="particle.h">
+      <Filter>src\SPH</Filter>
+    </ClInclude>
+    <ClInclude Include="Sph.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -309,6 +315,9 @@
     </ClCompile>
     <ClCompile Include="TestLayer.cpp">
       <Filter>src\Layer\TestLayer</Filter>
+    </ClCompile>
+    <ClCompile Include="Sph.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

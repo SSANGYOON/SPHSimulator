@@ -179,12 +179,14 @@
     <ClInclude Include="LayerStack.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MouseEvent.h" />
+    <ClInclude Include="particle.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PipelineStates.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="Sph.h" />
     <ClInclude Include="SPHSimulator.h" />
     <ClInclude Include="SPHSystem.h" />
     <ClInclude Include="SyWindow.h" />
@@ -254,6 +256,7 @@
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Sph.cpp" />
     <ClCompile Include="SPHSimulator.cpp" />
     <ClCompile Include="SPHSystem.cpp" />
     <ClCompile Include="SyWindow.cpp" />

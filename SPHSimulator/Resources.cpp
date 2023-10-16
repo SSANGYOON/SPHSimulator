@@ -158,18 +158,8 @@ void Resources::CreateDefaultResource()
 	TestShader->CreateShader(_info, _entry, L"TestShader.hlsl");
 #pragma endregion
 
-/*#pragma region DefaultShader
-
-	shared_ptr<Shader> debugShader = std::make_shared<Shader>();
-	Resources::Insert<Shader>(L"DebugShader", debugShader);
-	_info.bst = BSType::AlphaBlend;
-	_info.dst = DSType::Less;
-	_info.rst = RSType::WireframeNone;
-	_info.topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-	_entry = {};
-	_entry.VS = true;
-	_entry.PS = true;
-	debugShader->CreateShader(_info, _entry, L"DebugShader.hlsl");
-#pragma endregion*/
-
+#pragma regoin HasingShader
+	shared_ptr<ComputeShader> hasingShader = std::make_shared<ComputeShader>();
+	hasingShader->Create(L"SphCompute.hlsl");
+#pragma endregin
 }

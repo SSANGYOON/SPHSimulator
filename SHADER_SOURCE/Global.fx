@@ -28,4 +28,17 @@ cbuffer TextureBind : register(b1)
     int     tex3_On;
 }
 
+cbuffer ParticleSettings : register(b2)
+{
+    uint CellSize;
+}
 
+uint SPH_CalculateHash(uint3 cellIndex)
+{
+    const uint p1 = 73856093;   // some large primes 
+    const uint p2 = 19349663;
+    const uint p3 = 83492791;
+    int n = p1 * cellIndex.x ^ p2 * cellIndex.y ^ p3 * cellIndex.z;
+    n %= SPH_PARTITION_BUCKET_COUNT;
+    return n;
+}

@@ -46,7 +46,7 @@ bool ComputeShader::Create(const std::wstring& file)
 		, _CSBlob->GetBufferSize()
 		, nullptr
 		, _CS.GetAddressOf());
-
+	//D
 	return true;
 }
 
