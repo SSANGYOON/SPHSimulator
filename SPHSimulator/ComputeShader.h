@@ -11,13 +11,13 @@ public:
 
 	bool Create(const std::wstring& file);
 	void Dispatch();
-	void SetShaderGroup(UINT X, UINT Y, UINT Z) { mThreadGroupCountX = X; mThreadGroupCountY = Y; mThreadGroupCountZ = Z; }
+	FORCEINLINE void SetThreadGroups(UINT X, UINT Y, UINT Z) { _TheadGroupCountX = X; _TheadGroupCountY = Y; _TheadGroupCountZ = Z; }
 
 protected:
 	ComPtr<ID3DBlob> _CSBlob;
 	ComPtr<ID3D11ComputeShader> _CS;
 
-	UINT mThreadGroupCountX;
-	UINT mThreadGroupCountY;
-	UINT mThreadGroupCountZ;
+	UINT _TheadGroupCountX;
+	UINT _TheadGroupCountY;
+	UINT _TheadGroupCountZ;
 };

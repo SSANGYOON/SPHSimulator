@@ -215,6 +215,9 @@
     <ClInclude Include="Sph.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="StructuredBuffer.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -318,6 +321,9 @@
     </ClCompile>
     <ClCompile Include="Sph.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="StructuredBuffer.cpp">
+      <Filter>src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

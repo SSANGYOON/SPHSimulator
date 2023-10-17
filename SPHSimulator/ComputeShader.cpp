@@ -6,9 +6,9 @@ ComputeShader::ComputeShader()
 	: Resource(RESOURCE_TYPE::COMPUTE_SHADER)
 	, _CSBlob(nullptr)
 	, _CS(nullptr)
-	, mThreadGroupCountX(1)
-	, mThreadGroupCountY(1)
-	, mThreadGroupCountZ(1)
+	, _TheadGroupCountX(1)
+	, _TheadGroupCountY(1)
+	, _TheadGroupCountZ(1)
 {
 }
 
@@ -46,13 +46,12 @@ bool ComputeShader::Create(const std::wstring& file)
 		, _CSBlob->GetBufferSize()
 		, nullptr
 		, _CS.GetAddressOf());
-	//D
 	return true;
 }
 
 void ComputeShader::Dispatch()
 {
 	CONTEXT->CSSetShader(_CS.Get(), nullptr, 0);
-	CONTEXT->Dispatch(mThreadGroupCountX, mThreadGroupCountY, mThreadGroupCountZ);
+	CONTEXT->Dispatch(_TheadGroupCountX, _TheadGroupCountY, _TheadGroupCountZ);
 }
 

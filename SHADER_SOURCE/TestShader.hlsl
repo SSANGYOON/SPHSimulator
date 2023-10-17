@@ -1,4 +1,4 @@
-#include "global.fx"
+#include "global.hlsli"
 
 VSOut VS_MAIN(VSIn In)
 {

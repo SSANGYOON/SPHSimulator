@@ -158,8 +158,33 @@ void Resources::CreateDefaultResource()
 	TestShader->CreateShader(_info, _entry, L"TestShader.hlsl");
 #pragma endregion
 
-#pragma regoin HasingShader
-	shared_ptr<ComputeShader> hasingShader = std::make_shared<ComputeShader>();
-	hasingShader->Create(L"SphCompute.hlsl");
-#pragma endregin
+#pragma region CountingShader
+	shared_ptr<ComputeShader> CountingShader = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CountingShader", CountingShader);
+	CountingShader->Create(L"CreateCountingBuffer.hlsl");
+#pragma endregion
+
+#pragma region PrefixSumOnThreadGroup
+	shared_ptr<ComputeShader> PrefixSumOnThreadGroupShader = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"PrefixSumOnThreadGroupShader", PrefixSumOnThreadGroupShader);
+	PrefixSumOnThreadGroupShader->Create(L"PrefixSumOnThreadGroup.hlsl");
+#pragma endregion
+
+#pragma region PrefixSumOnGroupSum
+	shared_ptr<ComputeShader> PrefixSumOnGroupSum = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"PrefixSumOnGroupSumShader", PrefixSumOnGroupSum);
+	PrefixSumOnGroupSum->Create(L"PrefixSumOnGroupSum.hlsl");
+#pragma endregion
+
+#pragma region PrefixSumComplete
+	shared_ptr<ComputeShader> PrefixSumComplete = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"PrefixSumCompleteShader", PrefixSumComplete);
+	PrefixSumComplete->Create(L"CompletePrefixSum.hlsl");
+#pragma endregion
+
+#pragma region CountingSortComplete
+	shared_ptr<ComputeShader> CountingSortCompletShader = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CompleteCountingSort", CountingSortCompletShader);
+	CountingSortCompletShader->Create(L"CompleteCountingSort.hlsl");
+#pragma endregion
 }
