@@ -27,12 +27,16 @@ SPH에 필요한 GPU에서 작동하는 Sorting 알고리즘 구현 시작
 
 #### 10/17 :
 parallel sort 알고리즘 구현(파티클이 속한 셀에 있는 다른 파티클들을 찾기 위해 모든 파티클들의 배열을 해시값으로 정렬)
-간단한 파티클의 속성을 결정하는 간단한 UI 구현
+
+간단한 파티클의 속성을 결정하는 UI 구현
+
 <img src="./Images/ParticlePropertyUI.png">
 
 #### 10/18 : 
 파티클을 GPU에서 해시값으로 정렬, 정렬된 해시값에서 이웃한 파티클 목록를 구하는 기능 구현
 
 ## 참고문헌 :
-####(SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
-####(Particle-Based Fluid Simulation for Interactive Applications)[https://matthias-research.github.io/pages/publications/sca03.pdf]
+
+(SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
+
+(Particle-Based Fluid Simulation for Interactive Applications)[https://matthias-research.github.io/pages/publications/sca03.pdf]
