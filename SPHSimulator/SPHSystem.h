@@ -43,7 +43,13 @@ private:
 
 	unique_ptr<StructuredBuffer> particleBuffer;
 	unique_ptr<StructuredBuffer> hashcountedBuffer;
+	unique_ptr<StructuredBuffer> offsetBuffer;
 	unique_ptr<StructuredBuffer> prefixSumBuffer;
 	unique_ptr<StructuredBuffer> groupSumBuffer;
 	unique_ptr<StructuredBuffer> sortedResultBuffer;
+
+	//Particle GPUSortedParticle[4096];
+	//UINT HashResults[4096];
+
+	UINT GetHashOnCPU(Particle& p);
 };

@@ -9,6 +9,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 		uint hash = GetHashValueOfLocation(Particles[DId].position);
 		uint original = 0;
 		InterlockedAdd(CountedHash[hash], 1, original);
+		Offsets[DId] = original;
 	}
 }
 

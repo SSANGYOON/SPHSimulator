@@ -83,6 +83,9 @@ void SPHSystem::InitParticles()
     hashcountedBuffer = make_unique<StructuredBuffer>();
     hashcountedBuffer->Create(sizeof(UINT), 4096, nullptr, true, false);
 
+    offsetBuffer = make_unique<StructuredBuffer>();
+    offsetBuffer->Create(sizeof(UINT), 4096, nullptr, true, false);
+
     prefixSumBuffer = make_unique<StructuredBuffer>();
     prefixSumBuffer->Create(sizeof(UINT), 4096, nullptr, true, false);
 
@@ -90,7 +93,14 @@ void SPHSystem::InitParticles()
     groupSumBuffer->Create(sizeof(UINT), 1024, nullptr, true, false);
 
     sortedResultBuffer = make_unique<StructuredBuffer>();
-    sortedResultBuffer->Create(sizeof(Particle), 4096, nullptr, true, false);
+    sortedResultBuffer->Create(sizeof(Particle), 4096, nullptr, true, true);
+}
+
+UINT SPHSystem::GetHashOnCPU(Particle& p)
+{
+    Vector3 cell = p.position / settings.h;
+
+    return (UINT)(((int)cell.x * 73856093) ^ ((int)cell.y * 19349663) ^ ((int)cell.x * 83492791)) % 4093;
 }
 
 SPHSystem::~SPHSystem()
@@ -122,13 +132,14 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
     CountShader->SetThreadGroups(groups, 1, 1);
     particleBuffer->BindUAV(0);
     hashcountedBuffer->BindUAV(1);
+    offsetBuffer->BindUAV(2);
     CountShader->Dispatch();
 
     //Sort particle by hash
     auto prefixSumOnGroupShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"PrefixSumOnThreadGroupShader");
     prefixSumOnGroupShader->SetThreadGroups(groups, 1, 1);
-    prefixSumBuffer->BindUAV(2);
-    groupSumBuffer->BindUAV(3);
+    prefixSumBuffer->BindUAV(3);
+    groupSumBuffer->BindUAV(4);
     prefixSumOnGroupShader->Dispatch();
 
     auto prefixSumOnGroupSumShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"PrefixSumOnGroupSumShader");
@@ -141,8 +152,14 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
 
     auto countingSortCompleteShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CompleteCountingSort");
     countingSortCompleteShader->SetThreadGroups(groups, 1, 1);
-    sortedResultBuffer->BindUAV(4);
+    sortedResultBuffer->BindUAV(5);
     countingSortCompleteShader->Dispatch();
+
+    /*sortedResultBuffer->GetData(GPUSortedParticle);
+    for (int i = 0; i < 4096; i++)
+    {
+        HashResults[i] = GetHashOnCPU(GPUSortedParticle[i]);
+    }*/
 }
 
 void SPHSystem::draw()
