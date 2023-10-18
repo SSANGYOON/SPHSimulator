@@ -5,8 +5,7 @@
 
 #define CBSLOT_TRANSFORM 0
 #define CBSLOT_MATERIAL 1
-#define CBSLOT_VISUALEFFECT 2
-#define CBSLOT_LIGHT 3
+#define CBSLOT_PARTICLE 2
 
 #include "Enums.h"
 
@@ -14,10 +13,7 @@ enum class Constantbuffer_Type : UINT8
 {
 	TRANSFORM,
 	MATERIAL,
-	VISUALEFFECT,
-	LIGHT,
 	PARTICLE,
-	BLOOM,
 	END
 };
 
@@ -30,6 +26,13 @@ CBUFFER(TransformCB, CBSLOT_TRANSFORM)
 	Vector3 padding;
 };
 
+CBUFFER(ParticleCB, CBSLOT_PARTICLE)
+{
+	UINT particlesNum;
+	float radius;
+	float padding[2];
+};
+
 struct alignas(16) LightInfo
 {
 	Vector3 dir;
@@ -38,22 +41,6 @@ struct alignas(16) LightInfo
 	float range;
 	Vector3 color;
 	UINT type;
-};
-
-CBUFFER(VECB, CBSLOT_VISUALEFFECT)
-{
-	float time;
-	float DeltaTime;
-	Vector2 ViewPort;
-	Vector4 ScissorRect;
-	Vector4 FadeColor;
-};
-
-CBUFFER(LightCB, CBSLOT_LIGHT)
-{
-	UINT		lightCount;
-	Vector3		padding;
-	LightInfo	lights[50];
 };
 
 class ConstantBuffer

@@ -1,13 +1,14 @@
 #include "Global_SPH.hlsli"
 
 [numthreads(GroupThreadNum,1,1)]
-void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadID : SV_GroupThreadID)
+void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
-	if (DispatchThreadID[0] < 2048)
+	uint DId = DispatchThreadID[0];
+	if (DId < particlesNum)
 	{
-		uint randomNumber = randomNumbersToSort[DispatchThreadID[0]];
-		uint original;
-		InterlockedAdd(countingBuffer[randomNumber], 1, original);
+		uint hash = GetHashValueOfLocation(Particles[DId].position);
+		uint original = 0;
+		InterlockedAdd(CountedHash[hash], 1, original);
 	}
 }
 

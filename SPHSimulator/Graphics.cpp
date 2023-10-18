@@ -72,8 +72,8 @@ HRESULT Graphics::Init(const WindowInfo& info)
 	_constantBuffers[(UINT8)Constantbuffer_Type::TRANSFORM] = make_shared<ConstantBuffer>();
 	_constantBuffers[(UINT8)Constantbuffer_Type::TRANSFORM]->Init(Constantbuffer_Type::TRANSFORM, sizeof(TransformCB));
 
-	_constantBuffers[(UINT8)Constantbuffer_Type::LIGHT] = make_shared<ConstantBuffer>();
-	_constantBuffers[(UINT8)Constantbuffer_Type::LIGHT]->Init(Constantbuffer_Type::LIGHT, sizeof(LightCB));
+	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLE] = make_shared<ConstantBuffer>();
+	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLE]->Init(Constantbuffer_Type::PARTICLE, sizeof(ParticleCB));
 
 	BindSwapChain();
 

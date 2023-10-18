@@ -7,16 +7,16 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadID :
 	uint gIdx = GroupThreadID[0];
 
 	//TODO
-	// 나중에 2048이 아니라 상수버퍼에서 파티클 갯수 읽어오기
-	LocalPrefixSum[gIdx] = dIdx < 2048 ? countingBuffer[dIdx] : 0;
+	//고정 상수인 TABLESIZE가 아니라 상수버퍼에서 읽기
+	LocalPrefixSum[gIdx] = dIdx < TABLESIZE ? CountedHash[dIdx] : 0;
 
 	uint gId = GroupId[0];
 	GroupMemoryBarrierWithGroupSync();
 	uint GroupSum = ExclusiveScan(gIdx, gId);
 
 	//TODO
-	// 나중에 2048이 아니라 상수버퍼에서 파티클 갯수 읽어오기
-	if (dIdx < 2048)
+	//고정 상수인 TABLESIZE가 아니라 상수버퍼에서 읽기
+	if (dIdx < TABLESIZE)
 	{
 		prefixSum[dIdx] = LocalPrefixSum[gIdx];
 	}

@@ -1,13 +1,35 @@
 const static uint GroupThreadNum = 1024;
+const static uint TABLESIZE = 4093; //262139;
 
-RWStructuredBuffer<uint> randomNumbersToSort : register(u0);
-RWStructuredBuffer<uint> prefixSum : register(u1);
-RWStructuredBuffer<uint> groupSum : register(u2);
-RWStructuredBuffer<uint> countingBuffer : register(u3);
-RWStructuredBuffer<uint> sortedResult : register(u4);
+struct Particle
+{
+	float3 position;
+	float density;
+	float3 velocity;
+	float pressure;
+};
+
+RWStructuredBuffer<Particle> Particles : register(u0);
+RWStructuredBuffer<uint> CountedHash : register(u1);
+RWStructuredBuffer<uint> prefixSum : register(u2);
+RWStructuredBuffer<uint> groupSum : register(u3);
+RWStructuredBuffer<Particle> sortedResult : register(u4);
 
 groupshared uint LocalPrefixSum[GroupThreadNum];
 
+cbuffer ParticleSettings : register(b2)
+{
+	uint particlesNum;
+	float radius;
+	float2 PCBPadding;
+}
+
+uint GetHashValueOfLocation(float3 position)
+{
+	int3 cell = position / radius;
+
+	return (uint)((cell.x * 73856093) ^ (cell.y * 19349663) ^ (cell.x * 83492791)) % TABLESIZE;
+}
 
 uint ExclusiveScan(uint gIdx, uint gId)
 {

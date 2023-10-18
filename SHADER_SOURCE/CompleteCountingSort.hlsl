@@ -3,11 +3,13 @@
 [numthreads(GroupThreadNum, 1, 1)]
 void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadID : SV_GroupThreadID)
 {
-	if (DispatchThreadID[0] < 2048)
+	if (DispatchThreadID[0] < particlesNum)
 	{
-		uint r = randomNumbersToSort[DispatchThreadID[0]];
+		Particle r = Particles[DispatchThreadID[0]];
+
+		uint hash = GetHashValueOfLocation(r.position);
 		uint original = 0;
-		InterlockedAdd(prefixSum[r], 1, original);
+		InterlockedAdd(prefixSum[hash], 1, original);
 		sortedResult[original] = r;
 	}
 }

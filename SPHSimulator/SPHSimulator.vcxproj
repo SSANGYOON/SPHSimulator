@@ -168,6 +168,7 @@
     <ClInclude Include="..\External\imgui\ImZoomSlider.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="ApplicationEvent.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="Enums.h" />
@@ -188,7 +189,6 @@
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SimpleMath.h" />
-    <ClInclude Include="Sph.h" />
     <ClInclude Include="SPHSimulator.h" />
     <ClInclude Include="SPHSystem.h" />
     <ClInclude Include="StructuredBuffer.h" />
@@ -251,6 +251,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="Graphics.cpp" />
@@ -273,7 +274,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Sph.cpp" />
     <ClCompile Include="SPHSimulator.cpp" />
     <ClCompile Include="SPHSystem.cpp" />
     <ClCompile Include="StructuredBuffer.cpp" />

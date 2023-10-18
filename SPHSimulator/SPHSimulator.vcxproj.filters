@@ -9,9 +9,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="src\Simultator">
-      <UniqueIdentifier>{83370225-6312-4945-8a32-3535f519ac5e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Window">
       <UniqueIdentifier>{fdda0827-12ce-41d7-9ad4-36960f2403fa}</UniqueIdentifier>
     </Filter>
@@ -81,6 +78,12 @@
     <Filter Include="src\Resource\Resources">
       <UniqueIdentifier>{42c29c70-db90-4a56-809b-2e5f3b97e3bf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Camera">
+      <UniqueIdentifier>{432aec9c-16f8-4671-a595-79dbdaa0acfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Simulator">
+      <UniqueIdentifier>{83370225-6312-4945-8a32-3535f519ac5e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -93,7 +96,7 @@
       <Filter>src\pch</Filter>
     </ClInclude>
     <ClInclude Include="SPHSimulator.h">
-      <Filter>src\Simultator</Filter>
+      <Filter>src\Simulator</Filter>
     </ClInclude>
     <ClInclude Include="SyWindow.h">
       <Filter>src\Window</Filter>
@@ -212,11 +215,11 @@
     <ClInclude Include="particle.h">
       <Filter>src\SPH</Filter>
     </ClInclude>
-    <ClInclude Include="Sph.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="StructuredBuffer.h">
       <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>src\Camera</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -224,7 +227,7 @@
       <Filter>src\pch</Filter>
     </ClCompile>
     <ClCompile Include="SPHSimulator.cpp">
-      <Filter>src\Simultator</Filter>
+      <Filter>src\Simulator</Filter>
     </ClCompile>
     <ClCompile Include="SyWindow.cpp">
       <Filter>src\Window</Filter>
@@ -319,11 +322,11 @@
     <ClCompile Include="TestLayer.cpp">
       <Filter>src\Layer\TestLayer</Filter>
     </ClCompile>
-    <ClCompile Include="Sph.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="StructuredBuffer.cpp">
       <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>src\Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

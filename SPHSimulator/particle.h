@@ -4,8 +4,8 @@
 using namespace DirectX::SimpleMath;
 struct Particle
 {
-    Vector3 position, velocity, acceleration, force;
+    Vector3 position;
     float density;
+    Vector3 velocity;
     float pressure;
-    uint16_t hash;
 };

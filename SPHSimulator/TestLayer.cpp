@@ -8,6 +8,9 @@
 #include <random>
 #include <algorithm>
 
+#include "Camera.h"
+#include "SPHSystem.h"
+
 SY::TestLayer::TestLayer()
 {
 }
@@ -18,7 +21,7 @@ SY::TestLayer::~TestLayer()
 
 void SY::TestLayer::OnAttach()
 {
-	randomNumbersBuffer = make_unique<StructuredBuffer>();
+	/*randomNumbersBuffer = make_unique<StructuredBuffer>();
 	UINT32* randomNumbers = new UINT[2048];
 
 	countedNumbersBuffer = make_unique<StructuredBuffer>();
@@ -53,11 +56,17 @@ void SY::TestLayer::OnAttach()
 	groupSumBuffer = make_unique<StructuredBuffer>();
 	groupSumBuffer->Create(sizeof(UINT32), 4, nullptr, true, false);
 	sortedResultBuffer = make_unique<StructuredBuffer>();
-	sortedResultBuffer->Create(sizeof(UINT32), 2048, nullptr, true, true);
+	sortedResultBuffer->Create(sizeof(UINT32), 2048, nullptr, true, true);*/
+
+	Cam = make_unique<Camera>();
+
+	SPHSettings sphSettings(0.02f, 1000, 1, 1.04, 0.15f, -9.8f, 0.2f);
+	sphSystem = new SPHSystem(15, sphSettings);
 }
 
 void SY::TestLayer::OnDetach()
 {
+	delete sphSystem;
 }
 
 void SY::TestLayer::OnUpdate(float timestep)
@@ -70,39 +79,53 @@ void SY::TestLayer::OnUpdate(float timestep)
 	rect->BindBuffer();
 	rect->Render();
 
-	auto CountShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CountingShader");
-	CountShader->SetThreadGroups(2, 1, 1);
-	randomNumbersBuffer->BindUAV(0);
-	countedNumbersBuffer->BindUAV(3);
-	CountShader->Dispatch();
+	Cam->Update();
 
-	auto prefixSumOnGroupShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"PrefixSumOnThreadGroupShader");
-	prefixSumOnGroupShader->SetThreadGroups(2, 1, 1);
-	prefixSumBuffer->BindUAV(1);
-	groupSumBuffer->BindUAV(2);
-	prefixSumOnGroupShader->Dispatch();
+	sphSystem->update(deltaTime);
+	//sphSystem->draw(Cam->GetViewProjectMtx());
 
-	auto prefixSumOnGroupSumShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"PrefixSumOnGroupSumShader");
-	prefixSumOnGroupSumShader->SetThreadGroups(1, 1, 1);
-	prefixSumOnGroupSumShader->Dispatch();
-
-	auto prefixCompleteShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"PrefixSumCompleteShader");
-	prefixCompleteShader->SetThreadGroups(2, 1, 1);
-	prefixCompleteShader->Dispatch();
-
-	auto countingSortCompleteShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CompleteCountingSort");
-	countingSortCompleteShader->SetThreadGroups(2, 1, 1);
-	sortedResultBuffer->BindUAV(4);
-	countingSortCompleteShader->Dispatch();
-
-	sortedResultBuffer->GetData(gpuSortedResult);
-	int a = 0;
+	Matrix::CreateTranslation(0, 0, 0);
 }
 
 void SY::TestLayer::OnImGuiRender()
 {
+	static int numParticles = 15;
+	static float nMass = 0.02;
+	static float nh = 0.15f;
+	static float nRest = 1000.f;
+	static float nVisco = 3.5f;
+	static float gasConst = 1.f;
+	static int counter = 0;
+
+	ImGui::Begin("SPH debug");                          // Create GUI window
+
+	ImGui::Text("Change values for the simulation. Press RESET to commit changes");
+
+	ImGui::SliderInt("Number of Particles", &numParticles, 10, 600);
+	ImGui::SliderFloat("Mass of Particles", &nMass, 0.001f, 1.f);
+	ImGui::SliderFloat("Support Radius", &nh, 0.001f, 1.f);
+	ImGui::SliderFloat("Rest Density", &nRest, 0.001f, 2000.f);
+	ImGui::SliderFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
+	ImGui::SliderFloat("Gas Constant", &gasConst, 0.001f, 5.f);
+
+	if (ImGui::Button("RESET")) {
+		delete sphSystem;
+		SPHSettings sphSettings(nMass, nRest, gasConst, nVisco, nh, -9.8, 1.f);
+		sphSystem = new SPHSystem(numParticles, sphSettings);
+	}
+
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::End();
 }
 
 void SY::TestLayer::OnEvent(Event& e)
 {
+	EventDispatcher dispatcher(e);
+	dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(TestLayer::OnWindowResize));
+}
+
+bool SY::TestLayer::OnWindowResize(WindowResizeEvent& e)
+{
+	Cam->SetAspect(e.GetWidth() / e.GetHeight());
+	return false;
 }

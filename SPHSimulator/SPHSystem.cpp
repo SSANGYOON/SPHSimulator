@@ -1,9 +1,13 @@
 #include "pch.h"
-#include "particle.h"
+
 #include "SPHSystem.h"
 #include "Mesh.h"
-
-#define PI 3.14159265f
+#include <cmath>
+#include "StructuredBuffer.h"
+#include "Resources.h"
+#include "ComputeShader.h"
+#include "ConstantBuffer.h"
+#include "Graphics.h"
 
 SPHSettings::SPHSettings(
     float mass, float restDensity, float gasConst, float viscosity, float h,
@@ -16,9 +20,9 @@ SPHSettings::SPHSettings(
     , g(g)
     , tension(tension)
 {
-    poly6 = 315.0f / (64.0f * PI * pow(h, 9));
-    spikyGrad = -45.0f / (PI * pow(h, 6));
-    spikyLap = 45.0f / (PI * pow(h, 6));
+    poly6 = 315.0f / (64.0f * XM_PI * pow(h, 9));
+    spikyGrad = -45.0f / (XM_PI * pow(h, 6));
+    spikyLap = 45.0f / (XM_PI * pow(h, 6));
     h2 = h * h;
     selfDens = mass * poly6 * pow(h, 6);
     massPoly6Product = mass * poly6;
@@ -30,12 +34,12 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     , settings(settings)
 {
     particleCount = particleCubeWidth * particleCubeWidth * particleCubeWidth;
-    particles = (Particle*)malloc(sizeof(Particle) * particleCount);
+    particles = new Particle[MaxParticle];
 
     started = false;
 
     //sphere = new Geometry("resources/lowsphere.obj");
-    sphereModelMtxs = new Matrix[particleCount];
+    sphereModelMtxs = new Matrix[MaxParticle];
 
     InitParticles();
 }
@@ -72,19 +76,73 @@ void SPHSystem::InitParticles()
             }
         }
     }
+
+    particleBuffer = make_unique<StructuredBuffer>();
+    particleBuffer->Create(sizeof(Particle), 4096, particles,true, false);
+
+    hashcountedBuffer = make_unique<StructuredBuffer>();
+    hashcountedBuffer->Create(sizeof(UINT), 4096, nullptr, true, false);
+
+    prefixSumBuffer = make_unique<StructuredBuffer>();
+    prefixSumBuffer->Create(sizeof(UINT), 4096, nullptr, true, false);
+
+    groupSumBuffer = make_unique<StructuredBuffer>();
+    groupSumBuffer->Create(sizeof(UINT), 1024, nullptr, true, false);
+
+    sortedResultBuffer = make_unique<StructuredBuffer>();
+    sortedResultBuffer->Create(sizeof(Particle), 4096, nullptr, true, false);
 }
 
 SPHSystem::~SPHSystem()
 {
     delete[](particles);
+    delete[](sphereModelMtxs);
 }
 
 void SPHSystem::update(float deltaTime)
 {
-    if (!started) return;
+    //if (!started) return;
     // To increase system stability, a fixed deltaTime is set
     deltaTime = 0.003f;
-    //updateParticles(particles, sphereModelMtxs, particleCount, settings, deltaTime);
+    updateParticles(sphereModelMtxs, deltaTime);
+}
+
+void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
+{
+    UINT groups = particleCount % 1024 > 0 ? ((particleCount >> 10) + 1) : (particleCount >> 10);
+    ParticleCB pcb = { particleCount , settings.h };
+
+    auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
+
+    particleCBuffer->SetData(&pcb);
+    particleCBuffer->SetPipline(ShaderStage::CS);
+
+    //Set up hashes for all particles
+    auto CountShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CountingShader");
+    CountShader->SetThreadGroups(groups, 1, 1);
+    particleBuffer->BindUAV(0);
+    hashcountedBuffer->BindUAV(1);
+    CountShader->Dispatch();
+
+    //Sort particle by hash
+    auto prefixSumOnGroupShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"PrefixSumOnThreadGroupShader");
+    prefixSumOnGroupShader->SetThreadGroups(groups, 1, 1);
+    prefixSumBuffer->BindUAV(2);
+    groupSumBuffer->BindUAV(3);
+    prefixSumOnGroupShader->Dispatch();
+
+    auto prefixSumOnGroupSumShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"PrefixSumOnGroupSumShader");
+    prefixSumOnGroupSumShader->SetThreadGroups(1, 1, 1);
+    prefixSumOnGroupSumShader->Dispatch();
+
+    auto prefixCompleteShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"PrefixSumCompleteShader");
+    prefixCompleteShader->SetThreadGroups(groups, 1, 1);
+    prefixCompleteShader->Dispatch();
+
+    auto countingSortCompleteShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CompleteCountingSort");
+    countingSortCompleteShader->SetThreadGroups(groups, 1, 1);
+    sortedResultBuffer->BindUAV(4);
+    countingSortCompleteShader->Dispatch();
 }
 
 void SPHSystem::draw()

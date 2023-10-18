@@ -1,4 +1,5 @@
 #pragma once
+#include "particle.h"
 
 struct SPHSettings
 {
@@ -11,6 +12,7 @@ struct SPHSettings
 		restDensity, viscosity, h, g, tension, massPoly6Product;
 };
 
+class StructuredBuffer;
 class SPHSystem
 {
 public:
@@ -21,11 +23,14 @@ public:
 	UINT32 particleCount;
 
 	void update(float deltaTime);
+	void updateParticles(Matrix* sphereModelMtxs, float deltaTime);
 
 	void draw();
 
 	void reset();
 	void startSimulation();
+
+	UINT MaxParticle = 1 << 18;
 
 private:
 	SPHSettings settings;
@@ -35,4 +40,10 @@ private:
 	void InitParticles();
 	shared_ptr<class Mesh> sphere;
 	Matrix* sphereModelMtxs;
+
+	unique_ptr<StructuredBuffer> particleBuffer;
+	unique_ptr<StructuredBuffer> hashcountedBuffer;
+	unique_ptr<StructuredBuffer> prefixSumBuffer;
+	unique_ptr<StructuredBuffer> groupSumBuffer;
+	unique_ptr<StructuredBuffer> sortedResultBuffer;
 };
