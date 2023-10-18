@@ -8,7 +8,7 @@ VSOut VS_MAIN(VSIn In)
     In.Pos.z = In.Pos.z + 0.1f;
 
     Out.WorldPos = In.Pos;
-    Out.Pos = In.Pos;
+    Out.Pos = float4(In.Pos, 1.f);
     Out.Color = In.Color;
 
     return Out;

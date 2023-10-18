@@ -8,7 +8,6 @@ void Resources::CreateDefaultResource()
 {
 #pragma region POINT MESH
 	Vertex v = {};
-	v.pos.w = 1.f;
 	std::shared_ptr<Mesh> pointMesh = std::make_shared<Mesh>();
 	Resources::Insert<Mesh>(L"PointMesh", pointMesh);
 	pointMesh->CreateVertexBuffer(&v, 1);
@@ -21,19 +20,19 @@ void Resources::CreateDefaultResource()
 	Resources::Insert<Mesh>(L"RectMesh", mesh);
 	Vertex vertexes[4] = {};
 
-	vertexes[0].pos = Vector4(-0.5f, 0.5f, 0.f, 1.0f);
+	vertexes[0].pos = Vector3(-0.5f, 0.5f, 0.f);
 	vertexes[0].Color = Vector4(1.f, 0.0f, 0.f, 1.0f);
 	vertexes[0].uv = Vector2(0.f, 0.f);
 
-	vertexes[1].pos = Vector4(0.5f, 0.5f, 0.f, 1.0f);
+	vertexes[1].pos = Vector3(0.5f, 0.5f, 0.f);
 	vertexes[1].Color = Vector4(0.f, 1.f, 0.f, 1.0f);
 	vertexes[1].uv = Vector2(1.0f, 0.0f);
 
-	vertexes[2].pos = Vector4(0.5f, -0.5f, 0.f, 1.0f);
+	vertexes[2].pos = Vector3(0.5f, -0.5f, 0.f);
 	vertexes[2].Color = Vector4(0.f, 0.f, 1.f, 1.0f);
 	vertexes[2].uv = Vector2(1.0f, 1.0f);
 
-	vertexes[3].pos = Vector4(-0.5f, -0.5f, 0.f, 1.0f);
+	vertexes[3].pos = Vector3(-0.5f, -0.5f, 0.f);
 	vertexes[3].Color = Vector4(1.f, 0.f, 0.f, 1.0f);
 	vertexes[3].uv = Vector2(0.0f, 1.0f);
 
@@ -63,7 +62,7 @@ void Resources::CreateDefaultResource()
 	{
 		vector<Vertex> circleVertexes;
 		Vertex center = {};
-		center.pos = Vector4(0.0f, 0.0f, 0.f, 1.0f);
+		center.pos = Vector3(0.0f, 0.0f, 0.f);
 		center.uv = Vector2::Zero;
 
 		circleVertexes.push_back(center);
@@ -76,12 +75,11 @@ void Resources::CreateDefaultResource()
 		for (size_t i = 0; i < iSlice; i++)
 		{
 			Vertex vtx = {};
-			vtx.pos = Vector4
+			vtx.pos = Vector3
 			(
 				fRadius * cosf(fTheta * (float)i)
 				, fRadius * sinf(fTheta * (float)i)
-				, -0.00001f, 1.0f
-			);
+				, -0.00001f);
 
 			circleVertexes.push_back(vtx);
 		}
@@ -104,7 +102,7 @@ void Resources::CreateDefaultResource()
 	{
 		vector<Vertex> circleVertexes;
 		Vertex center = {};
-		center.pos = Vector4(0.0f, 0.0f, 0.1f, 1.0f);
+		center.pos = Vector3(0.0f, 0.0f, 0.1f);
 		center.uv = Vector2::Zero;
 
 		circleVertexes.push_back(center);
@@ -117,11 +115,11 @@ void Resources::CreateDefaultResource()
 		for (size_t i = 0; i < iSlice; i++)
 		{
 			Vertex vtx = {};
-			vtx.pos = Vector4
+			vtx.pos = Vector3
 			(
 				fRadius * cosf(fTheta * (float)i) / 2.f
 				, fRadius * sinf(fTheta * (float)i) / 2.f
-				, 0.1f, 1.0f
+				, 0.1f
 			);
 
 			circleVertexes.push_back(vtx);
@@ -139,6 +137,31 @@ void Resources::CreateDefaultResource()
 		Resources::Insert<Mesh>(L"Circle2D", cirlceMesh);
 		cirlceMesh->CreateVertexBuffer(circleVertexes.data(), (UINT)circleVertexes.size());
 		cirlceMesh->CreateIndexBuffer(circleIndexes.data(), circleIndexes.size());
+	}
+#pragma endregion
+
+#pragma region Lcosahedron
+	shared_ptr<Mesh> Lcosahedron = std::make_shared<Mesh>();
+	Resources::Insert<Mesh>(L"Lcosahedron", Lcosahedron);
+	wstring path = std::filesystem::current_path().parent_path().wstring() + L"/SHADER_SOURCE/models/lowsphere.obj";
+	Lcosahedron->Load(path);
+#pragma endregion
+
+#pragma region HardCoded3DShader
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> HardCoded3DShader = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"HardCoded3DShader", HardCoded3DShader);
+		_info.bst = BSType::AlphaBlend;
+		_info.dst = DSType::Less;
+		_info.rst = RSType::SolidNone;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		HardCoded3DShader->CreateShader(_info, _entry, L"HardCoded3DShader.hlsl");
 	}
 #pragma endregion
 

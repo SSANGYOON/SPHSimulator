@@ -10,6 +10,8 @@
 
 #include "Camera.h"
 #include "SPHSystem.h"
+#include "ConstantBuffer.h"
+#include "Graphics.h"
 
 SY::TestLayer::TestLayer()
 {
@@ -60,8 +62,8 @@ void SY::TestLayer::OnAttach()
 
 	Cam = make_unique<Camera>();
 
-	SPHSettings sphSettings(0.02f, 1000, 1, 1.04, 0.15f, -9.8f, 0.2f);
-	sphSystem = new SPHSystem(15, sphSettings);
+	//SPHSettings sphSettings(0.02f, 1000, 1, 1.04, 0.15f, -9.8f, 0.2f);
+	//sphSystem = new SPHSystem(15, sphSettings);
 }
 
 void SY::TestLayer::OnDetach()
@@ -71,20 +73,27 @@ void SY::TestLayer::OnDetach()
 
 void SY::TestLayer::OnUpdate(float timestep)
 {
-	auto shader = GET_SINGLE(Resources)->Find<Shader>(L"TestShader");
-	auto rect = GET_SINGLE(Resources)->Find<Mesh>(L"RectMesh");
-
+	auto shader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
+	auto Lcosahedron = GET_SINGLE(Resources)->Find<Mesh>(L"Lcosahedron");
 	shader->BindShader();
-
-	rect->BindBuffer();
-	rect->Render();
 
 	Cam->Update();
 
-	sphSystem->update(deltaTime);
-	//sphSystem->draw(Cam->GetViewProjectMtx());
+	TransformCB trCB;
 
-	Matrix::CreateTranslation(0, 0, 0);
+	trCB.world = Matrix::Identity;
+	trCB.view = Matrix::Identity;
+	trCB.projection = Cam->GetViewProjectionMatrix();
+
+	shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
+	cb->SetData(&trCB);
+	cb->SetPipline(ShaderStage::VS);
+
+	Lcosahedron->BindBuffer();
+	Lcosahedron->Render();
+
+	//sphSystem->update(deltaTime);
+	//sphSystem->draw(Cam->GetViewProjectMtx());
 }
 
 void SY::TestLayer::OnImGuiRender()

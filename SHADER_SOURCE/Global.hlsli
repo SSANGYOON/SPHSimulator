@@ -1,15 +1,18 @@
 struct VSIn
 {
-	float4 Pos : Position;
-	float4 Color : Color;
+	float3 Pos : POSITION;
     float2 UV : UV;
+    float3 Normal : NORMAL;
+	float4 Color : COLOR;
+    
 };
 
 struct VSOut
 {
     float4 Pos : SV_Position;
-    float4 WorldPos : POSITION;
+    float3 WorldPos : POSITION;
     float4 Color : Color;
+    float3 Normal : NORMAL;
     float2 UV : TEXCOORD;
 };
 

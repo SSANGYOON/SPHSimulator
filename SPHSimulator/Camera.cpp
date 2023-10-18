@@ -9,14 +9,22 @@ Camera::Camera()
 void Camera::Update()
 {
 	Matrix world = Matrix::Identity;
-	world._32 = -Distance;
+	world._43 = Distance;
 	world = Matrix::CreateRotationY(-Azimuth) * Matrix::CreateRotationX(-Incline) * world;
 
+	Vector4 t = { 0, 0, 0, 1 };
+	
 	Matrix view = world.Invert();
-	Matrix project = Matrix::CreatePerspectiveFieldOfViewLH(FOV, Aspect, NearClip, FarClip);
+
+	Vector4 v = Vector4::Transform(t, view);
+	Matrix project = ::XMMatrixPerspectiveFovLH(FOV, Aspect, NearClip, FarClip);
 
 
-	ViewProjectionMatrix = project * view;
+	ViewProjectionMatrix = view * project;
+	Vector4 r = Vector4::Transform(t, ViewProjectionMatrix);
+
+	int a = 0;
+
 }
 
 void Camera::Reset()
@@ -26,7 +34,7 @@ void Camera::Reset()
 	NearClip = 0.1f;
 	FarClip = 100.f;
 
-	Distance = 10.0f;
+	Distance = -10.0f;
 	Azimuth = 0.0f;
-	Incline = DirectX::XM_PIDIV2 / 9.0f;
+	Incline = 0; //DirectX::XM_PIDIV2 / 9.0f;
 }

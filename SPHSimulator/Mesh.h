@@ -3,9 +3,10 @@
 
 struct Vertex
 {
-	Vector4 pos;
-	Vector4 Color;
+	Vector3 pos;
 	Vector2 uv;
+	Vector3 normal;
+	Vector4 Color;
 };
 
 
@@ -31,4 +32,5 @@ private:
 	ComPtr<ID3D11Buffer> _vertexBuffer;
 	ComPtr<ID3D11Buffer> _indexBuffer;
 	UINT _indexes;
+	UINT _vertexes;
 };
