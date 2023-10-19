@@ -88,7 +88,7 @@ void SPHSystem::InitParticles()
     }
 
     particleBuffer = make_unique<StructuredBuffer>();
-    particleBuffer->Create(sizeof(Particle), 4096, particles,true, false);
+    particleBuffer->Create(sizeof(Particle), 4096, particles,true, true);
 
     hashcountedBuffer = make_unique<StructuredBuffer>();
     hashcountedBuffer->Create(sizeof(UINT), 4096, nullptr, true, false);
@@ -103,7 +103,15 @@ void SPHSystem::InitParticles()
     groupSumBuffer->Create(sizeof(UINT), 1024, nullptr, true, false);
 
     sortedResultBuffer = make_unique<StructuredBuffer>();
-    sortedResultBuffer->Create(sizeof(Particle), 4096, nullptr, true, false);
+    sortedResultBuffer->Create(sizeof(Particle), 4096, nullptr, true, true);
+
+    hashToParticleIndexTable = make_unique<StructuredBuffer>();
+    hashToParticleIndexTable->Create(sizeof(UINT), 4096, nullptr, true, false);
+}
+
+UINT SPHSystem::GetHashFromCell(int x, int y, int z)
+{
+    return (UINT)((x * 73856093) ^ (y * 19349663) ^ (x * 83492791)) % 4093;
 }
 
 UINT SPHSystem::GetHashOnCPU(Particle& p)
@@ -111,6 +119,54 @@ UINT SPHSystem::GetHashOnCPU(Particle& p)
     Vector3 cell = p.position / settings.h;
 
     return (UINT)(((int)cell.x * 73856093) ^ ((int)cell.y * 19349663) ^ ((int)cell.x * 83492791)) % 4093;
+}
+
+void SPHSystem::CalculatePressreAndDensityOnCpu()
+{
+    const UINT NO_PARTICLE = 0xFFFFFFFF;
+    float massPoly6Product = settings.mass * settings.poly6;
+
+    for (size_t piIndex = 0; piIndex < 4036; piIndex++) {
+        float pDensity = 0;
+        Particle* pi = &CPUSortedParticle[piIndex];
+        Vector3 cell = pi->position / settings.h;
+
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    uint32_t cellHash = GetHashFromCell((int)cell.x + x, (int)cell.y + y, (int)cell.z + z);
+                    uint32_t pjIndex = CPUSortedParticle[cellHash].hash;
+                    if (pjIndex == NO_PARTICLE) {
+                        continue;
+                    }
+                    while (pjIndex < particleCount) {
+                        if (pjIndex == piIndex) {
+                            pjIndex++;
+                            continue;
+                        }
+                        Particle* pj = &particles[pjIndex];
+                        if (pj->hash != cellHash) {
+                            break;
+                        }
+                        float dist2 = (pj->position - pi->position).LengthSquared();
+                        if (dist2 < settings.h2) {
+                            pDensity += massPoly6Product
+                                * (settings.h2 - dist2, 3) * (settings.h2 - dist2, 3) * (settings.h2 - dist2, 3);
+                        }
+                        pjIndex++;
+                    }
+                }
+            }
+        }
+
+        // Include self density (as itself isn't included in neighbour)
+        pi->density = pDensity + settings.selfDens;
+
+        // Calculate pressure
+        float pPressure
+            = settings.gasConstant * (pi->density - settings.restDensity);
+        pi->pressure = pPressure;
+    }
 }
 
 SPHSystem::~SPHSystem()
@@ -123,15 +179,26 @@ void SPHSystem::update(float deltaTime)
 {
     //if (!started) return;
     // To increase system stability, a fixed deltaTime is set
-    deltaTime = 0.003f;
-    //updateParticles(sphereModelMtxs, deltaTime);
-    draw();
+    deltaTime = 0.003;
+    updateParticles(sphereModelMtxs, deltaTime);
 }
 
 void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
 {
     UINT groups = particleCount % 1024 > 0 ? ((particleCount >> 10) + 1) : (particleCount >> 10);
-    ParticleCB pcb = { particleCount , settings.h };
+    ParticleCB pcb = {};
+    pcb.particlesNum = particleCount;
+    pcb.radius = settings.h;
+    pcb.massPoly6Product = settings.massPoly6Product;
+    pcb.selfDens = settings.selfDens;
+    pcb.gasConstant = settings.gasConstant;
+    pcb.restDensity = settings.restDensity;
+    pcb.mass = settings.mass;
+    pcb.spikyGrad = settings.spikyGrad;
+    pcb.spikyLap = settings.spikyLap;
+    pcb.viscosity = settings.viscosity;
+    pcb.gravity = settings.g;
+    pcb.deltaTime = deltaTime;
 
     auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
 
@@ -166,12 +233,32 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
     sortedResultBuffer->BindUAV(5);
     countingSortCompleteShader->Dispatch();
 
-    //sortedResultBuffer->GetData(GPUSortedParticle);
-    /*for (int i = 0; i < 4096; i++)
-    {
-        HashResults[i] = GetHashOnCPU(GPUSortedParticle[i]);
-    }*/
+    //particleBuffer->Clear();
+    hashcountedBuffer->Clear();
+    offsetBuffer->Clear();
+    prefixSumBuffer->Clear();
+    groupSumBuffer->Clear();
+
+    auto createNeighborTableShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateNeighborTable");
+    createNeighborTableShader->SetThreadGroups(groups, 1, 1);
+    hashToParticleIndexTable->BindUAV(6);
+    createNeighborTableShader->Dispatch();
+
+    auto calculatePressureAndDensityShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculatePressureAndDensity");
+    calculatePressureAndDensityShader->SetThreadGroups(groups, 1, 1);
+    calculatePressureAndDensityShader->Dispatch();
+    sortedResultBuffer->GetData(GPUSortedParticle);
+    auto UpdateParticlePosition = GET_SINGLE(Resources)->Find<ComputeShader>(L"UpdateParticlePosition");
+    UpdateParticlePosition->SetThreadGroups(groups, 1, 1);
+    UpdateParticlePosition->Dispatch();
+
+    hashToParticleIndexTable->Clear();
+    sortedResultBuffer->Clear();
+    particleBuffer->Clear();
+
+    particleBuffer->GetData(GPUSortedParticle);
     //sphereModelMtxs
+    int a = 0;
 }
 
 void SPHSystem::draw()
@@ -189,6 +276,13 @@ void SPHSystem::draw()
     auto shader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
     auto Lcosahedron = GET_SINGLE(Resources)->Find<Mesh>(L"Lcosahedron");
     shader->BindShader();
+
+    Intances->Clear();
+    for (int i = 0; i < 4093; i++)
+    {
+        Matrix mat = Matrix::CreateScale(settings.h, settings.h, settings.h) * Matrix::CreateTranslation(GPUSortedParticle[i].position);
+        Intances->AddData(mat);
+    }
     
     Lcosahedron->RenderInstanced(Intances.get());
 }

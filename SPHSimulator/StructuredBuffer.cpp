@@ -73,14 +73,20 @@ void StructuredBuffer::BindUAV(UINT slot)
 
 void StructuredBuffer::Clear()
 {
-	ID3D11ShaderResourceView* srv = nullptr;
-	CONTEXT->VSSetShaderResources(_SRVSlot, 1, &srv);
-	CONTEXT->GSSetShaderResources(_SRVSlot, 1, &srv);
-	CONTEXT->PSSetShaderResources(_SRVSlot, 1, &srv);
+	if (_SRVSlot > -1)
+	{
+		ID3D11ShaderResourceView* srv = nullptr;
+		CONTEXT->VSSetShaderResources(_SRVSlot, 1, &srv);
+		CONTEXT->GSSetShaderResources(_SRVSlot, 1, &srv);
+		CONTEXT->PSSetShaderResources(_SRVSlot, 1, &srv);
+	}
 
-	ID3D11UnorderedAccessView* uav = nullptr;
-	UINT i = -1;
-	CONTEXT->CSSetUnorderedAccessViews(_UAVSlot, 1, &uav, &i);
+	if (_UAVSlot > -1)
+	{
+		ID3D11UnorderedAccessView* uav = nullptr;
+		UINT i = -1;
+		CONTEXT->CSSetUnorderedAccessViews(_UAVSlot, 1, &uav, &i);
+	}
 }
 
 void StructuredBuffer::setDiscription()

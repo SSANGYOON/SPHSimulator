@@ -35,6 +35,6 @@ void Camera::Reset()
 	FarClip = 100.f;
 
 	Distance = -10;
-	Azimuth = DirectX::XM_PIDIV2 / 9.0f;
-	Incline = DirectX::XM_PIDIV2 / 9.0f;
+	Azimuth = DirectX::XM_PIDIV2 / 4.0f;
+	Incline = DirectX::XM_PIDIV2 / 4.0f;
 }

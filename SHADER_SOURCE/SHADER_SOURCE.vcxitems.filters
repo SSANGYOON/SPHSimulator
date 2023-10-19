@@ -4,13 +4,15 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)BaseShader.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)CompleteCountingSort.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)CompletePrefixSum.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)ComputeDensityAndPressure.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateNeighborTable.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)Global_SPH.hlsli" />
     <FxCompile Include="$(MSBuildThisFileDirectory)CreateCountingBuffer.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)PrefixSumOnGroupSum.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)PrefixsumOnThreadGroup.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)TestShader.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)HardCoded3DShader.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)CalculatePressureAndDensity.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)UpdateParticlePosition.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Global.hlsli" />

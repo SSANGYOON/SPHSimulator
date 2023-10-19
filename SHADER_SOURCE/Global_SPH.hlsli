@@ -7,6 +7,8 @@ struct Particle
 	float density;
 	float3 velocity;
 	float pressure;
+	uint hash;
+	float3 particlePadding3;
 };
 
 RWStructuredBuffer<Particle> Particles : register(u0);
@@ -23,14 +25,28 @@ cbuffer ParticleSettings : register(b2)
 {
 	uint particlesNum;
 	float radius;
-	float2 PCBPadding;
+	float massPoly6Product;
+	float selfDens;
+	float gasConstant;
+	float restDensity;
+	float mass;
+	float spikyGrad;
+	float spikyLap;
+	float viscosity;
+	float gravity;
+	float deltaTime;
+}
+
+uint GetHash(int3 cell)
+{
+	return (uint)((cell.x * 73856093) ^ (cell.y * 19349663) ^ (cell.x * 83492791)) % TABLESIZE;
 }
 
 uint GetHashValueOfLocation(float3 position)
 {
 	int3 cell = position / radius;
 
-	return (uint)((cell.x * 73856093) ^ (cell.y * 19349663) ^ (cell.x * 83492791)) % TABLESIZE;
+	return GetHash(cell);
 }
 
 uint ExclusiveScan(uint gIdx, uint gId)

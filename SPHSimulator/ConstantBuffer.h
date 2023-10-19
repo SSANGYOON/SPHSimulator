@@ -30,7 +30,16 @@ CBUFFER(ParticleCB, CBSLOT_PARTICLE)
 {
 	UINT particlesNum;
 	float radius;
-	float padding[2];
+	float massPoly6Product;
+	float selfDens;
+	float gasConstant;
+	float restDensity;
+	float mass;
+	float spikyGrad;
+	float spikyLap;
+	float viscosity;
+	float gravity;
+	float deltaTime;
 };
 
 struct alignas(16) LightInfo

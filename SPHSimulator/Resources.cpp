@@ -210,4 +210,22 @@ void Resources::CreateDefaultResource()
 	Resources::Insert<ComputeShader>(L"CompleteCountingSort", CountingSortCompletShader);
 	CountingSortCompletShader->Create(L"CompleteCountingSort.hlsl");
 #pragma endregion
+
+#pragma region CreateNeighborTable
+	shared_ptr<ComputeShader> CreateNeighborTable = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CreateNeighborTable", CreateNeighborTable);
+	CreateNeighborTable->Create(L"CreateNeighborTable.hlsl");
+#pragma endregion
+
+#pragma region CalculatePressureAndDensity
+	shared_ptr<ComputeShader> CalculatePressureAndDensity = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CalculatePressureAndDensity", CalculatePressureAndDensity);
+	CalculatePressureAndDensity->Create(L"CalculatePressureAndDensity.hlsl");
+#pragma endregion
+
+#pragma region UpdateParticlePosition
+	shared_ptr<ComputeShader> UpdateParticlePosition = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"UpdateParticlePosition", UpdateParticlePosition);
+	UpdateParticlePosition->Create(L"UpdateParticlePosition.hlsl");
+#pragma endregion
 }

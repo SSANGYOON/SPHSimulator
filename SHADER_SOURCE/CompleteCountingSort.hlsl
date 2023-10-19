@@ -7,9 +7,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadID :
 	if (DId < particlesNum)
 	{
 		Particle r = Particles[DId];
-
-		uint hash = GetHashValueOfLocation(r.position);
 		uint original = 0;
-		sortedResult[prefixSum[hash] + Offsets[DId]] = r;
+		sortedResult[prefixSum[r.hash] + Offsets[DId]] = r;
 	}
 }

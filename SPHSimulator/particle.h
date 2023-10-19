@@ -8,4 +8,6 @@ struct Particle
     float density;
     Vector3 velocity;
     float pressure;
+    UINT hash;
+    Vector3 pariclePadding3;
 };

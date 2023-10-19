@@ -38,8 +38,8 @@ private:
 	UINT _size;
 	UINT _stride;
 
-	UINT _SRVSlot;
-	UINT _UAVSlot;
+	UINT _SRVSlot = -1;
+	UINT _UAVSlot = -1;
 
 	bool _asUAV;
 	bool _readable;
