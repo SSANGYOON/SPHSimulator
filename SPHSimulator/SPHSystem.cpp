@@ -6,8 +6,11 @@
 #include "StructuredBuffer.h"
 #include "Resources.h"
 #include "ComputeShader.h"
+#include "Shader.h"
 #include "ConstantBuffer.h"
 #include "Graphics.h"
+#include "Camera.h"
+#include "InstancingBuffer.h"
 
 SPHSettings::SPHSettings(
     float mass, float restDensity, float gasConst, float viscosity, float h,
@@ -41,11 +44,16 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     //sphere = new Geometry("resources/lowsphere.obj");
     sphereModelMtxs = new Matrix[MaxParticle];
 
+    Cam = make_unique<Camera>();
+    Cam->Update();
+
     InitParticles();
 }
 
 void SPHSystem::InitParticles()
 {
+    Intances = make_unique<InstancingBuffer>();
+
     std::srand(1024);
     float particleSeperation = settings.h + 0.01f;
     for (int i = 0; i < particleCubeWidth; i++) {
@@ -63,7 +71,7 @@ void SPHSystem::InitParticles()
                 Vector3 nParticlePos = Vector3(
                     i * particleSeperation + ranX - 1.5f,
                     j * particleSeperation + ranY + settings.h + 0.1f,
-                    k * particleSeperation + ranZ - 1.5f);
+                    k * particleSeperation + ranZ + 1.5f);
 
                 size_t particleIndex
                     = i + (j + particleCubeWidth * k) * particleCubeWidth;
@@ -72,7 +80,9 @@ void SPHSystem::InitParticles()
                 particle->velocity = Vector3::Zero;
 
                 sphereModelMtxs[particleIndex]
-                    = Matrix::CreateTranslation(particle->position) * settings.sphereScale;
+                    = Matrix::CreateScale(settings.h, settings.h, settings.h) * Matrix::CreateTranslation(particle->position);
+
+                Intances->AddData(sphereModelMtxs[particleIndex]);
             }
         }
     }
@@ -93,7 +103,7 @@ void SPHSystem::InitParticles()
     groupSumBuffer->Create(sizeof(UINT), 1024, nullptr, true, false);
 
     sortedResultBuffer = make_unique<StructuredBuffer>();
-    sortedResultBuffer->Create(sizeof(Particle), 4096, nullptr, true, true);
+    sortedResultBuffer->Create(sizeof(Particle), 4096, nullptr, true, false);
 }
 
 UINT SPHSystem::GetHashOnCPU(Particle& p)
@@ -114,7 +124,8 @@ void SPHSystem::update(float deltaTime)
     //if (!started) return;
     // To increase system stability, a fixed deltaTime is set
     deltaTime = 0.003f;
-    updateParticles(sphereModelMtxs, deltaTime);
+    //updateParticles(sphereModelMtxs, deltaTime);
+    draw();
 }
 
 void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
@@ -155,16 +166,31 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
     sortedResultBuffer->BindUAV(5);
     countingSortCompleteShader->Dispatch();
 
-    /*sortedResultBuffer->GetData(GPUSortedParticle);
-    for (int i = 0; i < 4096; i++)
+    //sortedResultBuffer->GetData(GPUSortedParticle);
+    /*for (int i = 0; i < 4096; i++)
     {
         HashResults[i] = GetHashOnCPU(GPUSortedParticle[i]);
     }*/
+    //sphereModelMtxs
 }
 
 void SPHSystem::draw()
 {
+    TransformCB trCB;
 
+    trCB.world = Matrix::Identity;
+    trCB.view = Matrix::Identity;
+    trCB.projection = Cam->GetViewProjectionMatrix();
+
+    shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
+    cb->SetData(&trCB);
+    cb->SetPipline(ShaderStage::VS);
+
+    auto shader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
+    auto Lcosahedron = GET_SINGLE(Resources)->Find<Mesh>(L"Lcosahedron");
+    shader->BindShader();
+    
+    Lcosahedron->RenderInstanced(Intances.get());
 }
 
 void SPHSystem::reset() {
@@ -174,4 +200,9 @@ void SPHSystem::reset() {
 
 void SPHSystem::startSimulation() {
     started = true;
+}
+
+void SPHSystem::ResizeRatio(float width, float height)
+{
+    Cam->SetAspect(width / height);
 }

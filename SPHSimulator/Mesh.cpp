@@ -3,6 +3,7 @@
 #include "Graphics.h"
 #include <fstream>
 #include <sstream>
+#include "InstancingBuffer.h"
 
 Mesh::Mesh()
 	:Resource(RESOURCE_TYPE::MESH)
@@ -178,4 +179,19 @@ void Mesh::Render()
 		CONTEXT->DrawIndexed(_indexes, 0, 0);
 	else
 		CONTEXT->Draw(_vertexes,0);
+}
+
+void Mesh::RenderInstanced(InstancingBuffer* instances)
+{
+	if (!_indexBuffer)
+	{
+		instances->PushData();
+
+		UINT stride[] = { sizeof(Vertex), sizeof(Matrix) };
+		UINT offset[] = { 0, 0 };
+
+		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
+		CONTEXT->IASetVertexBuffers(0, 2, views, stride, offset);
+		CONTEXT->DrawInstanced(_vertexes, instances->GetCount(), 0, 0);
+	}
 }

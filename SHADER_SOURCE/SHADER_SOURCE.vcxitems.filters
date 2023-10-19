@@ -15,9 +15,4 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Global.hlsli" />
   </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Mesh">
-      <UniqueIdentifier>{805332cd-1b13-463a-b914-387cd2f3631c}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
 </Project>

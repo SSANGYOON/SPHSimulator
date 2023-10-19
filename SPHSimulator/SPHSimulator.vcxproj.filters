@@ -84,6 +84,9 @@
     <Filter Include="src\Simulator">
       <UniqueIdentifier>{83370225-6312-4945-8a32-3535f519ac5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Buffers\InstancingBuffer">
+      <UniqueIdentifier>{42b7264c-f112-42c5-8a74-575ba02f6875}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -221,6 +224,9 @@
     <ClInclude Include="Camera.h">
       <Filter>src\Camera</Filter>
     </ClInclude>
+    <ClInclude Include="InstancingBuffer.h">
+      <Filter>src\Buffers\InstancingBuffer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -327,6 +333,9 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>src\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="InstancingBuffer.cpp">
+      <Filter>src\Buffers\InstancingBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

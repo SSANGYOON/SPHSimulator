@@ -13,6 +13,7 @@ struct SPHSettings
 };
 
 class StructuredBuffer;
+class InstancingBuffer;
 class SPHSystem
 {
 public:
@@ -29,17 +30,19 @@ public:
 
 	void reset();
 	void startSimulation();
-
+	void ResizeRatio(float width, float height);
 	UINT MaxParticle = 1 << 18;
 
 private:
 	SPHSettings settings;
 	size_t particleCubeWidth;
+	unique_ptr<class Camera> Cam;
 
 	bool started;
 	void InitParticles();
 	shared_ptr<class Mesh> sphere;
 	Matrix* sphereModelMtxs;
+	unique_ptr<InstancingBuffer> Intances;
 
 	unique_ptr<StructuredBuffer> particleBuffer;
 	unique_ptr<StructuredBuffer> hashcountedBuffer;

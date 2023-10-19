@@ -9,7 +9,7 @@ struct Vertex
 	Vector4 Color;
 };
 
-
+class InstancingBuffer;
 class Mesh : public Resource
 {
 public:
@@ -27,6 +27,7 @@ public:
 	void SetIndexSize(UINT index) { _indexes = 0; }
 	void BindBuffer();
 	void Render();
+	void RenderInstanced(InstancingBuffer* instances);
 
 private:
 	ComPtr<ID3D11Buffer> _vertexBuffer;

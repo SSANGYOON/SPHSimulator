@@ -60,10 +60,10 @@ void SY::TestLayer::OnAttach()
 	sortedResultBuffer = make_unique<StructuredBuffer>();
 	sortedResultBuffer->Create(sizeof(UINT32), 2048, nullptr, true, true);*/
 
-	Cam = make_unique<Camera>();
+	
 
-	//SPHSettings sphSettings(0.02f, 1000, 1, 1.04, 0.15f, -9.8f, 0.2f);
-	//sphSystem = new SPHSystem(15, sphSettings);
+	SPHSettings sphSettings(0.02f, 1000, 1, 1.04, 0.15f, -9.8f, 0.2f);
+	sphSystem = new SPHSystem(15, sphSettings);
 }
 
 void SY::TestLayer::OnDetach()
@@ -73,27 +73,9 @@ void SY::TestLayer::OnDetach()
 
 void SY::TestLayer::OnUpdate(float timestep)
 {
-	auto shader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
-	auto Lcosahedron = GET_SINGLE(Resources)->Find<Mesh>(L"Lcosahedron");
-	shader->BindShader();
-
-	Cam->Update();
-
-	TransformCB trCB;
-
-	trCB.world = Matrix::Identity;
-	trCB.view = Matrix::Identity;
-	trCB.projection = Cam->GetViewProjectionMatrix();
-
-	shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
-	cb->SetData(&trCB);
-	cb->SetPipline(ShaderStage::VS);
-
-	Lcosahedron->BindBuffer();
-	Lcosahedron->Render();
 
 	//sphSystem->update(deltaTime);
-	//sphSystem->draw(Cam->GetViewProjectMtx());
+	sphSystem->draw();
 }
 
 void SY::TestLayer::OnImGuiRender()
@@ -135,6 +117,6 @@ void SY::TestLayer::OnEvent(Event& e)
 
 bool SY::TestLayer::OnWindowResize(WindowResizeEvent& e)
 {
-	Cam->SetAspect(e.GetWidth() / e.GetHeight());
+	sphSystem->ResizeRatio(e.GetWidth(), e.GetHeight());
 	return false;
 }

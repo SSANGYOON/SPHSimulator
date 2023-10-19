@@ -161,7 +161,7 @@ void Resources::CreateDefaultResource()
 		_entry = {};
 		_entry.VS = true;
 		_entry.PS = true;
-		HardCoded3DShader->CreateShader(_info, _entry, L"HardCoded3DShader.hlsl");
+		HardCoded3DShader->CreateShader(_info, _entry, L"HardCoded3DShader.hlsl", false);
 	}
 #pragma endregion
 

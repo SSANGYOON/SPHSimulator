@@ -21,7 +21,6 @@ namespace SY {
 		bool OnWindowResize(WindowResizeEvent& e);
 
 	private:
-		unique_ptr<Camera> Cam;
 		class SPHSystem* sphSystem;
 
 		int prevTime, currentTime;

@@ -3,8 +3,17 @@ struct VSIn
 	float3 Pos : POSITION;
     float2 UV : UV;
     float3 Normal : NORMAL;
-	float4 Color : COLOR;
-    
+	float4 Color : COLOR; 
+};
+
+struct ParticleVSIn
+{
+    float3 Pos : POSITION;
+    float2 UV : UV;
+    float3 Normal : NORMAL;
+    float4 Color : COLOR;
+
+    row_major matrix matW : W;
 };
 
 struct VSOut

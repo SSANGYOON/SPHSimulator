@@ -177,6 +177,7 @@
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImguiLayer.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="InstancingBuffer.h" />
     <ClInclude Include="KeyEvent.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LayerStack.h" />
@@ -257,6 +258,7 @@
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImguiLayer.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="InstancingBuffer.cpp" />
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="LayerStack.cpp" />
     <ClCompile Include="Mesh.cpp" />
