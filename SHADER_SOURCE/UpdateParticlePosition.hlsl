@@ -54,7 +54,7 @@ void CS_MAIN( uint3 DispatchThreadID : SV_DispatchThreadID )
 		}
 	}
 
-	float boxWidth = 8.f;
+	float boxWidth = 4.f;
 	float elasticity = 0.5f;
 
 
