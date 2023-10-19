@@ -35,6 +35,10 @@ parallel sort 알고리즘 구현(파티클이 속한 셀에 있는 다른 파�
 #### 10/18 : 
 파티클을 GPU에서 해시값으로 정렬, 정렬된 해시값에서 이웃한 파티클 목록를 구하는 기능 구현
 
+#### 10/19
+인스턴싱을 이용한 파티클 렌더링 쉐이더 코드 작성
+<img src="./Images/ParticleInstanced.png">
+
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
