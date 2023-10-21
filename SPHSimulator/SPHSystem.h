@@ -45,18 +45,16 @@ private:
 	unique_ptr<InstancingBuffer> Intances;
 
 	unique_ptr<StructuredBuffer> particleBuffer;
-	unique_ptr<StructuredBuffer> hashcountedBuffer;
-	unique_ptr<StructuredBuffer> offsetBuffer;
-	unique_ptr<StructuredBuffer> prefixSumBuffer;
-	unique_ptr<StructuredBuffer> groupSumBuffer;
-	unique_ptr<StructuredBuffer> sortedResultBuffer;
+	//unique_ptr<StructuredBuffer> hashcountedBuffer;
+	//unique_ptr<StructuredBuffer> offsetBuffer;
+	//unique_ptr<StructuredBuffer> prefixSumBuffer;
+	//unique_ptr<StructuredBuffer> groupSumBuffer;
+	//unique_ptr<StructuredBuffer> sortedResultBuffer;
 	unique_ptr<StructuredBuffer> hashToParticleIndexTable;
 
 	Particle GPUSortedParticle[4096];
-	Particle CPUSortedParticle[4096];
 	UINT NeighborTable[4096];
 
 	UINT GetHashFromCell(int x, int y, int z);
 	UINT GetHashOnCPU(Particle& p);
-	void CalculatePressreAndDensityOnCpu();
 };

@@ -1,5 +1,5 @@
 const static uint GroupThreadNum = 1024;
-const static uint TABLESIZE = 4093; //262139;
+const static uint TABLESIZE = 4096; //262139;
 const static uint NO_PARTICLE = 0xFFFFFFFF;
 struct Particle
 {
@@ -8,16 +8,11 @@ struct Particle
 	float3 velocity;
 	float pressure;
 	uint hash;
-	float3 particlePadding3;
+	float3 force;
 };
 
 RWStructuredBuffer<Particle> Particles : register(u0);
-RWStructuredBuffer<uint> CountedHash : register(u1);
-RWStructuredBuffer<uint> Offsets : register(u2);
-RWStructuredBuffer<uint> prefixSum : register(u3);
-RWStructuredBuffer<uint> groupSum : register(u4);
-RWStructuredBuffer<Particle> sortedResult : register(u5);
-RWStructuredBuffer<uint> neighborTable : register(u6);
+RWStructuredBuffer<uint> neighborTable : register(u1);
 
 groupshared uint LocalPrefixSum[GroupThreadNum];
 
@@ -35,6 +30,12 @@ cbuffer ParticleSettings : register(b2)
 	float viscosity;
 	float gravity;
 	float deltaTime;
+}
+
+cbuffer ParticleSort : register(b3)
+{
+	uint j;
+	uint k;
 }
 
 uint GetHash(int3 cell)

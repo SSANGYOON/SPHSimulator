@@ -6,6 +6,7 @@
 #define CBSLOT_TRANSFORM 0
 #define CBSLOT_MATERIAL 1
 #define CBSLOT_PARTICLE 2
+#define CBSLOT_PARTICLESORT 3
 
 #include "Enums.h"
 
@@ -14,6 +15,7 @@ enum class Constantbuffer_Type : UINT8
 	TRANSFORM,
 	MATERIAL,
 	PARTICLE,
+	PARTICLESORT,
 	END
 };
 
@@ -40,6 +42,12 @@ CBUFFER(ParticleCB, CBSLOT_PARTICLE)
 	float viscosity;
 	float gravity;
 	float deltaTime;
+};
+
+CBUFFER(ParticleSortCB, CBSLOT_PARTICLESORT)
+{
+	UINT j;
+	UINT k;
 };
 
 struct alignas(16) LightInfo

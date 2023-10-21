@@ -181,34 +181,16 @@ void Resources::CreateDefaultResource()
 	TestShader->CreateShader(_info, _entry, L"TestShader.hlsl");
 #pragma endregion
 
-#pragma region CountingShader
-	shared_ptr<ComputeShader> CountingShader = std::make_shared<ComputeShader>();
-	Resources::Insert<ComputeShader>(L"CountingShader", CountingShader);
-	CountingShader->Create(L"CreateCountingBuffer.hlsl");
+#pragma region CalculateHash
+	shared_ptr<ComputeShader> CalculateHash = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CalculateHashShader", CalculateHash);
+	CalculateHash->Create(L"CreateHash.hlsl");
 #pragma endregion
 
-#pragma region PrefixSumOnThreadGroup
-	shared_ptr<ComputeShader> PrefixSumOnThreadGroupShader = std::make_shared<ComputeShader>();
-	Resources::Insert<ComputeShader>(L"PrefixSumOnThreadGroupShader", PrefixSumOnThreadGroupShader);
-	PrefixSumOnThreadGroupShader->Create(L"PrefixSumOnThreadGroup.hlsl");
-#pragma endregion
-
-#pragma region PrefixSumOnGroupSum
-	shared_ptr<ComputeShader> PrefixSumOnGroupSum = std::make_shared<ComputeShader>();
-	Resources::Insert<ComputeShader>(L"PrefixSumOnGroupSumShader", PrefixSumOnGroupSum);
-	PrefixSumOnGroupSum->Create(L"PrefixSumOnGroupSum.hlsl");
-#pragma endregion
-
-#pragma region PrefixSumComplete
-	shared_ptr<ComputeShader> PrefixSumComplete = std::make_shared<ComputeShader>();
-	Resources::Insert<ComputeShader>(L"PrefixSumCompleteShader", PrefixSumComplete);
-	PrefixSumComplete->Create(L"CompletePrefixSum.hlsl");
-#pragma endregion
-
-#pragma region CountingSortComplete
-	shared_ptr<ComputeShader> CountingSortCompletShader = std::make_shared<ComputeShader>();
-	Resources::Insert<ComputeShader>(L"CompleteCountingSort", CountingSortCompletShader);
-	CountingSortCompletShader->Create(L"CompleteCountingSort.hlsl");
+#pragma region BitonicSortShader
+	shared_ptr<ComputeShader> BitonicSortShader = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"BitonicSortShader", BitonicSortShader);
+	BitonicSortShader->Create(L"BitonicSort.hlsl");
 #pragma endregion
 
 #pragma region CreateNeighborTable
@@ -221,6 +203,12 @@ void Resources::CreateDefaultResource()
 	shared_ptr<ComputeShader> CalculatePressureAndDensity = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"CalculatePressureAndDensity", CalculatePressureAndDensity);
 	CalculatePressureAndDensity->Create(L"CalculatePressureAndDensity.hlsl");
+#pragma endregion
+
+#pragma region CalculateForce
+	shared_ptr<ComputeShader> CalculateForce = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CalculateForceShader", CalculateForce);
+	CalculateForce->Create(L"CalculateForce.hlsl");
 #pragma endregion
 
 #pragma region UpdateParticlePosition

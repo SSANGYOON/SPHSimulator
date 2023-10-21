@@ -8,7 +8,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
     Particle p;
     if (DId < particlesNum)
     {
-        Particle pi = sortedResult[DId];
+        Particle pi = Particles[DId];
 
         int3 cell = pi.position / radius;
 
@@ -30,7 +30,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                             pjIndex++;
                             continue;
                         }
-                        Particle pj = sortedResult[pjIndex];
+                        Particle pj = Particles[pjIndex];
                         if (pj.hash != cellHash) {
                             break;
                         }
@@ -52,7 +52,8 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
         // Calculate pressure
         float pPressure = gasConstant * (pi.density - restDensity);
         pi.pressure = pPressure;
-        sortedResult[DId] = pi;
+        
+        Particles[DId] = pi;
     }
     else
     {

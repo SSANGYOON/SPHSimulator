@@ -9,5 +9,5 @@ struct Particle
     Vector3 velocity;
     float pressure;
     UINT hash;
-    Vector3 pariclePadding3;
+    Vector3 force;
 };

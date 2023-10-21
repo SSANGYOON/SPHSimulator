@@ -75,6 +75,9 @@ HRESULT Graphics::Init(const WindowInfo& info)
 	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLE] = make_shared<ConstantBuffer>();
 	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLE]->Init(Constantbuffer_Type::PARTICLE, sizeof(ParticleCB));
 
+	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLESORT] = make_shared<ConstantBuffer>();
+	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLESORT]->Init(Constantbuffer_Type::PARTICLESORT, sizeof(ParticleSortCB));
+
 	BindSwapChain();
 
 	return S_OK;

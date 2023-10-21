@@ -13,6 +13,9 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)HardCoded3DShader.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)CalculatePressureAndDensity.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)UpdateParticlePosition.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)BitonicSort.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateHash.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)CalculateForce.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Global.hlsli" />
