@@ -58,7 +58,7 @@
 * 마우스 입력을 통한 카메라 줌인, 줌 아웃 및 카메라 회전 기능 구현
 * 키 입력을 통한 시뮬레이션 시작 정지 기능 구현
 * 적은 수의 큰 입자들을 긴 deltatime으로 시뮬레이션하면 마치 폭발하듯 튀는 것을 확인함 일단은 고정된 deltatime(0.003s)로 시뮬레이션
-
+* Morton을 사용하는 sph 논문(https://maverick.inria.fr/~Prashant.Goswami/Research/Papers/SCA10_SPH.pdf)도 읽어봤지만 결국엔 같은 인덱스(해시값 혹은 Z-indices)를 가지는 파티클들을 배열에서 모아야 되기 때문에 똑같이 sorting을 사용하는 것으로 확인 
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
