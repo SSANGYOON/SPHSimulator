@@ -38,7 +38,7 @@
 * Counting sort 알고리즘 구현(파티클이 속한 셀에 있는 다른 파티클들을 찾기 위해 모든 파티클들의 배열을 해시값으로 정렬)
 * 간단한 파티클의 속성을 결정하는 UI 구현(기능 미구현)
 
-<img src="./Images/ParticlePropertyUI.png">
+<img src="./Images/ParticleFall.gif">
 
 #### 10/18 : 
 * 파티클을 GPU에서 해시값으로 정렬, 정렬된 해시값에서 이웃한 파티클 목록를 구하는 기능 구현
