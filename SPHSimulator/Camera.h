@@ -21,11 +21,11 @@ private:
 
 public:
 	inline void SetAspect(float a) { Aspect = a; }
-	inline void SetDistance(float d) { Distance = d; }
+	inline void SetDistance(float d) { Distance = -d; }
 	inline void SetAzimuth(float a) { Azimuth = a; }
 	inline void SetIncline(float i) { Incline = i; }
 
-	inline float GetDistance() { return Distance; };
+	inline float GetDistance() { return -Distance; };
 	inline float GetAzimuth() { return Azimuth; }
 	inline float GetIncline() { return Incline; }
 

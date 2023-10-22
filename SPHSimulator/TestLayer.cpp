@@ -8,10 +8,10 @@
 #include <random>
 #include <algorithm>
 
-#include "Camera.h"
 #include "SPHSystem.h"
 #include "ConstantBuffer.h"
 #include "Graphics.h"
+#include <algorithm>
 
 SY::TestLayer::TestLayer()
 {
@@ -25,6 +25,7 @@ void SY::TestLayer::OnAttach()
 {
 	SPHSettings sphSettings(0.02f, 1000, 1, 1.04, 0.15f, -9.8, 0.2f);
 	sphSystem = new SPHSystem(15, sphSettings);
+	Cam = make_unique<Camera>();
 }
 
 void SY::TestLayer::OnDetach()
@@ -34,9 +35,9 @@ void SY::TestLayer::OnDetach()
 
 void SY::TestLayer::OnUpdate(float timestep)
 {
-
+	Cam->Update();
 	sphSystem->update(timestep);
-	sphSystem->draw();
+	sphSystem->draw(Cam.get());
 }
 
 void SY::TestLayer::OnImGuiRender()
@@ -64,6 +65,9 @@ void SY::TestLayer::OnImGuiRender()
 		delete sphSystem;
 		SPHSettings sphSettings(nMass, nRest, gasConst, nVisco, nh, -9.8, 1.f);
 		sphSystem = new SPHSystem(numParticles, sphSettings);
+		Cam->SetAspect(WinX / WinY);
+		Cam->SetAzimuth(0);
+		Cam->SetIncline(0);
 	}
 
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -74,10 +78,65 @@ void SY::TestLayer::OnEvent(Event& e)
 {
 	EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(TestLayer::OnWindowResize));
+	dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(TestLayer::OnKeyEvent));
+	dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(TestLayer::OnMouseMoved));
 }
 
 bool SY::TestLayer::OnWindowResize(WindowResizeEvent& e)
 {
-	sphSystem->ResizeRatio(e.GetWidth(), e.GetHeight());
+	WinX = e.GetWidth();
+	WinY = e.GetHeight();
+	Cam->SetAspect(WinX / WinY);
 	return false;
+}
+
+bool SY::TestLayer::OnKeyEvent(KeyPressedEvent& e)
+{
+	switch (e.GetKeyCode()) {
+	case KEY_TYPE::C:		// Escape
+		sphSystem->startSimulation();
+		break;
+	case KEY_TYPE::R:
+		Cam->Reset();
+		Cam->SetAspect(float(WinX) / float(WinY));
+		sphSystem->reset();
+		break;
+	case KEY_TYPE::ESCAPE:
+		GEngine->Quit();
+		break;
+	}
+	return false;
+}
+
+bool SY::TestLayer::OnMouseMoved(MouseMovedEvent& e)
+{
+	int nx = (int)e.GetX();
+	int ny = (int)e.GetY();
+
+	int maxDelta = 100;
+
+
+	int dx = std::clamp(nx - MouseX, -maxDelta, maxDelta);
+	int dy = std::clamp(-(ny - MouseY), -maxDelta, maxDelta);
+
+	MouseX = nx;
+	MouseY = ny;
+
+	bool LeftDown = INPUT->GetKeyState(KEY_TYPE::LBUTTON) == KEY_STATE::PRESS;
+	bool RightDown = INPUT->GetKeyState(KEY_TYPE::RBUTTON) == KEY_STATE::PRESS;
+
+	// Move camera
+	// NOTE: this should really be part of Camera::Update()
+	if (LeftDown) {
+		const float rate = XM_PIDIV2 / 90;
+		Cam->SetAzimuth(Cam->GetAzimuth() + dx * rate);
+		Cam->SetIncline(clamp(Cam->GetIncline() - dy * rate, -XM_PIDIV2, XM_PIDIV2));
+	}
+	if (RightDown) {
+		const float rate = 0.005f;
+		float dist = clamp(Cam->GetDistance() * (1.0f - dx * rate), 0.01f, 1000.0f);
+		Cam->SetDistance(dist);
+	}
+
+	return true;
 }

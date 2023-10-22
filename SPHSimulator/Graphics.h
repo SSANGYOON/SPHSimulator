@@ -37,6 +37,8 @@ public:
 	void BindSwapChain();
 	void ClearSwapChain();
 
+	void Quit();
+
 public:
 	HRESULT CreateRenderTargetGroup();
 	IFW1FontWrapper* mFontWrapper;

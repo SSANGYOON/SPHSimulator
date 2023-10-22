@@ -26,17 +26,16 @@ public:
 	void update(float deltaTime);
 	void updateParticles(Matrix* sphereModelMtxs, float deltaTime);
 
-	void draw();
+	void draw(class Camera* Cam);
 
 	void reset();
 	void startSimulation();
-	void ResizeRatio(float width, float height);
 	UINT MaxParticle = 1 << 18;
 
 private:
 	SPHSettings settings;
 	size_t particleCubeWidth;
-	unique_ptr<class Camera> Cam;
+	
 
 	bool started;
 	void InitParticles();
@@ -54,6 +53,9 @@ private:
 
 	Particle GPUSortedParticle[4096];
 	UINT NeighborTable[4096];
+
+	float WinX = 4;
+	float WinY = 3;
 
 	UINT GetHashFromCell(int x, int y, int z);
 	UINT GetHashOnCPU(Particle& p);

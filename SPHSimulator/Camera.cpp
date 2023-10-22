@@ -22,9 +22,6 @@ void Camera::Update()
 
 	ViewProjectionMatrix = view * project;
 	Vector4 r = Vector4::Transform(t, ViewProjectionMatrix);
-
-	int a = 0;
-
 }
 
 void Camera::Reset()
@@ -36,5 +33,5 @@ void Camera::Reset()
 
 	Distance = -10;
 	Azimuth = 0;
-	Incline = DirectX::XM_PIDIV2 / 9.0f;
+	Incline = 0;
 }

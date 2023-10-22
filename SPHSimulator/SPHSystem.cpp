@@ -44,9 +44,6 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     //sphere = new Geometry("resources/lowsphere.obj");
     sphereModelMtxs = new Matrix[MaxParticle];
 
-    Cam = make_unique<Camera>();
-    Cam->Update();
-
     InitParticles();
 }
 
@@ -114,7 +111,7 @@ SPHSystem::~SPHSystem()
 
 void SPHSystem::update(float deltaTime)
 {
-    //if (!started) return;
+    if (!started) return;
     // To increase system stability, a fixed deltaTime is set
     deltaTime = 0.003;
     updateParticles(sphereModelMtxs, deltaTime);
@@ -122,6 +119,7 @@ void SPHSystem::update(float deltaTime)
 
 void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
 {
+
     UINT groups = particleCount % 1024 > 0 ? ((particleCount >> 10) + 1) : (particleCount >> 10);
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
@@ -146,8 +144,6 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
     CalculateHashShader->SetThreadGroups(groups, 1, 1);
     particleBuffer->BindUAV(0);
     CalculateHashShader->Dispatch();
-
-
 
     auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
     BitonicSortShader->SetThreadGroups(groups, 1, 1);
@@ -190,7 +186,7 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
     particleBuffer->GetData(GPUSortedParticle);
 }
 
-void SPHSystem::draw()
+void SPHSystem::draw(Camera* Cam)
 {
     TransformCB trCB;
 
@@ -223,9 +219,4 @@ void SPHSystem::reset() {
 
 void SPHSystem::startSimulation() {
     started = true;
-}
-
-void SPHSystem::ResizeRatio(float width, float height)
-{
-    Cam->SetAspect(width / height);
 }

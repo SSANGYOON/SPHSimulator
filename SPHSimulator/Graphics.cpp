@@ -112,3 +112,8 @@ void Graphics::ClearSwapChain()
 
 	CONTEXT->ClearDepthStencilView(_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 }
+
+void Graphics::Quit()
+{
+	SendMessage(_window.hwnd, WM_CLOSE,0,0);
+}
