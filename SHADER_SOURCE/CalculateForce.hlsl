@@ -45,8 +45,10 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 						force += pressureForce;
 
 						//apply viscosity force
-						float3 velocityDif = pj.velocity - pi.velocity;
-						float3 viscoForce = viscosity * mass * (velocityDif / pj.density) * spikyLap * (radius - dist);
+						float3 velocityDiff = pj.velocity - pi.velocity;
+
+						float3 viscoForce = 2 * viscosity * mass * velocityDiff / pj.density 
+							/ (dot(velocityDiff, velocityDiff) + 0.01 * radius * radius) *  * CubicSplineGrad(2 * dist / radius);
 						force += viscoForce;
 					}
 					pjIndex++;
