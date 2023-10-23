@@ -71,3 +71,10 @@ extern unique_ptr<class Graphics> GEngine;
 #define DEVICE				GEngine->GetDevice()
 #define CONTEXT				GEngine->GetContext()
 #define SWAPCHAIN			GEngine->GetSwapChain()
+
+inline void ThrowIfFailed(HRESULT hr) {
+	if (FAILED(hr)) {
+		// 디버깅할 때 여기에 breakpoint 설정
+		throw std::exception();
+	}
+}

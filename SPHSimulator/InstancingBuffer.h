@@ -11,6 +11,7 @@ public:
 	void Clear();
 	void AddData(Matrix& params);
 	void PushData();
+	void SetDataFromBuffer(ComPtr<ID3D11Buffer> _src, UINT _maxCount);
 
 public:
 	UINT						GetCount() { return static_cast<UINT>(_data.size()); }

@@ -50,9 +50,13 @@ private:
 	//unique_ptr<StructuredBuffer> groupSumBuffer;
 	//unique_ptr<StructuredBuffer> sortedResultBuffer;
 	unique_ptr<StructuredBuffer> hashToParticleIndexTable;
+	unique_ptr<StructuredBuffer> aliveParticleNum;
+	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
 
-	Particle GPUSortedParticle[4096];
-	UINT NeighborTable[4096];
+	//Particle GPUSortedParticle[4096];
+	//UINT NeighborTable[4096];
+	//Matrix ParticleToWorld[4096];
+
 
 	float WinX = 4;
 	float WinY = 3;

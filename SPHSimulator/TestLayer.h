@@ -32,7 +32,7 @@ namespace SY {
 
 		unique_ptr<class Camera> Cam;
 
-		float WinX, WinY;
+		float WinX = 4, WinY = 3;
 
 		int MouseX, MouseY;
 

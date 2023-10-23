@@ -176,6 +176,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ImguiLayer.h" />
+    <ClInclude Include="IndirectBuffer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="InstancingBuffer.h" />
     <ClInclude Include="KeyEvent.h" />
@@ -257,6 +258,7 @@
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImguiLayer.cpp" />
+    <ClCompile Include="IndirectBuffer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InstancingBuffer.cpp" />
     <ClCompile Include="Layer.cpp" />

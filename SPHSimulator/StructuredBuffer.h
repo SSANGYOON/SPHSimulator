@@ -43,6 +43,9 @@ private:
 
 	bool _asUAV;
 	bool _readable;
+
+public:
+	ComPtr<ID3D11Buffer> GetBuffer() { return _buffer; }
 };
 
 

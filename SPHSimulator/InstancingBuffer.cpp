@@ -47,3 +47,9 @@ void InstancingBuffer::PushData()
 	memcpy(sub.pData, _data.data(), _data.size() * sizeof(Matrix));
 	CONTEXT->Unmap(_buffer.Get(), 0);
 }
+
+void InstancingBuffer::SetDataFromBuffer(ComPtr<ID3D11Buffer> _src, UINT maxCount)
+{
+	CONTEXT->CopyResource(_buffer.Get(), _src.Get());
+	_maxCount = maxCount;
+}

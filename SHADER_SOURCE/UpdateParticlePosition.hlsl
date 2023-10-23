@@ -1,7 +1,7 @@
 #include "Global_SPH.hlsli"
 
 [numthreads(GroupThreadNum, 1, 1)]
-void CS_MAIN( uint3 DispatchThreadID : SV_DispatchThreadID )
+void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
 	uint piIndex = DispatchThreadID[0];
 	if (piIndex >= particlesNum)
@@ -19,7 +19,7 @@ void CS_MAIN( uint3 DispatchThreadID : SV_DispatchThreadID )
 	float3 velocity = pi.velocity + acceleration * deltaTime;
 
 	// Update position
-	float3 position = pi.position +velocity * deltaTime;
+	float3 position = pi.position + velocity * deltaTime;
 
 	// Handle collisions with box
 	if (position.y < radius) {
@@ -54,4 +54,11 @@ void CS_MAIN( uint3 DispatchThreadID : SV_DispatchThreadID )
 	p.density = pi.density;
 	p.pressure = pi.pressure;
 	Particles[piIndex] = p;
+
+	float4x4 mat = { radius, 0.0f, 0.0f, p.position.x,
+					 0.0f, radius, 0.0f, p.position.y,
+					 0.0f, 0.0f, radius, p.position.z,
+					 0.0f, 0.0f, 0.0f, 1.f };
+
+	ParticleWorld[piIndex] = mat;
 }

@@ -50,7 +50,7 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
 void SPHSystem::InitParticles()
 {
     Intances = make_unique<InstancingBuffer>();
-
+    Intances->Init(4096);
     std::srand(1024);
     float particleSeperation = settings.h + 0.01f;
     for (int i = 0; i < particleCubeWidth; i++) {
@@ -85,10 +85,16 @@ void SPHSystem::InitParticles()
     }
 
     particleBuffer = make_unique<StructuredBuffer>();
-    particleBuffer->Create(sizeof(Particle), 4096, particles,true, true);
+    particleBuffer->Create(sizeof(Particle), 4096, particles,true, false);
 
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
-    hashToParticleIndexTable->Create(sizeof(UINT), 4096, nullptr, true, true);
+    hashToParticleIndexTable->Create(sizeof(UINT), 4096, nullptr, true, false);
+
+    aliveParticleNum = make_unique<StructuredBuffer>();
+    aliveParticleNum->Create(sizeof(UINT), 1, nullptr, true, true);
+
+    ParticleWorldMatrixes = make_unique<StructuredBuffer>();
+    ParticleWorldMatrixes->Create(sizeof(Matrix), 4096, nullptr, true, false);
 }
 
 UINT SPHSystem::GetHashFromCell(int x, int y, int z)
@@ -167,7 +173,11 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
     auto createNeighborTableShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateNeighborTable");
     createNeighborTableShader->SetThreadGroups(groups, 1, 1);
     hashToParticleIndexTable->BindUAV(1);
+    aliveParticleNum->BindUAV(2);
     createNeighborTableShader->Dispatch();
+
+    int n = 0;
+    aliveParticleNum->GetData(&n);
 
     auto calculatePressureAndDensityShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculatePressureAndDensity");
     calculatePressureAndDensityShader->SetThreadGroups(groups, 1, 1);
@@ -179,11 +189,15 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
 
     auto UpdateParticlePosition = GET_SINGLE(Resources)->Find<ComputeShader>(L"UpdateParticlePosition");
     UpdateParticlePosition->SetThreadGroups(groups, 1, 1);
+    ParticleWorldMatrixes->BindUAV(3);
     UpdateParticlePosition->Dispatch();
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
-    particleBuffer->GetData(GPUSortedParticle);
+    //particleBuffer->GetData(GPUSortedParticle);
+    //ParticleWorldMatrixes->GetData(ParticleToWorld);
+
+    int a = 0;
 }
 
 void SPHSystem::draw(Camera* Cam)
@@ -202,13 +216,15 @@ void SPHSystem::draw(Camera* Cam)
     auto Lcosahedron = GET_SINGLE(Resources)->Find<Mesh>(L"Lcosahedron");
     shader->BindShader();
 
-    Intances->Clear();
+    /*Intances->Clear();
     for (int i = 0; i < particleCount; i++)
     {
         Matrix mat = Matrix::CreateScale(settings.h, settings.h, settings.h) * Matrix::CreateTranslation(GPUSortedParticle[i].position);
         Intances->AddData(mat);
-    }
-    
+    }*/
+    //Intances->PushData();
+
+    Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer(), 3375);
     Lcosahedron->RenderInstanced(Intances.get());
 }
 

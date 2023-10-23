@@ -87,6 +87,12 @@
     <Filter Include="src\Buffers\InstancingBuffer">
       <UniqueIdentifier>{42b7264c-f112-42c5-8a74-575ba02f6875}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Buffers\IndirectBuffer">
+      <UniqueIdentifier>{101acfa8-45e8-442e-ae74-4ace3e247bb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Buffers\StructuredBuffer">
+      <UniqueIdentifier>{06e2584e-3075-400a-8fa8-c8f42793cd70}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -218,14 +224,17 @@
     <ClInclude Include="particle.h">
       <Filter>src\SPH</Filter>
     </ClInclude>
-    <ClInclude Include="StructuredBuffer.h">
-      <Filter>src\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>src\Camera</Filter>
     </ClInclude>
     <ClInclude Include="InstancingBuffer.h">
       <Filter>src\Buffers\InstancingBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="IndirectBuffer.h">
+      <Filter>src\Buffers\IndirectBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="StructuredBuffer.h">
+      <Filter>src\Buffers\StructuredBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -328,14 +337,17 @@
     <ClCompile Include="TestLayer.cpp">
       <Filter>src\Layer\TestLayer</Filter>
     </ClCompile>
-    <ClCompile Include="StructuredBuffer.cpp">
-      <Filter>src\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>src\Camera</Filter>
     </ClCompile>
     <ClCompile Include="InstancingBuffer.cpp">
       <Filter>src\Buffers\InstancingBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="IndirectBuffer.cpp">
+      <Filter>src\Buffers\IndirectBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="StructuredBuffer.cpp">
+      <Filter>src\Buffers\StructuredBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

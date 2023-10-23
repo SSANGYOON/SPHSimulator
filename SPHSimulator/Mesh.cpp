@@ -185,7 +185,6 @@ void Mesh::RenderInstanced(InstancingBuffer* instances)
 {
 	if (!_indexBuffer)
 	{
-		instances->PushData();
 
 		UINT stride[] = { sizeof(Vertex), sizeof(Matrix) };
 		UINT offset[] = { 0, 0 };

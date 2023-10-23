@@ -13,6 +13,8 @@ struct Particle
 
 RWStructuredBuffer<Particle> Particles : register(u0);
 RWStructuredBuffer<uint> neighborTable : register(u1);
+RWStructuredBuffer<uint> aliveParticles : register(u2);
+RWStructuredBuffer<float4x4> ParticleWorld : register(u3);
 
 groupshared uint LocalPrefixSum[GroupThreadNum];
 
