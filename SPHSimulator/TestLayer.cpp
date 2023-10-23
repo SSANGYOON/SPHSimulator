@@ -23,8 +23,8 @@ SY::TestLayer::~TestLayer()
 
 void SY::TestLayer::OnAttach()
 {
-	SPHSettings sphSettings(0.02f, 1000, 1, 1.04, 0.15f, -9.8, 0.2f);
-	sphSystem = new SPHSystem(15, sphSettings);
+	SPHSettings sphSettings(0.005, 1000, 1, 3.5, 0.075, -9.8, 0.2f);
+	sphSystem = new SPHSystem(30, sphSettings);
 	Cam = make_unique<Camera>();
 }
 
@@ -45,7 +45,7 @@ void SY::TestLayer::OnImGuiRender()
 	static int numParticles = 15;
 	static float nMass = 0.02;
 	static float nh = 0.15f;
-	static float nRest = 10.f;
+	static float nRest = 1000;
 	static float nVisco = 3.5f;
 	static float gasConst = 1.f;
 	static int counter = 0;

@@ -4,7 +4,7 @@
 
 IndirectBuffer::IndirectBuffer(UINT numElements, UINT stride, const void* initData)
     :_buffer{}
-    ,SlotNum(-1)
+    , SlotNum(-1)
     , _UAV{}
 {
 
@@ -57,4 +57,3 @@ void IndirectBuffer::ClearUAV()
         CONTEXT->CSSetUnorderedAccessViews(SlotNum, 1, &uav, &i);
     }
 }
-

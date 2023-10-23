@@ -31,16 +31,17 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					if (pj.hash != cellHash) {
 						break;
 					}
-					float3 diff = pj.position - pi.position;
-					float dist2 = dot(diff, diff);
-					if (dist2 < h2) {
+					float dist = length(pj.position - pi.position);
+					if (dist < radius && dist > 1e-3f) {
 						//unit direction and length
-						float dist = sqrt(dist2);
-						float3 dir = normalize(diff);
+						float3 dir = normalize(pj.position - pi.position);
 
 						//apply pressure force
-						float3 pressureForce = -dir * mass * (pi.pressure + pj.pressure) / (2 * pj.density) * spikyGrad;
-						pressureForce *= pow(radius - dist, 2);
+						float3 pressureForce = -dir * mass *
+							(pi.pressure / (pi.density * pi.density)
+						   + pj.pressure / (pj.density * pj.density));
+
+						pressureForce *= CubicSplineGrad(2 * dist / radius);
 						force += pressureForce;
 
 						//apply viscosity force

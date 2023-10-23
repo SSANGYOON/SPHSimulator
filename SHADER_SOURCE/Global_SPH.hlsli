@@ -1,5 +1,5 @@
 const static uint GroupThreadNum = 1024;
-const static uint TABLESIZE = 4096; //262139;
+const static uint TABLESIZE = 32768; //262139;
 const static uint NO_PARTICLE = 0xFFFFFFFF;
 
 struct Particle
@@ -100,4 +100,41 @@ uint ExclusiveScan(uint gIdx, uint gId)
 	}
 
 	return GroupSum;
+}
+
+float cubicspline(float q)
+{
+	const float coeff = 3.0f / (2.0f * 3.141592f);
+	if (q > 2.f)
+	{
+		return 0;
+	}
+	else
+	{
+
+		float ans = 0.f;
+		if (q < 1.f)
+		{
+			ans = 2.f / 3.f - q * q + 0.5f * q * q * q;
+		}
+		else
+		{
+			float r = 2.f - q;
+			ans = r * r * r / 6;
+		}
+
+		return coeff * ans;
+	}
+}
+
+float CubicSplineGrad(float q) {
+
+	float coeff = 3.0f / (2.0f * 3.141592f);
+
+	if (q < 1.0f)
+		return coeff * (-2.0f * q + 1.5f * q * q);
+	else if (q < 2.0f)
+		return coeff * -0.5f * (2.0f - q) * (2.0f - q);
+	else // q >= 2.0f
+		return 0.0f;
 }

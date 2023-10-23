@@ -24,7 +24,7 @@ public:
 	UINT32 particleCount;
 
 	void update(float deltaTime);
-	void updateParticles(Matrix* sphereModelMtxs, float deltaTime);
+	void updateParticles(float deltaTime);
 
 	void draw(class Camera* Cam);
 
@@ -40,12 +40,13 @@ private:
 	bool started;
 	void InitParticles();
 	shared_ptr<class Mesh> sphere;
-	Matrix* sphereModelMtxs;
+
 	unique_ptr<InstancingBuffer> Intances;
+	unique_ptr<class IndirectBuffer> ParticleIndirect;
 
 	unique_ptr<StructuredBuffer> particleBuffer;
 	unique_ptr<StructuredBuffer> hashToParticleIndexTable;
-	unique_ptr<class IndirectBuffer> ParticleIndirect;
+	
 	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
 
 	float WinX = 4;

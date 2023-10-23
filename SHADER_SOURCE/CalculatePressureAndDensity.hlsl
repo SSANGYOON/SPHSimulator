@@ -34,12 +34,10 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         if (pj.hash != cellHash) {
                             break;
                         }
-                        float3 diff = (pj.position - pi.position);
-                        float dist2 = dot(diff, diff);
-                        if (dist2 < h2) {
-                            pDensity += massPoly6Product
-                                * pow(h2 - dist2, 3);
-                        }
+                        float dist = length(pj.position - pi.position);
+
+                        pDensity += cubicspline(2 * dist / radius);
+                        
                         pjIndex++;
                     }
                 }
@@ -50,7 +48,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
         pi.density = pDensity + selfDens;
 
         // Calculate pressure
-        float pPressure = gasConstant * (pi.density - restDensity);
+        float pPressure = gasConstant * (pow(pi.density / restDensity, 7.0f) -1);
         pi.pressure = pPressure;
         
         Particles[DId] = pi;

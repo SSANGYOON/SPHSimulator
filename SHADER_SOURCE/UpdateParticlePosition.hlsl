@@ -10,7 +10,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	Particle pi = Particles[piIndex];
 
 
-	float boxWidth = 4.f;
+	float boxWidth = 4.0f;
 	float elasticity = 0.5f;
 
 
