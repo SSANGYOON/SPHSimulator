@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include "InstancingBuffer.h"
+#include "IndirectBuffer.h"
 
 Mesh::Mesh()
 	:Resource(RESOURCE_TYPE::MESH)
@@ -192,5 +193,19 @@ void Mesh::RenderInstanced(InstancingBuffer* instances)
 		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
 		CONTEXT->IASetVertexBuffers(0, 2, views, stride, offset);
 		CONTEXT->DrawInstanced(_vertexes, instances->GetCount(), 0, 0);
+	}
+}
+
+void Mesh::RenderInstancedIndirect(InstancingBuffer* instances, IndirectBuffer* indirect)
+{
+	if (!_indexBuffer)
+	{
+
+		UINT stride[] = { sizeof(Vertex), sizeof(Matrix) };
+		UINT offset[] = { 0, 0 };
+
+		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
+		CONTEXT->IASetVertexBuffers(0, 2, views, stride, offset);
+		CONTEXT->DrawInstancedIndirect(indirect->GetBuffer().Get(), 0);
 	}
 }

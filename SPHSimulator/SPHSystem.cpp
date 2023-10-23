@@ -11,6 +11,7 @@
 #include "Graphics.h"
 #include "Camera.h"
 #include "InstancingBuffer.h"
+#include "IndirectBuffer.h"
 
 SPHSettings::SPHSettings(
     float mass, float restDensity, float gasConst, float viscosity, float h,
@@ -90,8 +91,7 @@ void SPHSystem::InitParticles()
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
     hashToParticleIndexTable->Create(sizeof(UINT), 4096, nullptr, true, false);
 
-    aliveParticleNum = make_unique<StructuredBuffer>();
-    aliveParticleNum->Create(sizeof(UINT), 1, nullptr, true, true);
+    ParticleIndirect = make_unique<IndirectBuffer>(1, sizeof(IndirectArgs), nullptr);
 
     ParticleWorldMatrixes = make_unique<StructuredBuffer>();
     ParticleWorldMatrixes->Create(sizeof(Matrix), 4096, nullptr, true, false);
@@ -173,11 +173,11 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
     auto createNeighborTableShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateNeighborTable");
     createNeighborTableShader->SetThreadGroups(groups, 1, 1);
     hashToParticleIndexTable->BindUAV(1);
-    aliveParticleNum->BindUAV(2);
+    //aliveParticleNum->BindUAV(2);
     createNeighborTableShader->Dispatch();
 
-    int n = 0;
-    aliveParticleNum->GetData(&n);
+    //int n = 0;
+    //aliveParticleNum->GetData(&n);
 
     auto calculatePressureAndDensityShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculatePressureAndDensity");
     calculatePressureAndDensityShader->SetThreadGroups(groups, 1, 1);
@@ -190,14 +190,15 @@ void SPHSystem::updateParticles(Matrix* sphereModelMtxs, float deltaTime)
     auto UpdateParticlePosition = GET_SINGLE(Resources)->Find<ComputeShader>(L"UpdateParticlePosition");
     UpdateParticlePosition->SetThreadGroups(groups, 1, 1);
     ParticleWorldMatrixes->BindUAV(3);
+    ParticleIndirect->BindUAV(2);
     UpdateParticlePosition->Dispatch();
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
+    ParticleIndirect->ClearUAV();
+    ParticleWorldMatrixes->Clear();
     //particleBuffer->GetData(GPUSortedParticle);
     //ParticleWorldMatrixes->GetData(ParticleToWorld);
-
-    int a = 0;
 }
 
 void SPHSystem::draw(Camera* Cam)
@@ -225,7 +226,7 @@ void SPHSystem::draw(Camera* Cam)
     //Intances->PushData();
 
     Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer(), 3375);
-    Lcosahedron->RenderInstanced(Intances.get());
+    Lcosahedron->RenderInstancedIndirect(Intances.get(), ParticleIndirect.get());
 }
 
 void SPHSystem::reset() {

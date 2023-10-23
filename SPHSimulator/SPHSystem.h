@@ -44,19 +44,9 @@ private:
 	unique_ptr<InstancingBuffer> Intances;
 
 	unique_ptr<StructuredBuffer> particleBuffer;
-	//unique_ptr<StructuredBuffer> hashcountedBuffer;
-	//unique_ptr<StructuredBuffer> offsetBuffer;
-	//unique_ptr<StructuredBuffer> prefixSumBuffer;
-	//unique_ptr<StructuredBuffer> groupSumBuffer;
-	//unique_ptr<StructuredBuffer> sortedResultBuffer;
 	unique_ptr<StructuredBuffer> hashToParticleIndexTable;
-	unique_ptr<StructuredBuffer> aliveParticleNum;
+	unique_ptr<class IndirectBuffer> ParticleIndirect;
 	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
-
-	//Particle GPUSortedParticle[4096];
-	//UINT NeighborTable[4096];
-	//Matrix ParticleToWorld[4096];
-
 
 	float WinX = 4;
 	float WinY = 3;

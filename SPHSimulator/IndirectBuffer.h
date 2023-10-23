@@ -10,7 +10,7 @@ struct IndirectArgs {
 class IndirectBuffer
 {
 public:
-	IndirectBuffer(UINT numElements, const void* initData);
+	IndirectBuffer(UINT numElements, UINT stride, const void* initData);
 	~IndirectBuffer();
 
 	void BindUAV(UINT slot);
@@ -22,5 +22,8 @@ private:
 	ComPtr<ID3D11UnorderedAccessView> _UAV;
 
 	UINT SlotNum;
+
+public:
+	ComPtr<ID3D11Buffer> GetBuffer() { return _buffer; }
 };
 

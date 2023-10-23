@@ -61,4 +61,10 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					 0.0f, 0.0f, 0.0f, 1.f };
 
 	ParticleWorld[piIndex] = mat;
+
+	if (piIndex == 0)
+	{
+		IndirectArgs args = { 60, particlesNum, 0, 0 };
+		IndirectBuffer[piIndex] = args;
+	}
 }

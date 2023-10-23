@@ -2,7 +2,7 @@
 #include "IndirectBuffer.h"
 #include "Graphics.h"
 
-IndirectBuffer::IndirectBuffer(UINT numElements, const void* initData)
+IndirectBuffer::IndirectBuffer(UINT numElements, UINT stride, const void* initData)
     :_buffer{}
     ,SlotNum(-1)
     , _UAV{}
@@ -10,8 +10,6 @@ IndirectBuffer::IndirectBuffer(UINT numElements, const void* initData)
 
     D3D11_BUFFER_DESC desc;
     ZeroMemory(&desc, sizeof(desc));
-    
-    UINT stride = sizeof(IndirectArgs);
 
     desc.ByteWidth = numElements * stride;
     desc.Usage = D3D11_USAGE_DEFAULT;
@@ -32,6 +30,7 @@ IndirectBuffer::IndirectBuffer(UINT numElements, const void* initData)
     }
 
     D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
     uavDesc.Buffer.NumElements = numElements;
     uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 

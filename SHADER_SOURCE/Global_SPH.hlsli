@@ -1,6 +1,7 @@
 const static uint GroupThreadNum = 1024;
 const static uint TABLESIZE = 4096; //262139;
 const static uint NO_PARTICLE = 0xFFFFFFFF;
+
 struct Particle
 {
 	float3 position;
@@ -11,9 +12,16 @@ struct Particle
 	float3 force;
 };
 
+struct IndirectArgs {
+	uint VertexCountPerInstance;
+	uint InstanceCount;
+	uint StartVertexLocation;
+	uint StartInstanceLocation;
+};
+
 RWStructuredBuffer<Particle> Particles : register(u0);
 RWStructuredBuffer<uint> neighborTable : register(u1);
-RWStructuredBuffer<uint> aliveParticles : register(u2);
+RWStructuredBuffer<IndirectArgs> IndirectBuffer : register(u2);
 RWStructuredBuffer<float4x4> ParticleWorld : register(u3);
 
 groupshared uint LocalPrefixSum[GroupThreadNum];
