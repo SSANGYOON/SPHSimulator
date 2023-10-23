@@ -48,6 +48,7 @@ CBUFFER(ParticleSortCB, CBSLOT_PARTICLESORT)
 {
 	UINT j;
 	UINT k;
+	Vector2 padding;
 };
 
 struct alignas(16) LightInfo

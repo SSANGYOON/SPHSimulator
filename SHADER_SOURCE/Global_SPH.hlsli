@@ -46,6 +46,7 @@ cbuffer ParticleSort : register(b3)
 {
 	uint j;
 	uint k;
+	float2 SortPadding;
 }
 
 uint GetHash(int3 cell)

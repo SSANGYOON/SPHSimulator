@@ -86,7 +86,7 @@ void SPHSystem::InitParticles()
     ParticleIndirect = make_unique<IndirectBuffer>(1, sizeof(IndirectArgs), nullptr);
 
     ParticleWorldMatrixes = make_unique<StructuredBuffer>();
-    ParticleWorldMatrixes->Create(sizeof(Matrix), 32768, nullptr, true, true);
+    ParticleWorldMatrixes->Create(sizeof(Matrix), 32768, nullptr, true, false);
 }
 
 UINT SPHSystem::GetHashFromCell(int x, int y, int z)
@@ -140,15 +140,16 @@ void SPHSystem::updateParticles(float deltaTime)
     auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
     CalculateHashShader->SetThreadGroups(groups, 1, 1);
     particleBuffer->BindUAV(0);
+    hashToParticleIndexTable->BindUAV(1);
     CalculateHashShader->Dispatch();
 
     auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
-    BitonicSortShader->SetThreadGroups(groups, 1, 1);
+    BitonicSortShader->SetThreadGroups(32, 1, 1);
 
     auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
     //TODO 4096에서 동적인 테이블 사이즈로
-    for (uint32_t k = 2; k <= 32768; k *= 2){
-        for (uint32_t j = k / 2; j > 0; j /= 2){
+    for (uint32_t k = 2; k <= 1<<15; k <<= 1){
+        for (uint32_t j = k >> 1; j > 0; j >>= 1){
 
             ParticleSortCB pscb;
             pscb.j = j;
@@ -162,13 +163,13 @@ void SPHSystem::updateParticles(float deltaTime)
     }
 
     auto createNeighborTableShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateNeighborTable");
-    createNeighborTableShader->SetThreadGroups(groups, 1, 1);
-    hashToParticleIndexTable->BindUAV(1);
+    createNeighborTableShader->SetThreadGroups(groups, 1, 1);  
     createNeighborTableShader->Dispatch();
 
     auto calculatePressureAndDensityShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculatePressureAndDensity");
     calculatePressureAndDensityShader->SetThreadGroups(groups, 1, 1);
     calculatePressureAndDensityShader->Dispatch();
+
 
     auto calculateForceShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateForceShader");
     calculateForceShader->SetThreadGroups(groups, 1, 1);
@@ -184,6 +185,11 @@ void SPHSystem::updateParticles(float deltaTime)
     particleBuffer->Clear();
     ParticleIndirect->ClearUAV();
     ParticleWorldMatrixes->Clear();
+
+    
+
+
+
 }
 
 void SPHSystem::draw(Camera* Cam)

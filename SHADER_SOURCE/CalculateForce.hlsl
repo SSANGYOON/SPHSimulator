@@ -31,24 +31,26 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					if (pj.hash != cellHash) {
 						break;
 					}
-					float dist = length(pj.position - pi.position);
+
+					float3 diff = pi.position - pj.position;
+					float dist = length(diff);
 					if (dist < radius && dist > 1e-3f) {
 						//unit direction and length
-						float3 dir = normalize(pj.position - pi.position);
+						float3 dir = normalize(diff);
 
 						//apply pressure force
-						float3 pressureForce = -dir * mass *
-							(pi.pressure / (pi.density * pi.density)
-						   + pj.pressure / (pj.density * pj.density));
-
-						pressureForce *= CubicSplineGrad(2 * dist / radius);
-						force += pressureForce;
+						float3 pressureForce = dir * mass * mass *
+							(pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) *
+							CubicSplineGrad(2 * dist / radius);
+						force -= pressureForce;
 
 						//apply viscosity force
-						float3 velocityDiff = pj.velocity - pi.velocity;
+						float3 velocityDiff = pi.velocity - pj.velocity;
 
-						float3 viscoForce = 2 * viscosity * mass * velocityDiff / pj.density 
-							/ (dot(velocityDiff, velocityDiff) + 0.01 * radius * radius) *  * CubicSplineGrad(2 * dist / radius);
+						float3 viscoForce = 
+							2 * viscosity * mass * mass / pi.density * velocityDiff /
+							(dist * dist + 0.01f * radius * radius) * 
+							CubicSplineGrad(2 * dist / radius) * dist;
 						force += viscoForce;
 					}
 					pjIndex++;

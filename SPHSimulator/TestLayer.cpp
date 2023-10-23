@@ -23,8 +23,8 @@ SY::TestLayer::~TestLayer()
 
 void SY::TestLayer::OnAttach()
 {
-	SPHSettings sphSettings(0.005, 1000, 1, 3.5, 0.075, -9.8, 0.2f);
-	sphSystem = new SPHSystem(30, sphSettings);
+	SPHSettings sphSettings(3, 1, 1, 3.5, 0.15, -9.8, 0.2f);
+	sphSystem = new SPHSystem(15, sphSettings);
 	Cam = make_unique<Camera>();
 }
 
@@ -54,12 +54,12 @@ void SY::TestLayer::OnImGuiRender()
 
 	ImGui::Text("Change values for the simulation. Press RESET to commit changes");
 
-	ImGui::SliderInt("Number of Particles", &numParticles, 10, 600);
-	ImGui::SliderFloat("Mass of Particles", &nMass, 0.001f, 1.f);
-	ImGui::SliderFloat("Support Radius", &nh, 0.001f, 1.f);
-	ImGui::SliderFloat("Rest Density", &nRest, 0.001f, 2000.f);
-	ImGui::SliderFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
-	ImGui::SliderFloat("Gas Constant", &gasConst, 0.001f, 5.f);
+	ImGui::DragInt("Number of Particles", &numParticles, 10, 600);
+	ImGui::DragFloat("Mass of Particles", &nMass, 0.001f, 1.f);
+	ImGui::DragFloat("Support Radius", &nh, 0.001f, 1.f);
+	ImGui::DragFloat("Rest Density", &nRest, 0.001f, 2000.f);
+	ImGui::DragFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
+	ImGui::DragFloat("Gas Constant", &gasConst, 0.001f, 5.f);
 
 	if (ImGui::Button("RESET")) {
 		delete sphSystem;

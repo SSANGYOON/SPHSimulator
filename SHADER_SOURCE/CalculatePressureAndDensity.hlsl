@@ -5,7 +5,6 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint DId = DispatchThreadID[0];
     
-    Particle p;
     if (DId < particlesNum)
     {
         Particle pi = Particles[DId];
@@ -26,17 +25,14 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         continue;
                     }
                     while (pjIndex < particlesNum) {
-                        if (pjIndex == piIndex) {
-                            pjIndex++;
-                            continue;
-                        }
                         Particle pj = Particles[pjIndex];
                         if (pj.hash != cellHash) {
                             break;
                         }
                         float dist = length(pj.position - pi.position);
-
-                        pDensity += cubicspline(2 * dist / radius);
+                        if (dist < radius) {
+                            pDensity += mass * cubicspline(2 * dist / radius);
+                        }
                         
                         pjIndex++;
                     }
@@ -44,11 +40,10 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
             }
         }
 
-        // Include self density (as itself isn't included in neighbour)
-        pi.density = pDensity + selfDens;
+        pi.density = pDensity;
 
         // Calculate pressure
-        float pPressure = gasConstant * (pow(pi.density / restDensity, 7.0f) -1);
+        float pPressure = gasConstant * (pow(pi.density / restDensity, 7) -1);
         pi.pressure = pPressure;
         
         Particles[DId] = pi;

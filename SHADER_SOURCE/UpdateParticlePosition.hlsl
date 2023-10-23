@@ -4,6 +4,7 @@
 void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
 	uint piIndex = DispatchThreadID[0];
+
 	if (piIndex >= particlesNum)
 		return;
 
@@ -53,6 +54,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	p.hash = pi.hash;
 	p.density = pi.density;
 	p.pressure = pi.pressure;
+	p.force = pi.force;
 	Particles[piIndex] = p;
 
 	float4x4 mat = { radius, 0.0f, 0.0f, p.position.x,
