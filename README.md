@@ -57,7 +57,13 @@
 * 마우스 입력을 통한 카메라 줌인, 줌 아웃 및 카메라 회전 기능 구현
 * 키 입력을 통한 시뮬레이션 시작 정지 기능 구현
 * 적은 수의 큰 입자들을 긴 deltatime으로 시뮬레이션하면 마치 폭발하듯 튀는 것을 확인함 일단은 고정된 deltatime(0.003s)로 시뮬레이션
-* Morton을 사용하는 sph 논문(https://maverick.inria.fr/~Prashant.Goswami/Research/Papers/SCA10_SPH.pdf)도 읽어봤지만 결국엔 같은 인덱스(해시값 혹은 Z-indices)를 가지는 파티클들을 배열에서 모아야 되기 때문에 똑같이 sorting을 사용하는 것으로 확인 
+* Morton을 사용하는 sph 논문(https://maverick.inria.fr/~Prashant.Goswami/Research/Papers/SCA10_SPH.pdf)도 읽어봤지만 결국엔 같은 인덱스(해시값 혹은 Z-indices)를 가지는 파티클들을 배열에서 모아야 되기 때문에 똑같이 sorting을 사용하는 것으로 확인
+
+### 3주차
+#### 10/21
+* 파티클 시뮬레이션에서 사용하는 커널 함수를 [https://matthias-research.github.io/pages/publications/sca03.pdf]에서 [https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]로 변경
+* 파티클의 현재 위치를 CPU로 받아와서 인스턴싱 버퍼를 만들어 렌더링 하는 방식에서 GPU에서 인스턴싱 버퍼를 수정하고 Indirect Argument로 랜더링 하는 방식으로 변경
+* 현재는 파티클의 생성을 CPU에서 하고 있는데 GPU에서 하도록 변경할 예정
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
