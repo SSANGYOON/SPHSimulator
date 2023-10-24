@@ -12,6 +12,7 @@
 #include "Camera.h"
 #include "InstancingBuffer.h"
 #include "IndirectBuffer.h"
+#include <ctime>
 
 SPHSettings::SPHSettings(
     float mass, float restDensity, float gasConst, float viscosity, float h,
@@ -185,11 +186,6 @@ void SPHSystem::updateParticles(float deltaTime)
     particleBuffer->Clear();
     ParticleIndirect->ClearUAV();
     ParticleWorldMatrixes->Clear();
-
-    
-
-
-
 }
 
 void SPHSystem::draw(Camera* Cam)

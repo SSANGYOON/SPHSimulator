@@ -36,6 +36,7 @@ namespace fs = std::filesystem;
 
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dcompiler.lib")
+#pragma comment(lib, "Winmm.lib")
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;

@@ -54,7 +54,6 @@ void Resources::CreateDefaultResource()
 	shared_ptr<Mesh> outlinedRect = std::make_shared<Mesh>();
 	Resources::Insert<Mesh>(L"OutlinedRect", outlinedRect);
 	outlinedRect->CreateVertexBuffer(vertexes, 4);
-
 	outlinedRect->CreateIndexBuffer(indexes.data(), (UINT)indexes.size());
 #pragma endregion
 
@@ -179,6 +178,20 @@ void Resources::CreateDefaultResource()
 	_entry.VS = true;
 	_entry.PS = true;
 	TestShader->CreateShader(_info, _entry, L"TestShader.hlsl");
+#pragma endregion
+
+#pragma region TestShader
+
+	shared_ptr<Shader> OutLineShader = std::make_shared<Shader>();
+	Resources::Insert<Shader>(L"OutLineShader", OutLineShader);
+	_info.bst = BSType::Default;
+	_info.dst = DSType::Less;
+	_info.rst = RSType::WireframeNone;
+	_info.topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+	_entry = {};
+	_entry.VS = true;
+	_entry.PS = true;
+	OutLineShader->CreateShader(_info, _entry, L"OutLineShader.hlsl");
 #pragma endregion
 
 #pragma region CalculateHash

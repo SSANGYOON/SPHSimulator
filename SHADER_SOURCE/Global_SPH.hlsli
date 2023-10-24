@@ -40,6 +40,10 @@ cbuffer ParticleSettings : register(b2)
 	float viscosity;
 	float gravity;
 	float deltaTime;
+
+	//TODO
+	//surfaceTensionConstant
+	//surfaceTensionOffset
 }
 
 cbuffer ParticleSort : register(b3)

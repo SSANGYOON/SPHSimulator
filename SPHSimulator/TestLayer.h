@@ -35,6 +35,5 @@ namespace SY {
 		float WinX = 4, WinY = 3;
 
 		int MouseX, MouseY;
-
 	};
 }

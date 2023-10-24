@@ -38,6 +38,56 @@ void SY::TestLayer::OnUpdate(float timestep)
 	Cam->Update();
 	sphSystem->update(timestep);
 	sphSystem->draw(Cam.get());
+
+	auto outlinedRect = GET_SINGLE(Resources)->Find<Mesh>(L"OutlinedRect");
+	auto wireFrameRenderer = GET_SINGLE(Resources)->Find<Shader>(L"OutLineShader");
+
+	TransformCB trCB;
+
+	trCB.world = Matrix::CreateScale(Vector3(8,8,1)) * Matrix::CreateTranslation(Vector3(0,4,-4));
+	trCB.view = Matrix::Identity;
+	trCB.projection = Cam->GetViewProjectionMatrix();
+
+	shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
+	cb->SetData(&trCB);
+	cb->SetPipline(ShaderStage::VS);
+
+	wireFrameRenderer->BindShader();
+	outlinedRect->BindBuffer();
+	outlinedRect->Render();
+
+	trCB.world = Matrix::CreateScale(Vector3(8, 8, 1)) * Matrix::CreateRotationY(XM_PIDIV2) * Matrix::CreateTranslation(Vector3(4, 4, 0));
+	trCB.view = Matrix::Identity;
+	trCB.projection = Cam->GetViewProjectionMatrix();
+
+	cb->SetData(&trCB);
+	cb->SetPipline(ShaderStage::VS);
+
+	wireFrameRenderer->BindShader();
+	outlinedRect->BindBuffer();
+	outlinedRect->Render();
+
+	trCB.world = Matrix::CreateScale(Vector3(8, 8, 1)) * Matrix::CreateRotationY(XM_PIDIV2) * Matrix::CreateTranslation(Vector3(-4, 4, 0));
+	trCB.view = Matrix::Identity;
+	trCB.projection = Cam->GetViewProjectionMatrix();
+
+	cb->SetData(&trCB);
+	cb->SetPipline(ShaderStage::VS);
+
+	wireFrameRenderer->BindShader();
+	outlinedRect->BindBuffer();
+	outlinedRect->Render();
+
+	trCB.world = Matrix::CreateScale(Vector3(8, 8, 1)) * Matrix::CreateTranslation(Vector3(0, 4, 4));
+	trCB.view = Matrix::Identity;
+	trCB.projection = Cam->GetViewProjectionMatrix();
+
+	cb->SetData(&trCB);
+	cb->SetPipline(ShaderStage::VS);
+
+	wireFrameRenderer->BindShader();
+	outlinedRect->BindBuffer();
+	outlinedRect->Render();
 }
 
 void SY::TestLayer::OnImGuiRender()
@@ -71,6 +121,10 @@ void SY::TestLayer::OnImGuiRender()
 	}
 
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+	ImGui::Text("Particle sorting time %.3f", sphSystem->sortingTime);
+	ImGui::Text("Particle updating time %.3f", sphSystem->particleUpdateTime);
+	ImGui::Text("Particle rendering time %.3f", sphSystem->particleRenderingTime);
 	ImGui::End();
 }
 
