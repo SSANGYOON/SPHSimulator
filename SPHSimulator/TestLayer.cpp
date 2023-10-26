@@ -122,9 +122,9 @@ void SY::TestLayer::OnImGuiRender()
 
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-	ImGui::Text("Particle sorting time %.3f", sphSystem->sortingTime);
-	ImGui::Text("Particle updating time %.3f", sphSystem->particleUpdateTime);
-	ImGui::Text("Particle rendering time %.3f", sphSystem->particleRenderingTime);
+	//ImGui::Text("Particle sorting time %.3f", sphSystem->sortingTime);
+	//ImGui::Text("Particle updating time %.3f", sphSystem->particleUpdateTime);
+	//ImGui::Text("Particle rendering time %.3f", sphSystem->particleRenderingTime);
 	ImGui::End();
 }
 

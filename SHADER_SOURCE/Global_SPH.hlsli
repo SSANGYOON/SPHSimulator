@@ -55,7 +55,7 @@ cbuffer ParticleSort : register(b3)
 
 uint GetHash(int3 cell)
 {
-	return (uint)((cell.x * 73856093) ^ (cell.y * 19349663) ^ (cell.x * 83492791)) % TABLESIZE;
+	return (uint)((cell.x * 73856093) ^ (cell.y * 19349663) ^ (cell.z * 83492791)) % TABLESIZE;
 }
 
 uint GetHashValueOfLocation(float3 position)
