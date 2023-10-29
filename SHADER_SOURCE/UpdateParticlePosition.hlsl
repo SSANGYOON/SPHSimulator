@@ -11,8 +11,8 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	Particle pi = Particles[piIndex];
 
 
-	float boxWidth = 4.0f;
-	float elasticity = 0.5f;
+	float boxWidth = 5.f;
+	float elasticity = 0.5;
 
 
 	//calculate acceleration and velocity
@@ -51,15 +51,11 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	Particle p = (Particle)0;
 	p.position = position;
 	p.velocity = velocity;
-	p.hash = pi.hash;
-	p.density = pi.density;
-	p.pressure = pi.pressure;
-	p.force = pi.force;
 	Particles[piIndex] = p;
 
-	float4x4 mat = { radius, 0.0f, 0.0f, p.position.x,
-					 0.0f, radius, 0.0f, p.position.y,
-					 0.0f, 0.0f, radius, p.position.z,
+	float4x4 mat = { radius / 2.f , 0.0f, 0.0f, p.position.x,
+					 0.0f, radius / 2.f, 0.0f, p.position.y,
+					 0.0f, 0.0f, -radius / 2.f, p.position.z,
 					 0.0f, 0.0f, 0.0f, 1.f };
 
 	ParticleWorld[piIndex] = mat;

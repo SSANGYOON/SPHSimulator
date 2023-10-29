@@ -49,8 +49,8 @@ private:
 	
 	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
 
-	Particle GPUSortedParticle[32768];
-	UINT Table[32768];
+	//Particle GPUSortedParticle[32768];
+	//UINT Table[32768];
 
 	float WinX = 4;
 	float WinY = 3;

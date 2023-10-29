@@ -99,7 +99,7 @@ namespace SY {
 			ImGui::RenderPlatformWindowsDefault();
 		}
 
-		SWAPCHAIN->Present(1, 0); // Present with vsync
+		SWAPCHAIN->Present(0, 0); // Present with vsync
 	}
 
 	void ImGuiLayer::SetDarkThemeColors()

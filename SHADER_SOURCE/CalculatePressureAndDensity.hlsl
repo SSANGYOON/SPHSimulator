@@ -31,7 +31,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         }
                         float dist = length(pj.position - pi.position);
                         if (dist < radius) {
-                            pDensity += mass * cubicspline(2 * dist / radius);
+                            pDensity += massPoly6Product * pow(h2 - dist * dist, 3);
                         }
                         
                         pjIndex++;
@@ -43,7 +43,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
         pi.density = pDensity;
 
         // Calculate pressure
-        float pPressure = gasConstant * (pow(pi.density / restDensity, 7) -1);
+        float pPressure = gasConstant * (pi.density - restDensity);
         pi.pressure = pPressure;
         
         Particles[DId] = pi;

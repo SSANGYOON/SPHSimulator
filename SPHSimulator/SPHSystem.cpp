@@ -51,7 +51,7 @@ void SPHSystem::InitParticles()
     Intances = make_unique<InstancingBuffer>();
     Intances->Init(32768);
     std::srand(1024);
-    float particleSeperation = settings.h + 0.001f;
+    float particleSeperation = settings.h + 0.01f;
     for (int i = 0; i < particleCubeWidth; i++) {
         for (int j = 0; j < particleCubeWidth; j++) {
             for (int k = 0; k < particleCubeWidth; k++) {
@@ -92,14 +92,14 @@ void SPHSystem::InitParticles()
 
 UINT SPHSystem::GetHashFromCell(int x, int y, int z)
 {
-    return (UINT)((x * 73856093) ^ (y * 19349663) ^ (x * 83492791)) % 32768;
+    return (UINT)((x * 73856093) ^ (y * 19349663) ^ (z * 83492791)) % 32768;
 }
 
 UINT SPHSystem::GetHashOnCPU(Particle& p)
 {
     Vector3 cell = p.position / settings.h;
 
-    return (UINT)(((int)cell.x * 73856093) ^ ((int)cell.y * 19349663) ^ ((int)cell.x * 83492791)) % 32768;
+    return (UINT)(((int)cell.x * 73856093) ^ ((int)cell.y * 19349663) ^ ((int)cell.z * 83492791)) % 32768;
 }
 
 SPHSystem::~SPHSystem()
@@ -111,7 +111,7 @@ void SPHSystem::update(float deltaTime)
 {
     if (!started) return;
     // To increase system stability, a fixed deltaTime is set
-    deltaTime = 0.003;
+    //deltaTime = 0.003;
     updateParticles(deltaTime);
 }
 
@@ -139,7 +139,7 @@ void SPHSystem::updateParticles(float deltaTime)
     particleCBuffer->SetPipline(ShaderStage::CS);
 
     auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
-    CalculateHashShader->SetThreadGroups(groups, 1, 1);
+    CalculateHashShader->SetThreadGroups(32, 1, 1);
     particleBuffer->BindUAV(0);
     hashToParticleIndexTable->BindUAV(1);
     CalculateHashShader->Dispatch();
@@ -164,13 +164,12 @@ void SPHSystem::updateParticles(float deltaTime)
     }
 
     auto createNeighborTableShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateNeighborTable");
-    createNeighborTableShader->SetThreadGroups(groups, 1, 1);  
+    createNeighborTableShader->SetThreadGroups(groups, 1, 1);
     createNeighborTableShader->Dispatch();
 
     auto calculatePressureAndDensityShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculatePressureAndDensity");
     calculatePressureAndDensityShader->SetThreadGroups(groups, 1, 1);
     calculatePressureAndDensityShader->Dispatch();
-
 
     auto calculateForceShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateForceShader");
     calculateForceShader->SetThreadGroups(groups, 1, 1);

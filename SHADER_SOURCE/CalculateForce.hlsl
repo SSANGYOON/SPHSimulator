@@ -9,8 +9,6 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
 	Particle pi = Particles[piIndex];
 
-	float3 force = (float3)0;
-
 	int3 cell = pi.position / radius;
 	float h2 = radius * radius;
 
@@ -32,32 +30,25 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 						break;
 					}
 
-					float3 diff = pi.position - pj.position;
+					float3 diff = pj.position - pi.position;
 					float dist = length(diff);
 					if (dist < radius && dist > 1e-3f) {
-						//unit direction and length
 						float3 dir = normalize(diff);
 
 						//apply pressure force
-						float3 pressureForce = dir * mass * mass *
-							(pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) *
-							CubicSplineGrad(2 * dist / radius);
-						force -= pressureForce;
+						float3 pressureForce = -dir * mass * (pi.pressure + pj.pressure) / (2 * pj.density) * spikyGrad;
+						pressureForce *= pow(radius - dist, 2);
+						pi.force += pressureForce;
 
 						//apply viscosity force
-						float3 velocityDiff = pi.velocity - pj.velocity;
-
-						float3 viscoForce = 
-							2 * viscosity * mass * mass / pi.density * velocityDiff /
-							(dist * dist + 0.01f * radius * radius) * 
-							CubicSplineGrad(2 * dist / radius) * dist;
-						force += viscoForce;
+						float3 velocityDif = pj.velocity - pi.velocity;
+						float3 viscoForce = viscosity * mass * (velocityDif / pj.density) * spikyLap * (radius - dist);
+						pi.force += viscoForce;
 					}
 					pjIndex++;
 				}
 			}
 		}
 	}
-	pi.force = force;
 	Particles[piIndex] = pi;
 }

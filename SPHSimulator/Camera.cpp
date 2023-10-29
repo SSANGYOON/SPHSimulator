@@ -10,7 +10,7 @@ void Camera::Update()
 {
 	Matrix world = Matrix::Identity;
 	world._43 = Distance;
-	world = Matrix::CreateRotationY(-Azimuth) * Matrix::CreateRotationX(-Incline) * world;
+	world = world * Matrix::CreateRotationY(-Azimuth) * Matrix::CreateRotationX(-Incline) ;
 
 	Vector4 t = { 0, 0, 0, 1 };
 	

@@ -23,7 +23,7 @@ SY::TestLayer::~TestLayer()
 
 void SY::TestLayer::OnAttach()
 {
-	SPHSettings sphSettings(3, 1, 1, 3.5, 0.15, -9.8, 0.2f);
+	SPHSettings sphSettings(0.02f, 1000, 1, 1.04f, 0.15f, -9.8f, 0.2f);
 	sphSystem = new SPHSystem(15, sphSettings);
 	Cam = make_unique<Camera>();
 }
@@ -122,9 +122,9 @@ void SY::TestLayer::OnImGuiRender()
 
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-	ImGui::Text("Particle sorting time %.3f", sphSystem->sortingTime);
-	ImGui::Text("Particle updating time %.3f", sphSystem->particleUpdateTime);
-	ImGui::Text("Particle rendering time %.3f", sphSystem->particleRenderingTime);
+	//ImGui::Text("Particle sorting time %.3f", sphSystem->sortingTime);
+	//ImGui::Text("Particle updating time %.3f", sphSystem->particleUpdateTime);
+	//ImGui::Text("Particle rendering time %.3f", sphSystem->particleRenderingTime);
 	ImGui::End();
 }
 
