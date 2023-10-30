@@ -12,6 +12,9 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)CreateHash.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)CalculateForce.hlsl" />
     <FxCompile Include="$(MSBuildThisFileDirectory)OutlineShader.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)RenderSphere.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)RecordDepthShader.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)VisualizeDepth.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Global.hlsli" />

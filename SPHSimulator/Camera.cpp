@@ -11,17 +11,9 @@ void Camera::Update()
 	Matrix world = Matrix::Identity;
 	world._43 = Distance;
 	world = world * Matrix::CreateRotationY(-Azimuth) * Matrix::CreateRotationX(-Incline) ;
-
-	Vector4 t = { 0, 0, 0, 1 };
 	
-	Matrix view = world.Invert();
-
-	Vector4 v = Vector4::Transform(t, view);
-	Matrix project = ::XMMatrixPerspectiveFovLH(FOV, Aspect, NearClip, FarClip);
-
-
-	ViewProjectionMatrix = view * project;
-	Vector4 r = Vector4::Transform(t, ViewProjectionMatrix);
+	ViewMatrix = world.Invert();
+	ProjectionMatrix = ::XMMatrixPerspectiveFovLH(FOV, Aspect, NearClip, FarClip);
 }
 
 void Camera::Reset()

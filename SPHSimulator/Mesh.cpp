@@ -196,16 +196,15 @@ void Mesh::RenderInstanced(InstancingBuffer* instances)
 	}
 }
 
-void Mesh::RenderInstancedIndirect(InstancingBuffer* instances, IndirectBuffer* indirect)
+void Mesh::RenderIndexedInstancedIndirect(InstancingBuffer* instances, IndirectBuffer* indirect)
 {
-	if (!_indexBuffer)
+	if (_indexBuffer)
 	{
-
-		UINT stride[] = { sizeof(Vertex), sizeof(Matrix) };
+		UINT stride[] = { sizeof(Vertex), sizeof(Vector3) };
 		UINT offset[] = { 0, 0 };
 
 		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
 		CONTEXT->IASetVertexBuffers(0, 2, views, stride, offset);
-		CONTEXT->DrawInstancedIndirect(indirect->GetBuffer().Get(), 0);
+		CONTEXT->DrawIndexedInstancedIndirect(indirect->GetBuffer().Get(), 0);
 	}
 }

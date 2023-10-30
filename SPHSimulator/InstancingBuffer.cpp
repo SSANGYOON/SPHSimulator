@@ -48,8 +48,7 @@ void InstancingBuffer::PushData()
 	CONTEXT->Unmap(_buffer.Get(), 0);
 }
 
-void InstancingBuffer::SetDataFromBuffer(ComPtr<ID3D11Buffer> _src, UINT maxCount)
+void InstancingBuffer::SetDataFromBuffer(ComPtr<ID3D11Buffer> _src)
 {
 	CONTEXT->CopyResource(_buffer.Get(), _src.Get());
-	_maxCount = maxCount;
 }

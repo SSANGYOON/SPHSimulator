@@ -197,6 +197,7 @@
     <ClInclude Include="SyWindow.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestLayer.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -283,6 +284,7 @@
     <ClCompile Include="StructuredBuffer.cpp" />
     <ClCompile Include="SyWindow.cpp" />
     <ClCompile Include="TestLayer.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>

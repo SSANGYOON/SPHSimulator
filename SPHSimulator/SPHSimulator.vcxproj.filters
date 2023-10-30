@@ -93,6 +93,9 @@
     <Filter Include="src\Buffers\StructuredBuffer">
       <UniqueIdentifier>{06e2584e-3075-400a-8fa8-c8f42793cd70}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Resource\Texture">
+      <UniqueIdentifier>{12d30e47-176c-4cb1-902e-e5cb351191c6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -236,6 +239,9 @@
     <ClInclude Include="StructuredBuffer.h">
       <Filter>src\Buffers\StructuredBuffer</Filter>
     </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>src\Resource\Texture</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -348,6 +354,9 @@
     </ClCompile>
     <ClCompile Include="StructuredBuffer.cpp">
       <Filter>src\Buffers\StructuredBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>src\Resource\Texture</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

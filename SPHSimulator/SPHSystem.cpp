@@ -12,7 +12,7 @@
 #include "Camera.h"
 #include "InstancingBuffer.h"
 #include "IndirectBuffer.h"
-#include <ctime>
+#include "Texture.h"
 
 SPHSettings::SPHSettings(
     float mass, float restDensity, float gasConst, float viscosity, float h,
@@ -44,6 +44,11 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     started = false;
   
     InitParticles();
+
+    SceneDepth = make_unique<Texture>();
+    SceneDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
 }
 
 void SPHSystem::InitParticles()
@@ -189,22 +194,66 @@ void SPHSystem::updateParticles(float deltaTime)
 
 void SPHSystem::draw(Camera* Cam)
 {
+    ID3D11DepthStencilView* commonDepth = GEngine->GetCommonDepth();
+
+
+    float farClip = 0.5f; //Cam->GetFarClip();
+
     TransformCB trCB;
 
     trCB.world = Matrix::Identity;
-    trCB.view = Matrix::Identity;
-    trCB.projection = Cam->GetViewProjectionMatrix();
+    trCB.view = Cam->GetViewMatrix();
+    trCB.projection = Cam->GetProjectionMatrix();
+    trCB.viewInv = trCB.view.Invert();
 
     shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
     cb->SetData(&trCB);
     cb->SetPipline(ShaderStage::VS);
+    cb->SetPipline(ShaderStage::PS);
 
-    auto shader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
-    auto Lcosahedron = GET_SINGLE(Resources)->Find<Mesh>(L"Lcosahedron");
-    shader->BindShader();
+    MaterialCB matCB;
 
-    Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer(), 3375);
-    Lcosahedron->RenderInstancedIndirect(Intances.get(), ParticleIndirect.get());
+    matCB.farClip = Cam->GetFarClip();
+    matCB.nearClip = Cam->GetNearClip();
+    matCB.viewPort = Vector2(1920, 1080);
+
+    shared_ptr<ConstantBuffer> matcb = GEngine->GetConstantBuffer(Constantbuffer_Type::MATERIAL);
+    matcb->SetData(&matCB);
+    matcb->SetPipline(ShaderStage::VS);
+    matcb->SetPipline(ShaderStage::PS);
+    matcb->SetPipline(ShaderStage::CS);
+
+    auto RectMesh = GET_SINGLE(Resources)->Find<Mesh>(L"RectMesh");
+    Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer());
+
+    CONTEXT->ClearRenderTargetView(SceneDepth->GetRTV(), &farClip);
+    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+    CONTEXT->OMSetRenderTargets(1, SceneDepth->GetRTVRef(), commonDepth);
+
+    D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, 1920.f, 1080.f, 0.0f, 1.0f };
+
+    CONTEXT->RSSetViewports(1, &_viewPort);
+
+    auto depthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordDepthShader");
+    depthRecordShader->BindShader();
+    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+
+    GEngine->BindSwapChain();
+    GEngine->ClearSwapChain();
+
+    auto visualizeDepthShader = GET_SINGLE(Resources)->Find<Shader>(L"visualizeDepthShader");
+    visualizeDepthShader->BindShader();
+    SceneDepth->BindSRV(ShaderStage::PS, 0);
+    RectMesh->BindBuffer();
+    RectMesh->Render();
+
+    SceneDepth->ClearSRV(ShaderStage::PS, 0);
+
+    /*GEngine->ClearSwapChain();
+    auto Sphereshader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
+    
+    Sphereshader->BindShader();
+    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());*/
 }
 
 void SPHSystem::reset() {

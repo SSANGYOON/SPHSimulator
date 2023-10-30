@@ -1,12 +1,8 @@
 #include "global.hlsli"
 
-const static float3 LightDirection =  float3(-0.707, 0.707, 0);
-const static float3 LightColor = float3(1.0, 1.0, 1.0);
-const static float3 DiffuseColor = float3(0.0, 0.5, 0.9);
-
 struct PS_OUT
 {
-    float4 color : SV_Target;
+    float color : SV_Target;
     float depth : SV_Depth;
 };
 
@@ -26,7 +22,7 @@ PSIn VS_MAIN(ParticleVSIn In)
     float3 viewLeft = float3(viewInv._m00, viewInv._m01, viewInv._m02);
     float3 viewUp = float3(viewInv._m10, viewInv._m11, viewInv._m12);
 
-    float4 worldPos = float4( (In.Pos.x * viewLeft + In.Pos.y * viewUp) * 0.15f + In.InstancePos, 1.f);
+    float4 worldPos = float4((In.Pos.x * viewLeft + In.Pos.y * viewUp) * 0.15f + In.InstancePos, 1.f);
 
     float4 viewPos = mul(worldPos, view);
     Out.Pos = mul(viewPos, projection);
@@ -39,7 +35,7 @@ PSIn VS_MAIN(ParticleVSIn In)
 PS_OUT PS_MAIN(PSIn In)
 {
     PS_OUT OUT = (PS_OUT)0;
-    
+
     // calculate eye-space sphere normal from texture coordinates
     float3 N;
     N.xy = In.UV * 2.0 - 1.0;
@@ -56,7 +52,6 @@ PS_OUT PS_MAIN(PSIn In)
     float4 clipSpacePos = mul(pixelPos, projection);
     OUT.depth = clipSpacePos.z / clipSpacePos.w;
 
-    OUT.color.xyz = DiffuseColor * 0.3f + DiffuseColor * LightColor * max(0, dot(LightDirection, N));
-    OUT.color.w = 1;
+    OUT.color = 0.f;
     return OUT;
 }

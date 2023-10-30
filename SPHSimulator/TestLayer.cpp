@@ -35,18 +35,15 @@ void SY::TestLayer::OnDetach()
 
 void SY::TestLayer::OnUpdate(float timestep)
 {
-	Cam->Update();
-	sphSystem->update(timestep);
-	sphSystem->draw(Cam.get());
 
 	auto outlinedRect = GET_SINGLE(Resources)->Find<Mesh>(L"OutlinedRect");
 	auto wireFrameRenderer = GET_SINGLE(Resources)->Find<Shader>(L"OutLineShader");
 
 	TransformCB trCB;
 
-	trCB.world = Matrix::CreateScale(Vector3(8,8,1)) * Matrix::CreateTranslation(Vector3(0,4,-4));
-	trCB.view = Matrix::Identity;
-	trCB.projection = Cam->GetViewProjectionMatrix();
+	trCB.world = Matrix::CreateScale(Vector3(10,10,1)) * Matrix::CreateTranslation(Vector3(0,5,-5));
+	trCB.view = Cam->GetViewMatrix();
+	trCB.projection = Cam->GetProjectionMatrix();
 
 	shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
 	cb->SetData(&trCB);
@@ -56,9 +53,9 @@ void SY::TestLayer::OnUpdate(float timestep)
 	outlinedRect->BindBuffer();
 	outlinedRect->Render();
 
-	trCB.world = Matrix::CreateScale(Vector3(8, 8, 1)) * Matrix::CreateRotationY(XM_PIDIV2) * Matrix::CreateTranslation(Vector3(4, 4, 0));
-	trCB.view = Matrix::Identity;
-	trCB.projection = Cam->GetViewProjectionMatrix();
+	trCB.world = Matrix::CreateScale(Vector3(10, 10, 1)) * Matrix::CreateRotationY(XM_PIDIV2) * Matrix::CreateTranslation(Vector3(5, 5, 0));
+	trCB.view = Cam->GetViewMatrix();
+	trCB.projection = Cam->GetProjectionMatrix();
 
 	cb->SetData(&trCB);
 	cb->SetPipline(ShaderStage::VS);
@@ -67,9 +64,9 @@ void SY::TestLayer::OnUpdate(float timestep)
 	outlinedRect->BindBuffer();
 	outlinedRect->Render();
 
-	trCB.world = Matrix::CreateScale(Vector3(8, 8, 1)) * Matrix::CreateRotationY(XM_PIDIV2) * Matrix::CreateTranslation(Vector3(-4, 4, 0));
-	trCB.view = Matrix::Identity;
-	trCB.projection = Cam->GetViewProjectionMatrix();
+	trCB.world = Matrix::CreateScale(Vector3(10, 10, 1)) * Matrix::CreateRotationY(XM_PIDIV2) * Matrix::CreateTranslation(Vector3(-5, 5, 0));
+	trCB.view = Cam->GetViewMatrix();
+	trCB.projection = Cam->GetProjectionMatrix();
 
 	cb->SetData(&trCB);
 	cb->SetPipline(ShaderStage::VS);
@@ -78,9 +75,9 @@ void SY::TestLayer::OnUpdate(float timestep)
 	outlinedRect->BindBuffer();
 	outlinedRect->Render();
 
-	trCB.world = Matrix::CreateScale(Vector3(8, 8, 1)) * Matrix::CreateTranslation(Vector3(0, 4, 4));
-	trCB.view = Matrix::Identity;
-	trCB.projection = Cam->GetViewProjectionMatrix();
+	trCB.world = Matrix::CreateScale(Vector3(10, 10, 1)) * Matrix::CreateTranslation(Vector3(0, 5, 5));
+	trCB.view = Cam->GetViewMatrix();
+	trCB.projection = Cam->GetProjectionMatrix();
 
 	cb->SetData(&trCB);
 	cb->SetPipline(ShaderStage::VS);
@@ -88,6 +85,10 @@ void SY::TestLayer::OnUpdate(float timestep)
 	wireFrameRenderer->BindShader();
 	outlinedRect->BindBuffer();
 	outlinedRect->Render();
+
+	Cam->Update();
+	sphSystem->update(timestep);
+	sphSystem->draw(Cam.get());
 }
 
 void SY::TestLayer::OnImGuiRender()

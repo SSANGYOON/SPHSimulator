@@ -29,7 +29,7 @@ public:
 	void BindBuffer();
 	void Render();
 	void RenderInstanced(InstancingBuffer* instances);
-	void RenderInstancedIndirect(InstancingBuffer* instances, IndirectBuffer* indirect);
+	void RenderIndexedInstancedIndirect(InstancingBuffer* instances, IndirectBuffer* indirect);
 
 private:
 	ComPtr<ID3D11Buffer> _vertexBuffer;

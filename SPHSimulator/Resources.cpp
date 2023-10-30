@@ -146,24 +146,6 @@ void Resources::CreateDefaultResource()
 	Lcosahedron->Load(path);
 #pragma endregion
 
-#pragma region HardCoded3DShader
-	{
-		ShaderInfo _info;
-		ShaderEntry _entry;
-
-		shared_ptr<Shader> HardCoded3DShader = std::make_shared<Shader>();
-		Resources::Insert<Shader>(L"HardCoded3DShader", HardCoded3DShader);
-		_info.bst = BSType::AlphaBlend;
-		_info.dst = DSType::Less;
-		_info.rst = RSType::SolidNone;
-		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		_entry = {};
-		_entry.VS = true;
-		_entry.PS = true;
-		HardCoded3DShader->CreateShader(_info, _entry, L"HardCoded3DShader.hlsl", false);
-	}
-#pragma endregion
-
 #pragma region TestShader
 	ShaderInfo _info;
 	ShaderEntry _entry;
@@ -228,5 +210,59 @@ void Resources::CreateDefaultResource()
 	shared_ptr<ComputeShader> UpdateParticlePosition = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"UpdateParticlePosition", UpdateParticlePosition);
 	UpdateParticlePosition->Create(L"UpdateParticlePosition.hlsl");
+#pragma endregion
+
+#pragma region HardCoded3DShader
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> HardCoded3DShader = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"HardCoded3DShader", HardCoded3DShader);
+		_info.bst = BSType::AlphaBlend;
+		_info.dst = DSType::Less;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		HardCoded3DShader->CreateShader(_info, _entry, L"HardCoded3DShader.hlsl", false);
+	}
+#pragma endregion
+
+#pragma region RecordDepth
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> RecordDepthShader = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"RecordDepthShader", RecordDepthShader);
+		_info.bst = BSType::Default;
+		_info.dst = DSType::Less;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		RecordDepthShader->CreateShader(_info, _entry, L"RecordDepthShader.hlsl", false);
+	}
+#pragma endregion
+
+#pragma region visualizeDepth
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> visualizeDepthShadaer = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"visualizeDepthShader", visualizeDepthShadaer);
+		_info.bst = BSType::AlphaBlend;
+		_info.dst = DSType::Less;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		visualizeDepthShadaer->CreateShader(_info, _entry, L"VisualizeDepth.hlsl", true);
+	}
 #pragma endregion
 }

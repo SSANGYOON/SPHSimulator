@@ -53,16 +53,12 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	p.velocity = velocity;
 	Particles[piIndex] = p;
 
-	float4x4 mat = { radius / 2.f , 0.0f, 0.0f, p.position.x,
-					 0.0f, radius / 2.f, 0.0f, p.position.y,
-					 0.0f, 0.0f, -radius / 2.f, p.position.z,
-					 0.0f, 0.0f, 0.0f, 1.f };
 
-	ParticleWorld[piIndex] = mat;
+	ParticleWorld[piIndex] = position;
 
 	if (piIndex == 0)
 	{
-		IndirectArgs args = { 60, particlesNum, 0, 0 };
+		IndirectArgs args = { 6, particlesNum, 0, 0, 0 };
 		IndirectBuffer[piIndex] = args;
 	}
 }

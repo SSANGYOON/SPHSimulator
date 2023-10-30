@@ -13,16 +13,17 @@ struct Particle
 };
 
 struct IndirectArgs {
-	uint VertexCountPerInstance;
+	uint IndexCountPerInstance;
 	uint InstanceCount;
-	uint StartVertexLocation;
+	uint StartIndexLocation;
+	int BaseVertexLocation;
 	uint StartInstanceLocation;
 };
 
 RWStructuredBuffer<Particle> Particles : register(u0);
 RWStructuredBuffer<uint> neighborTable : register(u1);
 RWStructuredBuffer<IndirectArgs> IndirectBuffer : register(u2);
-RWStructuredBuffer<float4x4> ParticleWorld : register(u3);
+RWStructuredBuffer<float3> ParticleWorld : register(u3);
 
 groupshared uint LocalPrefixSum[GroupThreadNum];
 

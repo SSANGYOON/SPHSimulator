@@ -17,7 +17,8 @@ private:
 	float Azimuth; // Rotation of the camera eye position around Y axis (radian)
 	float Incline; // Angle of the camear eye postion over the XZ plane (radian)
 
-	Matrix ViewProjectionMatrix;
+	Matrix ViewMatrix;
+	Matrix ProjectionMatrix;
 
 public:
 	inline void SetAspect(float a) { Aspect = a; }
@@ -28,7 +29,10 @@ public:
 	inline float GetDistance() { return -Distance; };
 	inline float GetAzimuth() { return Azimuth; }
 	inline float GetIncline() { return Incline; }
+	inline float GetFarClip() const { return FarClip; }
+	inline float GetNearClip() const { return NearClip; }
 
-	const Matrix& GetViewProjectionMatrix() { return ViewProjectionMatrix; }
+	const Matrix& GetViewMatrix() { return ViewMatrix; }
+	const Matrix& GetProjectionMatrix() { return ProjectionMatrix; }
 };
 

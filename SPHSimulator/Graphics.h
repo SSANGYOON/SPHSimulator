@@ -40,9 +40,8 @@ public:
 	void Quit();
 
 public:
-	HRESULT CreateRenderTargetGroup();
 	IFW1FontWrapper* mFontWrapper;
-
+	ID3D11DepthStencilView* GetCommonDepth() { return _dsv.Get(); }
 private:
 	WindowInfo _window;
 	D3D11_VIEWPORT _viewPort;
@@ -54,9 +53,10 @@ private:
 
 	ComPtr<ID3D11Texture2D> _renderTarget;
 	ComPtr<ID3D11RenderTargetView> _rtv;
+
 	ComPtr<ID3D11Texture2D> _depthStencilText;
 	ComPtr<ID3D11DepthStencilView> _dsv;
-
+	ComPtr<ID3D11UnorderedAccessView> _depthUAV;
 	IFW1Factory* mFW1Factory;
 
 	array<shared_ptr<ConstantBuffer>, (size_t)Constantbuffer_Type::END> _constantBuffers;

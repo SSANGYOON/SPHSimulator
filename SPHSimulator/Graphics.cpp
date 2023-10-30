@@ -58,7 +58,6 @@ HRESULT Graphics::Init(const WindowInfo& info)
 	if (FAILED(res = DEVICE->CreateDepthStencilView(_depthStencilText.Get(), nullptr, _dsv.GetAddressOf())))
 		return res;
 
-
 	RECT rt = { 0, 0, (LONG)info.width , (LONG)info.height };
 	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
 	SetWindowPos(info.hwnd, nullptr, 0, 0, rt.right - rt.left, rt.bottom - rt.top, 0);
@@ -71,6 +70,9 @@ HRESULT Graphics::Init(const WindowInfo& info)
 
 	_constantBuffers[(UINT8)Constantbuffer_Type::TRANSFORM] = make_shared<ConstantBuffer>();
 	_constantBuffers[(UINT8)Constantbuffer_Type::TRANSFORM]->Init(Constantbuffer_Type::TRANSFORM, sizeof(TransformCB));
+
+	_constantBuffers[(UINT8)Constantbuffer_Type::MATERIAL] = make_shared<ConstantBuffer>();
+	_constantBuffers[(UINT8)Constantbuffer_Type::MATERIAL]->Init(Constantbuffer_Type::MATERIAL, sizeof(MaterialCB));
 
 	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLE] = make_shared<ConstantBuffer>();
 	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLE]->Init(Constantbuffer_Type::PARTICLE, sizeof(ParticleCB));

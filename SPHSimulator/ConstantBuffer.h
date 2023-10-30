@@ -23,9 +23,20 @@ CBUFFER(TransformCB, CBSLOT_TRANSFORM)
 {
 	Matrix world;
 	Matrix view;
+	Matrix viewInv;
 	Matrix projection;
-	int entity;
-	Vector3 padding;
+};
+
+CBUFFER(MaterialCB, CBSLOT_MATERIAL)
+{
+	int     tex0_On;
+	int     tex1_On;
+	int     tex2_On;
+	int     tex3_On;
+
+	Vector2 viewPort;
+	float nearClip;
+	float farClip;
 };
 
 CBUFFER(ParticleCB, CBSLOT_PARTICLE)

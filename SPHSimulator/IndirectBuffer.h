@@ -1,9 +1,10 @@
 #pragma once
 
 struct IndirectArgs {
-	UINT VertexCountPerInstance;
+	UINT IndexCountPerInstance;
 	UINT InstanceCount;
-	UINT StartVertexLocation;
+	UINT StartIndexLocation;
+	INT BaseVertexLocation;
 	UINT StartInstanceLocation;
 };
 

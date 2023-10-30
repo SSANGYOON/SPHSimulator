@@ -14,6 +14,7 @@ struct SPHSettings
 
 class StructuredBuffer;
 class InstancingBuffer;
+class Texture;
 class SPHSystem
 {
 public:
@@ -48,6 +49,8 @@ private:
 	unique_ptr<StructuredBuffer> hashToParticleIndexTable;
 	
 	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
+
+	unique_ptr<Texture> SceneDepth;
 
 	//Particle GPUSortedParticle[32768];
 	//UINT Table[32768];
