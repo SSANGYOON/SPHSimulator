@@ -59,6 +59,6 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	if (piIndex == 0)
 	{
 		IndirectArgs args = { 6, particlesNum, 0, 0, 0 };
-		IndirectBuffer[piIndex] = args;
+		IndirectBuffer[0] = args;
 	}
 }

@@ -31,6 +31,7 @@ enum class BSType
 	Default,
 	AlphaBlend,
 	OneOne,
+	Additive,
 	End,
 };
 

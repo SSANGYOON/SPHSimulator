@@ -1,4 +1,5 @@
 #include "global.hlsli"
+#include "Global_SPH.hlsli"
 
 struct PS_OUT
 {
@@ -48,10 +49,13 @@ PS_OUT PS_MAIN(PSIn In)
     float sphereRadius = 0.075;
 
     // calculate depth
-    float4 pixelPos = float4(In.ViewPos + N * sphereRadius, 1.0);
+    float4 pixelPos = float4(In.ViewPos + N * radius, 1.0);
     float4 clipSpacePos = mul(pixelPos, projection);
+
     OUT.depth = clipSpacePos.z / clipSpacePos.w;
 
-    OUT.color = 0.f;
+    OUT.color = pixelPos.z;
+
+
     return OUT;
 }

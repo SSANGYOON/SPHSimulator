@@ -9,7 +9,7 @@ public:
 	void Init(UINT maxCount = 10);
 
 	void Clear();
-	void AddData(Matrix& params);
+	void AddData(Vector3& params);
 	void PushData();
 	void SetDataFromBuffer(ComPtr<ID3D11Buffer> _src);
 
@@ -25,5 +25,5 @@ private:
 	ComPtr<ID3D11Buffer>		_buffer;
 
 	UINT						_maxCount = 0;
-	vector<Matrix>	_data;
+	vector<Vector3>	_data;
 };

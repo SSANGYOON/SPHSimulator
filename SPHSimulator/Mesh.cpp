@@ -187,7 +187,7 @@ void Mesh::RenderInstanced(InstancingBuffer* instances)
 	if (!_indexBuffer)
 	{
 
-		UINT stride[] = { sizeof(Vertex), sizeof(Matrix) };
+		UINT stride[] = { sizeof(Vertex), sizeof(Vector3) };
 		UINT offset[] = { 0, 0 };
 
 		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
