@@ -49,6 +49,9 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)Thickness.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)DrawBackGround.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">

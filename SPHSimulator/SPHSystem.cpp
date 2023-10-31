@@ -42,7 +42,9 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     particles = new Particle[MaxParticle];
 
     started = false;
-  
+    
+    cubeMap = make_shared<Texture>();
+    cubeMap->Load(L"Texture/MSPath_specularIBL.dds");
     InitParticles();
 }
 
@@ -222,6 +224,7 @@ void SPHSystem::draw(Camera* Cam)
     trCB.view = Cam->GetViewMatrix();
     trCB.projection = Cam->GetProjectionMatrix();
     trCB.viewInv = trCB.view.Invert();
+    trCB.projectionInv = trCB.projection.Invert();
 
     shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
     cb->SetData(&trCB);
@@ -274,7 +277,7 @@ void SPHSystem::draw(Camera* Cam)
     GEngine->BindSwapChain();
     GEngine->ClearSwapChain();
 
-    ParticleRenderCB prCB;
+    /*ParticleRenderCB prCB;
 
     prCB.blurDepthFalloff = 26.f;
     prCB.blurScale = 0.5;
@@ -327,11 +330,18 @@ void SPHSystem::draw(Camera* Cam)
     RectMesh->Render();
     normalMap->ClearSRV(ShaderStage::PS, 0);
 
-    GEngine->ClearSwapChain();
-    auto Sphereshader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
+    GEngine->ClearSwapChain();*/
+    
+    auto DrawBackground = GET_SINGLE(Resources)->Find<Shader>(L"DrawBackground");
+
+    DrawBackground->BindShader();
+    cubeMap->BindSRV(ShaderStage::PS, 0);
+    RectMesh->Render();
+
+    /*auto Sphereshader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
     
     Sphereshader->BindShader();
-    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());*/
 }
 
 void SPHSystem::reset() {

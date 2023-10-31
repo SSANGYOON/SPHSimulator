@@ -26,9 +26,6 @@ void CS_MAIN(uint3 DTid : SV_DispatchThreadID)
 		normalMap[DTid.xy] = float3(0.5f, 0.5f, 0);
 	}
 
-	float tanFOV = 1.f / projection[1][1];
-	float aspect = projection[1][1] / projection[0][0];
-
 	// calculate eye-space position from depth
 	int2 screenPos = (int2)DTid.xy;
 	float3 posEye = GetEyePos(screenPos);

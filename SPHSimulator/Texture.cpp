@@ -2,6 +2,9 @@
 #include "Texture.h"
 #include "Graphics.h"
 
+
+
+
 Texture::Texture()
 	:Resource(RESOURCE_TYPE::TEXTURE), mDesc{}
 {
@@ -25,7 +28,51 @@ void Texture::Clear(UINT startSlot)
 
 HRESULT Texture::Load(const std::wstring& path, bool stockObject)
 {
-	return S_FALSE;
+	std::wstring fullPath;
+	std::filesystem::path parentPath = std::filesystem::current_path().parent_path();
+	fullPath = parentPath.wstring() + L"\\Resources\\" + path;
+
+	wchar_t szExtension[256] = {};
+	_wsplitpath_s(path.c_str(), nullptr, 0, nullptr, 0, nullptr, 0, szExtension, 256);
+
+	std::wstring extension(szExtension);
+
+	if (extension == L".dds" || extension == L".DDS")
+	{
+		TexMetadata meta;
+		if (FAILED(LoadFromDDSFile(fullPath.c_str(), DDS_FLAGS::DDS_FLAGS_NONE, &meta, _image)))
+			return S_FALSE;
+		else
+		{
+			int a = 0;
+		}
+	}
+	else if (extension == L".tga" || extension == L".TGA")
+	{
+		if (FAILED(LoadFromTGAFile(fullPath.c_str(), nullptr, _image)))
+			return S_FALSE;
+	}
+	else // WIC (png, jpg, jpeg, bmp )
+	{
+		if (FAILED(LoadFromWICFile(fullPath.c_str(), WIC_FLAGS::WIC_FLAGS_NONE, nullptr, _image)))
+			return S_FALSE;
+	}
+
+	CreateShaderResourceView
+	(
+		DEVICE,
+		_image.GetImages(),
+		_image.GetImageCount(),
+		_image.GetMetadata(),
+		_SRV.GetAddressOf()
+	);
+	std::filesystem::path pathObj = std::filesystem::path(fullPath);
+
+	_SRV->GetResource((ID3D11Resource**)_texture.GetAddressOf());
+	D3D11_TEXTURE2D_DESC desc;
+	_texture->GetDesc(&desc);
+	_size = { float(desc.Width), float(desc.Height) };
+	return S_OK;
 }
 
 bool Texture::Create(UINT width, UINT height, DXGI_FORMAT format, UINT bindFlag, UINT cpuAccess)

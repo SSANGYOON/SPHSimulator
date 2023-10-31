@@ -79,10 +79,15 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)External\imgui;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)External\imgui</IncludePath>
+    <ExternalIncludePath>$(SolutionDIr)External\DirectXTex\Include;$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(SolutionDir)External\DirectXTex\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <ExternalIncludePath>$(SolutionDIr)External\DirectXTex\Include;$(ExternalIncludePath)</ExternalIncludePath>
+    <IncludePath>$(SolutionDir)External\imgui</IncludePath>
+    <LibraryPath>$(SolutionDir)External\DirectXTex\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -171,6 +176,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="ConstantBuffer.h" />
+    <ClInclude Include="CubeTex.h" />
     <ClInclude Include="Enums.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="framework.h" />
@@ -257,6 +263,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="ConstantBuffer.cpp" />
+    <ClCompile Include="CubeTex.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ImguiLayer.cpp" />
     <ClCompile Include="IndirectBuffer.cpp" />

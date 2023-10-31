@@ -41,6 +41,7 @@ private:
 	bool started;
 	void InitParticles();
 	shared_ptr<class Mesh> sphere;
+	shared_ptr<Texture> cubeMap;
 
 	unique_ptr<InstancingBuffer> Intances;
 	unique_ptr<StructuredBuffer> IndirectGPU;

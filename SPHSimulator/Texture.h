@@ -1,6 +1,11 @@
 #pragma once
 #include "Resource.h"
 #include "Enums.h"
+
+#include "DirectXTex.h"
+
+#pragma comment(lib, "DirectXTex.lib") 
+
 class Texture : public Resource
 {
 public:
@@ -32,6 +37,7 @@ public:
 
 
 private:
+	DirectX::ScratchImage _image;
 	ComPtr<ID3D11Texture2D> _texture;
 	ComPtr<ID3D11DepthStencilView> _DSV;
 	ComPtr<ID3D11RenderTargetView> _RTV;

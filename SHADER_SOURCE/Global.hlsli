@@ -28,6 +28,7 @@ cbuffer Transform : register(b0)
     row_major matrix view;
     row_major matrix viewInv;
     row_major matrix projection;
+    row_major matrix projectionInv;
 }
 
 cbuffer PiplineSetting : register(b1)

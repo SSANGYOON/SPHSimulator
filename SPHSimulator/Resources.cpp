@@ -301,4 +301,22 @@ void Resources::CreateDefaultResource()
 		Thickness->CreateShader(_info, _entry, L"Thickness.hlsl", false);
 	}
 #pragma endregion
+
+#pragma region DrawBackground
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> DrawBackground = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"DrawBackground", DrawBackground);
+		_info.bst = BSType::Additive;
+		_info.dst = DSType::None;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		DrawBackground->CreateShader(_info, _entry, L"DrawBackground.hlsl", false);
+	}
+#pragma endregion
 }

@@ -27,6 +27,7 @@ CBUFFER(TransformCB, CBSLOT_TRANSFORM)
 	Matrix view;
 	Matrix viewInv;
 	Matrix projection;
+	Matrix projectionInv;
 };
 
 CBUFFER(MaterialCB, CBSLOT_MATERIAL)
