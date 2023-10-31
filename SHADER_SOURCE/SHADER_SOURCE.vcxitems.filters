@@ -1,22 +1,69 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="$(MSBuildThisFileDirectory)BaseShader.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)CreateNeighborTable.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)Global_SPH.hlsli" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)TestShader.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)HardCoded3DShader.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)CalculatePressureAndDensity.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)UpdateParticlePosition.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)BitonicSort.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)CreateHash.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)CalculateForce.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)OutlineShader.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)RenderSphere.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)RecordDepthShader.hlsl" />
-    <FxCompile Include="$(MSBuildThisFileDirectory)VisualizeDepth.hlsl" />
+    <FxCompile Include="$(MSBuildThisFileDirectory)BitonicSort.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CalculateForce.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CalculatePressureAndDensity.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateNeighborTable.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateHash.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)Global_SPH.hlsli">
+      <Filter>Include</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)HardCoded3DShader.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)OutlineShader.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)RecordDepthShader.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)RenderSphere.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)UpdateParticlePosition.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)VisualizeDepth.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)HorizontalBilateralFilter.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)VerticalBilateralFilter.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateNormal.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)Thickness.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)Global.hlsli" />
+    <Filter Include="Include">
+      <UniqueIdentifier>{825d5ec0-b44b-4f2d-b94a-563b30f6a024}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Compute">
+      <UniqueIdentifier>{37d182b1-81e8-4d0a-8e12-5fca3737661a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{b3ad5d2c-a24a-4eb5-b440-8ee1783ab2d9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Global.hlsli">
+      <Filter>Include</Filter>
+    </None>
   </ItemGroup>
 </Project>

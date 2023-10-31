@@ -7,6 +7,7 @@
 #define CBSLOT_MATERIAL 1
 #define CBSLOT_PARTICLE 2
 #define CBSLOT_PARTICLESORT 3
+#define CBSLOT_PARTICLERENDER 4
 
 #include "Enums.h"
 
@@ -16,6 +17,7 @@ enum class Constantbuffer_Type : UINT8
 	MATERIAL,
 	PARTICLE,
 	PARTICLESORT,
+	PARTICLERENDER,
 	END
 };
 
@@ -60,6 +62,14 @@ CBUFFER(ParticleSortCB, CBSLOT_PARTICLESORT)
 	UINT j;
 	UINT k;
 	Vector2 padding;
+};
+
+CBUFFER(ParticleRenderCB, CBSLOT_PARTICLERENDER)
+{
+	float blurScale;
+	float blurDepthFalloff;
+	int filterRadius;
+	float filterPadding;
 };
 
 struct alignas(16) LightInfo

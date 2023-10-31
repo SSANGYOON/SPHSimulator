@@ -117,7 +117,7 @@ void SetUpState()
 		, depthstencilStates[(UINT)DSType::NoWrite].GetAddressOf());
 
 	dsDesc.DepthEnable = false;
-	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
+	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ZERO;
 	dsDesc.StencilEnable = false;
 
@@ -141,38 +141,34 @@ void SetUpState()
 	bsDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 	bsDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
 	bsDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	bsDesc.RenderTarget[1].BlendEnable = true;
-	bsDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	bsDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
-	bsDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	bsDesc.RenderTarget[1].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-	bsDesc.RenderTarget[1].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_MAX;
-	bsDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ONE;
-	bsDesc.RenderTarget[1].DestBlendAlpha = D3D11_BLEND_ONE;
-	bsDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	bsDesc.RenderTarget[2].BlendEnable = false;
-	bsDesc.RenderTarget[3].BlendEnable = true;
-	bsDesc.RenderTarget[3].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
-	bsDesc.RenderTarget[3].SrcBlend = D3D11_BLEND_ONE;
-	bsDesc.RenderTarget[3].DestBlend = D3D11_BLEND_ZERO;
-	bsDesc.RenderTarget[3].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
-	bsDesc.RenderTarget[3].SrcBlendAlpha = D3D11_BLEND_ONE;
-	bsDesc.RenderTarget[3].DestBlendAlpha = D3D11_BLEND_ZERO;
-	bsDesc.RenderTarget[3].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	DEVICE->CreateBlendState(&bsDesc, blendStates[(UINT)BSType::AlphaBlend].GetAddressOf());
 
 	bsDesc.AlphaToCoverageEnable = false;
-	bsDesc.IndependentBlendEnable = true;
+	bsDesc.IndependentBlendEnable = false;
 
 	bsDesc.RenderTarget[0].BlendEnable = true;
 	bsDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
 	bsDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
 	bsDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 	bsDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	bsDesc.RenderTarget[1].BlendEnable = false;
-	bsDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	DEVICE->CreateBlendState(&bsDesc, blendStates[(UINT)BSType::OneOne].GetAddressOf());
+
+	bsDesc = {};
+
+	bsDesc.AlphaToCoverageEnable = false;
+	bsDesc.IndependentBlendEnable = false;
+
+	bsDesc.RenderTarget[0].BlendEnable = TRUE;
+	bsDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	bsDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	bsDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	bsDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	bsDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	bsDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	bsDesc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+	DEVICE->CreateBlendState(&bsDesc, blendStates[(UINT)BSType::Additive].GetAddressOf());
 #pragma endregion
 }

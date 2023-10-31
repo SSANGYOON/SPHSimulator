@@ -16,7 +16,7 @@ public:
 
 	void BindUAV(UINT slot);
 	void ClearUAV();
-
+	void SetDataFromBuffer(ComPtr<ID3D11Buffer> _src);
 
 private:
 

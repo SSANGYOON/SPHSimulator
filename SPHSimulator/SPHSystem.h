@@ -43,6 +43,7 @@ private:
 	shared_ptr<class Mesh> sphere;
 
 	unique_ptr<InstancingBuffer> Intances;
+	unique_ptr<StructuredBuffer> IndirectGPU;
 	unique_ptr<class IndirectBuffer> ParticleIndirect;
 
 	unique_ptr<StructuredBuffer> particleBuffer;
@@ -51,6 +52,9 @@ private:
 	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
 
 	unique_ptr<Texture> SceneDepth;
+	unique_ptr<Texture> horizontalBlurredDepth;
+	unique_ptr<Texture> normalMap;
+	unique_ptr<Texture> thicknessMap;
 
 	//Particle GPUSortedParticle[32768];
 	//UINT Table[32768];

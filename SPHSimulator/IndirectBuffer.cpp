@@ -57,3 +57,8 @@ void IndirectBuffer::ClearUAV()
         CONTEXT->CSSetUnorderedAccessViews(SlotNum, 1, &uav, &i);
     }
 }
+
+void IndirectBuffer::SetDataFromBuffer(ComPtr<ID3D11Buffer> _src)
+{
+    CONTEXT->CopyResource(_buffer.Get(), _src.Get());
+}

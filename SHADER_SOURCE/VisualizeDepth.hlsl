@@ -1,5 +1,5 @@
 #include "global.hlsli"
-
+Texture2D normalTexture : register(t0);
 struct PSIn
 {
     float4 Pos : SV_Position;
@@ -20,6 +20,6 @@ PSIn VS_MAIN(VSIn In)
 
 float4 PS_MAIN(PSIn In) : SV_TARGET
 {
-	float depth = viewDepthTexture.Sample(pointSampler, In.UV).x;
-    return float4(depth, depth, depth, 1);
+	float3 thickness = normalTexture.Sample(pointSampler, In.UV).xyz;
+    return float4(thickness.x * 0.5f + 0.5f, thickness.y * 0.5f + 0.5f, thickness.z * 0.5f + 0.5f, 1);
 }

@@ -44,11 +44,6 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     started = false;
   
     InitParticles();
-
-    SceneDepth = make_unique<Texture>();
-    SceneDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-    | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
 }
 
 void SPHSystem::InitParticles()
@@ -89,10 +84,29 @@ void SPHSystem::InitParticles()
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
     hashToParticleIndexTable->Create(sizeof(UINT), 32768, nullptr, true, false);
 
+    IndirectGPU = make_unique<StructuredBuffer>();
+    IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
+
     ParticleIndirect = make_unique<IndirectBuffer>(1, sizeof(IndirectArgs), nullptr);
 
     ParticleWorldMatrixes = make_unique<StructuredBuffer>();
-    ParticleWorldMatrixes->Create(sizeof(Matrix), 32768, nullptr, true, false);
+    ParticleWorldMatrixes->Create(sizeof(Vector3), 32768, nullptr, true, false);
+
+    SceneDepth = make_unique<Texture>();
+    SceneDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    horizontalBlurredDepth = make_unique<Texture>();
+    horizontalBlurredDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    normalMap = make_unique<Texture>();
+    normalMap->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    thicknessMap = make_unique<Texture>();
+    thicknessMap->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 }
 
 UINT SPHSystem::GetHashFromCell(int x, int y, int z)
@@ -116,7 +130,7 @@ void SPHSystem::update(float deltaTime)
 {
     if (!started) return;
     // To increase system stability, a fixed deltaTime is set
-    //deltaTime = 0.003;
+    deltaTime = 0.003;
     updateParticles(deltaTime);
 }
 
@@ -142,6 +156,7 @@ void SPHSystem::updateParticles(float deltaTime)
 
     particleCBuffer->SetData(&pcb);
     particleCBuffer->SetPipline(ShaderStage::CS);
+    particleCBuffer->SetPipline(ShaderStage::PS);
 
     auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
     CalculateHashShader->SetThreadGroups(32, 1, 1);
@@ -183,13 +198,15 @@ void SPHSystem::updateParticles(float deltaTime)
     auto UpdateParticlePosition = GET_SINGLE(Resources)->Find<ComputeShader>(L"UpdateParticlePosition");
     UpdateParticlePosition->SetThreadGroups(groups, 1, 1);
     ParticleWorldMatrixes->BindUAV(3);
-    ParticleIndirect->BindUAV(2);
+    IndirectGPU->BindUAV(2);
     UpdateParticlePosition->Dispatch();
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
-    ParticleIndirect->ClearUAV();
+    IndirectGPU->Clear();
     ParticleWorldMatrixes->Clear();
+
+    ParticleIndirect->SetDataFromBuffer(IndirectGPU->GetBuffer());
 }
 
 void SPHSystem::draw(Camera* Cam)
@@ -197,7 +214,7 @@ void SPHSystem::draw(Camera* Cam)
     ID3D11DepthStencilView* commonDepth = GEngine->GetCommonDepth();
 
 
-    float farClip = 0.5f; //Cam->GetFarClip();
+    float farClip = Cam->GetFarClip();
 
     TransformCB trCB;
 
@@ -210,6 +227,7 @@ void SPHSystem::draw(Camera* Cam)
     cb->SetData(&trCB);
     cb->SetPipline(ShaderStage::VS);
     cb->SetPipline(ShaderStage::PS);
+    cb->SetPipline(ShaderStage::CS);
 
     MaterialCB matCB;
 
@@ -226,6 +244,7 @@ void SPHSystem::draw(Camera* Cam)
     auto RectMesh = GET_SINGLE(Resources)->Find<Mesh>(L"RectMesh");
     Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer());
 
+    //Scene Depth Rendering;
     CONTEXT->ClearRenderTargetView(SceneDepth->GetRTV(), &farClip);
     CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
     CONTEXT->OMSetRenderTargets(1, SceneDepth->GetRTVRef(), commonDepth);
@@ -237,23 +256,82 @@ void SPHSystem::draw(Camera* Cam)
     auto depthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordDepthShader");
     depthRecordShader->BindShader();
     RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+    
+    //Thickness Rendering;
+
+    /*float zero[4] = {0.f, 0.f, 0.f, 1.f};
+
+    CONTEXT->ClearRenderTargetView(thicknessMap->GetRTV(), zero);
+    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+    CONTEXT->OMSetRenderTargets(1, thicknessMap->GetRTVRef(), commonDepth);
+
+    CONTEXT->RSSetViewports(1, &_viewPort);
+
+    auto thicknessShader = GET_SINGLE(Resources)->Find<Shader>(L"ThicknessShader");
+    thicknessShader->BindShader();
+    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());*/
 
     GEngine->BindSwapChain();
     GEngine->ClearSwapChain();
 
+    ParticleRenderCB prCB;
+
+    prCB.blurDepthFalloff = 26.f;
+    prCB.blurScale = 0.5;
+    prCB.filterRadius = 10;
+
+    shared_ptr<ConstantBuffer> prBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLERENDER);
+    prBuffer->SetData(&prCB);
+    prBuffer->SetPipline(ShaderStage::VS);
+    prBuffer->SetPipline(ShaderStage::PS);
+    prBuffer->SetPipline(ShaderStage::CS);
+    
+    //HorizontalBlur
+    horizontalBlurredDepth->BindUAV(1);
+    SceneDepth->BindUAV(0);
+    auto HorizontalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"HorizontalBilateralFilter");
+
+    //TODO 해상도 나중에 조절할 수 있도록 하기
+    HorizontalBilateralFilter->SetThreadGroups(1920 / 32, 1080 / 8, 1);
+    HorizontalBilateralFilter->Dispatch();
+
+    //VerticalBlur
+    horizontalBlurredDepth->ClearUAV(1);
+    horizontalBlurredDepth->BindUAV(0);
+    SceneDepth->BindUAV(1);
+    auto VerticalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"VerticalBilateralFilter");
+
+    //TODO 해상도 나중에 조절할 수 있도록 하기
+    VerticalBilateralFilter->SetThreadGroups(1920 / 32, 1080 / 8, 1);
+    VerticalBilateralFilter->Dispatch();
+
+    //Getnormal from depth
+    SceneDepth->ClearUAV(1);
+    SceneDepth->BindUAV(0);
+    normalMap->BindUAV(1);
+
+    auto createNormal = GET_SINGLE(Resources)->Find<ComputeShader>(L"createNormal");
+
+    //TODO 해상도 나중에 조절할 수 있도록 하기
+    createNormal->SetThreadGroups(1920 / 32, 1080 / 8, 1);
+    createNormal->Dispatch();
+
+    //중간결과 렌더링
+    normalMap->ClearUAV(1);
+    SceneDepth->ClearUAV(0);
+
     auto visualizeDepthShader = GET_SINGLE(Resources)->Find<Shader>(L"visualizeDepthShader");
     visualizeDepthShader->BindShader();
-    SceneDepth->BindSRV(ShaderStage::PS, 0);
+    normalMap->BindSRV(ShaderStage::PS, 0);
     RectMesh->BindBuffer();
     RectMesh->Render();
+    normalMap->ClearSRV(ShaderStage::PS, 0);
 
-    SceneDepth->ClearSRV(ShaderStage::PS, 0);
-
-    /*GEngine->ClearSwapChain();
+    GEngine->ClearSwapChain();
     auto Sphereshader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
     
     Sphereshader->BindShader();
-    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());*/
+    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
 }
 
 void SPHSystem::reset() {

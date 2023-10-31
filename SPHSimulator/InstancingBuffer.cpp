@@ -13,7 +13,7 @@ InstancingBuffer::~InstancingBuffer()
 void InstancingBuffer::Init(UINT maxCount)
 {
 	_maxCount = maxCount;
-	const UINT bufferSize = sizeof(Matrix) * maxCount;
+	const UINT bufferSize = sizeof(Vector3) * maxCount;
 
 	D3D11_BUFFER_DESC desc;
 
@@ -31,7 +31,7 @@ void InstancingBuffer::Clear()
 	_data.clear();
 }
 
-void InstancingBuffer::AddData(Matrix& params)
+void InstancingBuffer::AddData(Vector3& params)
 {
 	_data.push_back(params);
 }
@@ -44,7 +44,7 @@ void InstancingBuffer::PushData()
 
 	D3D11_MAPPED_SUBRESOURCE sub = {};
 	CONTEXT->Map(_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &sub);
-	memcpy(sub.pData, _data.data(), _data.size() * sizeof(Matrix));
+	memcpy(sub.pData, _data.data(), _data.size() * sizeof(Vector3));
 	CONTEXT->Unmap(_buffer.Get(), 0);
 }
 

@@ -265,4 +265,40 @@ void Resources::CreateDefaultResource()
 		visualizeDepthShadaer->CreateShader(_info, _entry, L"VisualizeDepth.hlsl", true);
 	}
 #pragma endregion
+
+#pragma region HorizontalBilateralFilter
+	shared_ptr<ComputeShader> HorizontalBilateralFilter = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"HorizontalBilateralFilter", HorizontalBilateralFilter);
+	HorizontalBilateralFilter->Create(L"HorizontalBilateralFilter.hlsl");
+#pragma endregion
+
+#pragma region VerticalBilateralFilter
+	shared_ptr<ComputeShader> VerticalBilateralFilter = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"VerticalBilateralFilter", VerticalBilateralFilter);
+	VerticalBilateralFilter->Create(L"VerticalBilateralFilter.hlsl");
+#pragma endregion
+
+#pragma region createNormal
+	shared_ptr<ComputeShader> createNormal = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"createNormal", createNormal);
+	createNormal->Create(L"CreateNormal.hlsl");
+#pragma endregion
+
+#pragma region Thickness
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> Thickness = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"ThicknessShader", Thickness);
+		_info.bst = BSType::Additive;
+		_info.dst = DSType::None;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		Thickness->CreateShader(_info, _entry, L"Thickness.hlsl", false);
+	}
+#pragma endregion
 }

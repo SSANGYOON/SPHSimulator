@@ -54,6 +54,15 @@ cbuffer ParticleSort : register(b3)
 	float2 SortPadding;
 }
 
+cbuffer ParticleRender : register(b4)
+{
+	float blurScale;
+	float blurDepthFalloff;
+	int filterRadius;
+	float filterPadding;
+}
+
+
 uint GetHash(int3 cell)
 {
 	return (uint)((cell.x * 73856093) ^ (cell.y * 19349663) ^ (cell.z * 83492791)) % TABLESIZE;
