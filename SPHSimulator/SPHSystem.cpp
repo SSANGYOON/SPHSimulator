@@ -94,12 +94,25 @@ void SPHSystem::InitParticles()
     ParticleWorldMatrixes = make_unique<StructuredBuffer>();
     ParticleWorldMatrixes->Create(sizeof(Vector3), 32768, nullptr, true, false);
 
-    SceneDepth = make_unique<Texture>();
-    SceneDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+
+    /*
+    텍스쳐 해상도는 나중에 조절
+    */
+
+    SceneFrontDepth = make_unique<Texture>();
+    SceneFrontDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
-    horizontalBlurredDepth = make_unique<Texture>();
-    horizontalBlurredDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    SceneBackwardDepth = make_unique<Texture>();
+    SceneBackwardDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    horizontalBlurredFrontDepth = make_unique<Texture>();
+    horizontalBlurredFrontDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    horizontalBlurredBackwardDepth = make_unique<Texture>();
+    horizontalBlurredBackwardDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     normalMap = make_unique<Texture>();
@@ -107,7 +120,7 @@ void SPHSystem::InitParticles()
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     thicknessMap = make_unique<Texture>();
-    thicknessMap->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    thicknessMap->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 }
 
@@ -158,6 +171,7 @@ void SPHSystem::updateParticles(float deltaTime)
 
     particleCBuffer->SetData(&pcb);
     particleCBuffer->SetPipline(ShaderStage::CS);
+    particleCBuffer->SetPipline(ShaderStage::VS);
     particleCBuffer->SetPipline(ShaderStage::PS);
 
     auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
@@ -213,10 +227,13 @@ void SPHSystem::updateParticles(float deltaTime)
 
 void SPHSystem::draw(Camera* Cam)
 {
+    //TODO 나중에 해상도 따라서 조절하기
+    D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, 1920.f, 1080.f, 0.0f, 1.0f };
     ID3D11DepthStencilView* commonDepth = GEngine->GetCommonDepth();
 
 
     float farClip = Cam->GetFarClip();
+    float nearClip = Cam->GetNearClip();
 
     TransformCB trCB;
 
@@ -234,9 +251,11 @@ void SPHSystem::draw(Camera* Cam)
 
     MaterialCB matCB;
 
-    matCB.farClip = Cam->GetFarClip();
-    matCB.nearClip = Cam->GetNearClip();
+    matCB.farClip = farClip++;
+    matCB.nearClip = nearClip;
+    // TODO 해상도는 나중에 조절할 수 있도록 하기
     matCB.viewPort = Vector2(1920, 1080);
+
 
     shared_ptr<ConstantBuffer> matcb = GEngine->GetConstantBuffer(Constantbuffer_Type::MATERIAL);
     matcb->SetData(&matCB);
@@ -244,54 +263,56 @@ void SPHSystem::draw(Camera* Cam)
     matcb->SetPipline(ShaderStage::PS);
     matcb->SetPipline(ShaderStage::CS);
 
-    auto RectMesh = GET_SINGLE(Resources)->Find<Mesh>(L"RectMesh");
-    Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer());
+    ParticleRenderCB prCB;
 
-    //Scene Depth Rendering;
-    CONTEXT->ClearRenderTargetView(SceneDepth->GetRTV(), &farClip);
-    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
-    CONTEXT->OMSetRenderTargets(1, SceneDepth->GetRTVRef(), commonDepth);
-
-    D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, 1920.f, 1080.f, 0.0f, 1.0f };
-
-    CONTEXT->RSSetViewports(1, &_viewPort);
-
-    auto depthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordDepthShader");
-    depthRecordShader->BindShader();
-    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
-    
-    //Thickness Rendering;
-
-    /*float zero[4] = {0.f, 0.f, 0.f, 1.f};
-
-    CONTEXT->ClearRenderTargetView(thicknessMap->GetRTV(), zero);
-    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
-    CONTEXT->OMSetRenderTargets(1, thicknessMap->GetRTVRef(), commonDepth);
-
-    CONTEXT->RSSetViewports(1, &_viewPort);
-
-    auto thicknessShader = GET_SINGLE(Resources)->Find<Shader>(L"ThicknessShader");
-    thicknessShader->BindShader();
-    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());*/
-
-    GEngine->BindSwapChain();
-    GEngine->ClearSwapChain();
-
-    /*ParticleRenderCB prCB;
-
-    prCB.blurDepthFalloff = 26.f;
-    prCB.blurScale = 0.5;
-    prCB.filterRadius = 10;
+    prCB.blurDepthFalloff = blurDepthFalloff;
+    prCB.filterRadius = filterRadius;
+    prCB.SpecularColor = SpecularColor;
+    prCB.SpecularIntensity = SpecularIntensity;
+    prCB.SpecularPower = SpecularPower;
+    prCB.absorbanceCoff = absorbanceCoff;
 
     shared_ptr<ConstantBuffer> prBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLERENDER);
     prBuffer->SetData(&prCB);
     prBuffer->SetPipline(ShaderStage::VS);
     prBuffer->SetPipline(ShaderStage::PS);
     prBuffer->SetPipline(ShaderStage::CS);
+
+    auto RectMesh = GET_SINGLE(Resources)->Find<Mesh>(L"RectMesh");
+    Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer());
+
+    //Scene Front Depth Rendering;
+    CONTEXT->ClearRenderTargetView(SceneFrontDepth->GetRTV(), &farClip);
+    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+    CONTEXT->OMSetRenderTargets(1, SceneFrontDepth->GetRTVRef(), commonDepth);
+
+    CONTEXT->RSSetViewports(1, &_viewPort);
+
+    auto frontDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordFrontDepthShader");
+    frontDepthRecordShader->BindShader();
+    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
     
+    //Scene Backward Depth Rendering;
+    CONTEXT->ClearRenderTargetView(SceneBackwardDepth->GetRTV(), &nearClip);
+    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
+    CONTEXT->OMSetRenderTargets(1, SceneBackwardDepth->GetRTVRef(), commonDepth);
+
+    CONTEXT->RSSetViewports(1, &_viewPort);
+
+    auto backwardDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordBackwardDepthShader");
+    backwardDepthRecordShader->BindShader();
+    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+
+    GEngine->BindSwapChain();
+    GEngine->ClearSwapChain();
+
+    //Blur
+    SceneBackwardDepth->BindUAV(0);
+    horizontalBlurredBackwardDepth->BindUAV(1);
+    SceneFrontDepth->BindUAV(2);
+    horizontalBlurredFrontDepth->BindUAV(3);
+
     //HorizontalBlur
-    horizontalBlurredDepth->BindUAV(1);
-    SceneDepth->BindUAV(0);
     auto HorizontalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"HorizontalBilateralFilter");
 
     //TODO 해상도 나중에 조절할 수 있도록 하기
@@ -299,18 +320,32 @@ void SPHSystem::draw(Camera* Cam)
     HorizontalBilateralFilter->Dispatch();
 
     //VerticalBlur
-    horizontalBlurredDepth->ClearUAV(1);
-    horizontalBlurredDepth->BindUAV(0);
-    SceneDepth->BindUAV(1);
     auto VerticalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"VerticalBilateralFilter");
 
     //TODO 해상도 나중에 조절할 수 있도록 하기
     VerticalBilateralFilter->SetThreadGroups(1920 / 32, 1080 / 8, 1);
     VerticalBilateralFilter->Dispatch();
 
+    SceneBackwardDepth->ClearUAV(0);
+    horizontalBlurredBackwardDepth->ClearUAV(1);
+    SceneFrontDepth->ClearUAV(2);
+    horizontalBlurredFrontDepth->ClearUAV(3);
+
+    //Thickness;
+    auto calculateThicknessShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateThickness");
+    //TODO 나중에 해상도 따라서 조절
+    calculateThicknessShader->SetThreadGroups(1920 / 32, 1080 / 8, 1);
+    
+    SceneFrontDepth->BindUAV(0);
+    SceneBackwardDepth->BindUAV(1);
+    thicknessMap->BindUAV(2);
+
+    calculateThicknessShader->Dispatch();
+
+    SceneBackwardDepth->ClearUAV(1);
+    thicknessMap->ClearUAV(2);
+
     //Getnormal from depth
-    SceneDepth->ClearUAV(1);
-    SceneDepth->BindUAV(0);
     normalMap->BindUAV(1);
 
     auto createNormal = GET_SINGLE(Resources)->Find<ComputeShader>(L"createNormal");
@@ -319,18 +354,17 @@ void SPHSystem::draw(Camera* Cam)
     createNormal->SetThreadGroups(1920 / 32, 1080 / 8, 1);
     createNormal->Dispatch();
 
-    //중간결과 렌더링
     normalMap->ClearUAV(1);
-    SceneDepth->ClearUAV(0);
+    SceneFrontDepth->ClearUAV(0);
 
-    auto visualizeDepthShader = GET_SINGLE(Resources)->Find<Shader>(L"visualizeDepthShader");
+    //유체 렌더링
+
+    /*auto visualizeDepthShader = GET_SINGLE(Resources)->Find<Shader>(L"visualizeDepthShader");
     visualizeDepthShader->BindShader();
     normalMap->BindSRV(ShaderStage::PS, 0);
     RectMesh->BindBuffer();
     RectMesh->Render();
     normalMap->ClearSRV(ShaderStage::PS, 0);
-
-    GEngine->ClearSwapChain();*/
     
     auto DrawBackground = GET_SINGLE(Resources)->Find<Shader>(L"DrawBackground");
 
@@ -338,10 +372,31 @@ void SPHSystem::draw(Camera* Cam)
     cubeMap->BindSRV(ShaderStage::PS, 0);
     RectMesh->Render();
 
-    /*auto Sphereshader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
+    auto Sphereshader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
     
     Sphereshader->BindShader();
     RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());*/
+
+    SceneFrontDepth->BindSRV(ShaderStage::PS, 0);
+    thicknessMap->BindSRV(ShaderStage::PS, 1);
+    normalMap->BindSRV(ShaderStage::PS, 2);
+    cubeMap->BindSRV(ShaderStage::PS, 3);
+
+    auto CompositeShader = GET_SINGLE(Resources)->Find<Shader>(L"Composite");
+    CompositeShader->BindShader();
+    RectMesh->Render();
+
+    SceneFrontDepth->ClearSRV(ShaderStage::PS, 0);
+    thicknessMap->ClearSRV(ShaderStage::PS, 1);
+    normalMap->ClearSRV(ShaderStage::PS, 2);
+    cubeMap->ClearSRV(ShaderStage::PS, 3);
+}
+
+void SPHSystem::ImGUIRender()
+{
+    ImGui::DragFloat("Blur Depth falloff", &blurDepthFalloff, 0.1, 80.f);
+    ImGui::DragInt("SpacialFilterSize", &filterRadius, 1, 30.f);
+    ImGui::ColorEdit3("SpecularColor", reinterpret_cast<float*>(&SpecularColor));
 }
 
 void SPHSystem::reset() {

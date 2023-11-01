@@ -23,7 +23,7 @@ PSIn VS_MAIN(ParticleVSIn In)
     float3 viewLeft = float3(viewInv._m00, viewInv._m01, viewInv._m02);
     float3 viewUp = float3(viewInv._m10, viewInv._m11, viewInv._m12);
 
-    float4 worldPos = float4((In.Pos.x * viewLeft + In.Pos.y * viewUp) * 0.15f + In.InstancePos, 1.f);
+    float4 worldPos = float4((In.Pos.x * viewLeft + In.Pos.y * viewUp) * radius + In.InstancePos, 1.f);
 
     float4 viewPos = mul(worldPos, view);
     Out.Pos = mul(viewPos, projection);

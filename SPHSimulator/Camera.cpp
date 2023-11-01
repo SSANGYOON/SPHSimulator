@@ -10,10 +10,14 @@ void Camera::Update()
 {
 	Matrix world = Matrix::Identity;
 	world._43 = Distance;
-	world = world * Matrix::CreateRotationY(-Azimuth) * Matrix::CreateRotationX(-Incline) ;
+	world = world * Matrix::CreateFromQuaternion(rot) ;
 	
 	ViewMatrix = world.Invert();
 	ProjectionMatrix = ::XMMatrixPerspectiveFovLH(FOV, Aspect, NearClip, FarClip);
+
+	Vector4 v = Vector4(Aspect * FarClip / 2, FarClip / 2, FarClip / 2, 1);
+
+	Vector4 r = Vector4::Transform(v, ProjectionMatrix);
 }
 
 void Camera::Reset()
@@ -24,6 +28,5 @@ void Camera::Reset()
 	FarClip = 100.f;
 
 	Distance = -10;
-	Azimuth = 0;
-	Incline = 0;
+	rot = Quaternion::Identity;
 }

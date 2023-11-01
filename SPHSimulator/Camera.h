@@ -14,8 +14,7 @@ private:
 	float FarClip;
 
 	float Distance; // Distance of the camera eye position to the origin(meters)
-	float Azimuth; // Rotation of the camera eye position around Y axis (radian)
-	float Incline; // Angle of the camear eye postion over the XZ plane (radian)
+	Quaternion rot;
 
 	Matrix ViewMatrix;
 	Matrix ProjectionMatrix;
@@ -23,12 +22,11 @@ private:
 public:
 	inline void SetAspect(float a) { Aspect = a; }
 	inline void SetDistance(float d) { Distance = -d; }
-	inline void SetAzimuth(float a) { Azimuth = a; }
-	inline void SetIncline(float i) { Incline = i; }
+	inline void SetRotation(Quaternion q) { rot = q; }
+	inline void ApplayRotation(Quaternion q) { rot = q * rot; }
 
 	inline float GetDistance() { return -Distance; };
-	inline float GetAzimuth() { return Azimuth; }
-	inline float GetIncline() { return Incline; }
+	inline Quaternion GetRoation() { return rot; }
 	inline float GetFarClip() const { return FarClip; }
 	inline float GetNearClip() const { return NearClip; }
 

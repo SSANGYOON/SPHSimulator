@@ -28,6 +28,7 @@ public:
 	void updateParticles(float deltaTime);
 
 	void draw(class Camera* Cam);
+	void ImGUIRender();
 
 	void reset();
 	void startSimulation();
@@ -52,11 +53,21 @@ private:
 	
 	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
 
-	unique_ptr<Texture> SceneDepth;
-	unique_ptr<Texture> horizontalBlurredDepth;
-	unique_ptr<Texture> normalMap;
-	unique_ptr<Texture> thicknessMap;
+	unique_ptr<Texture> SceneFrontDepth;
+	unique_ptr<Texture> SceneBackwardDepth;
 
+	unique_ptr<Texture> horizontalBlurredFrontDepth;
+	unique_ptr<Texture> horizontalBlurredBackwardDepth;
+
+	unique_ptr<Texture> thicknessMap;
+	unique_ptr<Texture> normalMap;
+	
+	float blurDepthFalloff = 56.f;
+	int filterRadius = 10;
+	Vector3 SpecularColor = Vector3::One;
+	float SpecularIntensity = 1.f;
+	float SpecularPower = 100.f;
+	float absorbanceCoff = 0.1f;
 	//Particle GPUSortedParticle[32768];
 	//UINT Table[32768];
 

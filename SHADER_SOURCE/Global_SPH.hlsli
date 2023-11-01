@@ -56,10 +56,12 @@ cbuffer ParticleSort : register(b3)
 
 cbuffer ParticleRender : register(b4)
 {
-	float blurScale;
 	float blurDepthFalloff;
 	int filterRadius;
-	float filterPadding;
+	float absorbanceCoff;
+	float SpecularIntensity;
+	float3 SpecularColor;
+	float SpecularPower;
 }
 
 

@@ -67,10 +67,12 @@ CBUFFER(ParticleSortCB, CBSLOT_PARTICLESORT)
 
 CBUFFER(ParticleRenderCB, CBSLOT_PARTICLERENDER)
 {
-	float blurScale;
 	float blurDepthFalloff;
 	int filterRadius;
-	float filterPadding;
+	float absorbanceCoff;
+	float SpecularIntensity;
+	Vector3 SpecularColor;
+	float SpecularPower;
 };
 
 struct alignas(16) LightInfo

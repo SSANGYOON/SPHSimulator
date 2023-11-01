@@ -25,7 +25,7 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)OutlineShader.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)RecordDepthShader.hlsl">
+    <FxCompile Include="$(MSBuildThisFileDirectory)RecordFrontDepthShader.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)RenderSphere.hlsl">
@@ -46,10 +46,16 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)CreateNormal.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)Thickness.hlsl">
+    <FxCompile Include="$(MSBuildThisFileDirectory)DrawBackGround.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)DrawBackGround.hlsl">
+    <FxCompile Include="$(MSBuildThisFileDirectory)RecordBackwardDepth.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CalculateThickness.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)Composite.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
   </ItemGroup>

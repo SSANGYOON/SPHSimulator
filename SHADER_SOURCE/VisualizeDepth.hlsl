@@ -20,6 +20,6 @@ PSIn VS_MAIN(VSIn In)
 
 float4 PS_MAIN(PSIn In) : SV_TARGET
 {
-	float3 thickness = normalTexture.Sample(pointSampler, In.UV).xyz;
-    return float4(thickness.x * 0.5f + 0.5f, thickness.y * 0.5f + 0.5f, thickness.z * 0.5f + 0.5f, 1);
+	float3 normal = normalTexture.Sample(pointSampler, In.UV).xyz;
+    return float4(normal * 0.5f + 0.5f, 1);
 }

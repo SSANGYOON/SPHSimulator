@@ -230,13 +230,13 @@ void Resources::CreateDefaultResource()
 	}
 #pragma endregion
 
-#pragma region RecordDepth
+#pragma region RecordFrontDepth
 	{
 		ShaderInfo _info;
 		ShaderEntry _entry;
 
 		shared_ptr<Shader> RecordDepthShader = std::make_shared<Shader>();
-		Resources::Insert<Shader>(L"RecordDepthShader", RecordDepthShader);
+		Resources::Insert<Shader>(L"RecordFrontDepthShader", RecordDepthShader);
 		_info.bst = BSType::Default;
 		_info.dst = DSType::Less;
 		_info.rst = RSType::SolidBack;
@@ -244,8 +244,50 @@ void Resources::CreateDefaultResource()
 		_entry = {};
 		_entry.VS = true;
 		_entry.PS = true;
-		RecordDepthShader->CreateShader(_info, _entry, L"RecordDepthShader.hlsl", false);
+		RecordDepthShader->CreateShader(_info, _entry, L"RecordFrontDepthShader.hlsl", false);
 	}
+#pragma endregion
+
+#pragma region RecordBackwardDepth
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> RecordDepthShader = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"RecordBackwardDepthShader", RecordDepthShader);
+		_info.bst = BSType::Default;
+		_info.dst = DSType::Greater;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		RecordDepthShader->CreateShader(_info, _entry, L"RecordBackwardDepth.hlsl", false);
+	}
+#pragma endregion
+
+#pragma region RecordBackwardDepth
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> RecordDepthShader = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"RecordBackwardDepthShader", RecordDepthShader);
+		_info.bst = BSType::Default;
+		_info.dst = DSType::Greater;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		RecordDepthShader->CreateShader(_info, _entry, L"RecordBackwardDepth.hlsl", false);
+	}
+#pragma endregion
+
+#pragma region CalculateThickness
+	shared_ptr<ComputeShader> CalculateThickness = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CalculateThickness", CalculateThickness);
+	CalculateThickness->Create(L"CalculateThickness.hlsl");
 #pragma endregion
 
 #pragma region visualizeDepth
@@ -284,24 +326,6 @@ void Resources::CreateDefaultResource()
 	createNormal->Create(L"CreateNormal.hlsl");
 #pragma endregion
 
-#pragma region Thickness
-	{
-		ShaderInfo _info;
-		ShaderEntry _entry;
-
-		shared_ptr<Shader> Thickness = std::make_shared<Shader>();
-		Resources::Insert<Shader>(L"ThicknessShader", Thickness);
-		_info.bst = BSType::Additive;
-		_info.dst = DSType::None;
-		_info.rst = RSType::SolidBack;
-		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		_entry = {};
-		_entry.VS = true;
-		_entry.PS = true;
-		Thickness->CreateShader(_info, _entry, L"Thickness.hlsl", false);
-	}
-#pragma endregion
-
 #pragma region DrawBackground
 	{
 		ShaderInfo _info;
@@ -316,7 +340,25 @@ void Resources::CreateDefaultResource()
 		_entry = {};
 		_entry.VS = true;
 		_entry.PS = true;
-		DrawBackground->CreateShader(_info, _entry, L"DrawBackground.hlsl", false);
+		DrawBackground->CreateShader(_info, _entry, L"DrawBackground.hlsl", true);
+	}
+#pragma endregion
+
+#pragma region Composite
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> Composite = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"Composite", Composite);
+		_info.bst = BSType::Default;
+		_info.dst = DSType::Less;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		Composite->CreateShader(_info, _entry, L"Composite.hlsl", true);
 	}
 #pragma endregion
 }

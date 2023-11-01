@@ -112,20 +112,18 @@ void SY::TestLayer::OnImGuiRender()
 	ImGui::DragFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
 	ImGui::DragFloat("Gas Constant", &gasConst, 0.001f, 5.f);
 
+	sphSystem->ImGUIRender();
 	if (ImGui::Button("RESET")) {
 		delete sphSystem;
 		SPHSettings sphSettings(nMass, nRest, gasConst, nVisco, nh, -9.8, 1.f);
 		sphSystem = new SPHSystem(numParticles, sphSettings);
 		Cam->SetAspect(WinX / WinY);
-		Cam->SetAzimuth(0);
-		Cam->SetIncline(0);
+		Cam->SetRotation(Quaternion::Identity);
 	}
 
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-	//ImGui::Text("Particle sorting time %.3f", sphSystem->sortingTime);
-	//ImGui::Text("Particle updating time %.3f", sphSystem->particleUpdateTime);
-	//ImGui::Text("Particle rendering time %.3f", sphSystem->particleRenderingTime);
+
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 }
 
@@ -184,8 +182,10 @@ bool SY::TestLayer::OnMouseMoved(MouseMovedEvent& e)
 	// NOTE: this should really be part of Camera::Update()
 	if (LeftDown) {
 		const float rate = XM_PIDIV2 / 90;
-		Cam->SetAzimuth(Cam->GetAzimuth() + dx * rate);
-		Cam->SetIncline(clamp(Cam->GetIncline() - dy * rate, -XM_PIDIV2, XM_PIDIV2));
+
+		Quaternion q = Quaternion::CreateFromYawPitchRoll(dx * rate, dy * rate, 0);
+		Cam->ApplayRotation(q);
+		
 	}
 	if (RightDown) {
 		const float rate = 0.005f;
