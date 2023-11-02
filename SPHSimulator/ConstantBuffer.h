@@ -70,9 +70,11 @@ CBUFFER(ParticleRenderCB, CBSLOT_PARTICLERENDER)
 	float blurDepthFalloff;
 	int filterRadius;
 	float absorbanceCoff;
-	float SpecularIntensity;
+	float renderPadding;
 	Vector3 SpecularColor;
 	float SpecularPower;
+	float SpecularIntensity;
+	Vector3 fluidColor;
 };
 
 struct alignas(16) LightInfo

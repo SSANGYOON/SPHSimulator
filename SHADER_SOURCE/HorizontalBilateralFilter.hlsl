@@ -23,7 +23,7 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 		for (int x = -filterRadius; x <= filterRadius; x += 1) {
 
 			uint2 samplePos = uint2(clamp((int)(DTid.x) + x, 0, (int)viewPort.x - 1), DTid.y);
-			float sampleDepth = frontDepthMap[DTid.xy];
+			float sampleDepth = frontDepthMap[samplePos];
 			// spatial domain
 			float r = x / filterRadius;
 			float w = exp(-r * r / 2);
@@ -49,7 +49,7 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 		for (int x = -filterRadius; x <= filterRadius; x += 1) {
 
 			uint2 samplePos = uint2(clamp((int)(DTid.x) + x, 0, (int)viewPort.x - 1), DTid.y);
-			float sampleDepth = backwardDepthMap[DTid.xy];
+			float sampleDepth = backwardDepthMap[samplePos];
 			// spatial domain
 			float r = x / filterRadius;
 			float w = exp(-r * r / 2);

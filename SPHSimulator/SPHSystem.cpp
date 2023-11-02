@@ -271,6 +271,7 @@ void SPHSystem::draw(Camera* Cam)
     prCB.SpecularIntensity = SpecularIntensity;
     prCB.SpecularPower = SpecularPower;
     prCB.absorbanceCoff = absorbanceCoff;
+    prCB.fluidColor = FluidColor;
 
     shared_ptr<ConstantBuffer> prBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLERENDER);
     prBuffer->SetData(&prCB);
@@ -397,6 +398,8 @@ void SPHSystem::ImGUIRender()
     ImGui::DragFloat("Blur Depth falloff", &blurDepthFalloff, 0.1, 80.f);
     ImGui::DragInt("SpacialFilterSize", &filterRadius, 1, 30.f);
     ImGui::ColorEdit3("SpecularColor", reinterpret_cast<float*>(&SpecularColor));
+    ImGui::DragFloat("AbsortionCoeff", &absorbanceCoff,0.1, 80.f);
+    ImGui::ColorEdit3("FluidColor", reinterpret_cast<float*>(&FluidColor));
 }
 
 void SPHSystem::reset() {

@@ -59,9 +59,11 @@ cbuffer ParticleRender : register(b4)
 	float blurDepthFalloff;
 	int filterRadius;
 	float absorbanceCoff;
-	float SpecularIntensity;
+	float renderPadding;
 	float3 SpecularColor;
 	float SpecularPower;
+	float SpecularIntensity;
+	float3 fluidColor;
 }
 
 

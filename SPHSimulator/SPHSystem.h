@@ -62,12 +62,13 @@ private:
 	unique_ptr<Texture> thicknessMap;
 	unique_ptr<Texture> normalMap;
 	
-	float blurDepthFalloff = 56.f;
+	float blurDepthFalloff = 24.f;
 	int filterRadius = 10;
 	Vector3 SpecularColor = Vector3::One;
 	float SpecularIntensity = 1.f;
 	float SpecularPower = 100.f;
 	float absorbanceCoff = 0.1f;
+	Vector3 FluidColor = Vector3(0.0, 0.5, 0.9);
 	//Particle GPUSortedParticle[32768];
 	//UINT Table[32768];
 

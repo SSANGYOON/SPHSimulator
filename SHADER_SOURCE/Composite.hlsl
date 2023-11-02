@@ -7,8 +7,6 @@ Texture2D<float3> normalMap: register(t2);
 TextureCube cubeMap : register(t3);
 
 const static float3 LightDirection = float3(0.707, -0.707, 0);
-const static float3 LightColor = float3(1.0, 1.0, 1.0);
-const static float3 DiffuseColor = float3(0.0, 0.5, 0.9);
 
 struct PSIn
 {
@@ -37,10 +35,10 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	
 	if (depth > farClip)
 	{
-		return float4(1, 1, 1, 1);//cubeMap.Sample(linearSampler, normalize(In.ScreenToWorld - In.EyePos));
+		return cubeMap.Sample(linearSampler, normalize(In.ScreenToWorld - In.EyePos));
 	}
 
-	float3 absorbance = 1 - waterColor;
+	float3 absorbance = 1 - fluidColor;
 	float thickness = thicknessMap.Sample(linearSampler, In.UV);
 	float3 absorbtionColor = exp(-absorbance * thickness * absorbanceCoff);
 
@@ -56,7 +54,8 @@ float4 PS_MAIN(PSIn In) : SV_Target
 
 	
 	float3 viewNormal = normalMap.Sample(linearSampler, In.UV);
-	//normal.x *= -1.f;
+	viewNormal.x *= -1.f;
+	viewNormal.z *= -1.f;
 	float3 normal = mul(float4(viewNormal, 0.f), viewInv).xyz;
 
 	float3 VertexToEye = normalize(In.EyePos - worldPos);
@@ -76,11 +75,11 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	float3 Refraction = refract(ViewDirection, normal, Radio);
 	
 	//TODO 방향 수정
-	float3 RefractionColor = absorbtionColor;
+	float3 RefractionColor = absorbtionColor * cubeMap.Sample(linearSampler, Refraction).xyz;
 
 	const float f0 = (1.33 - 1) * (1.33 - 1) / ((1.33 + 1) * (1.33 + 1));
 	float fresnel = f0 + (1.f - f0) * pow(1.0 - max(dot(viewNormal, VertexToEye), 0.0), 5.0);
-	float4 color = float4(fresnel, fresnel, fresnel, 1.f);
+	float4 color = float4(RefractionColor, 1.f);
 
 	return color;
 }
