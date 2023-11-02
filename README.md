@@ -68,6 +68,14 @@
 ### 4주차
 #### 10/30
 sph 알고리즘 오류 수정 및 quad mesh를 이용한 sphere rendering 구현 완료
+
+#### 10/31
+유체 표면의 depth와, normal을 구하는 쉐이더 코드 작성 완료
+스크린의 한 픽셀에서의 카메라 시점 기준 유체의 두께를 구하는 쉐이더 코드 작성 완료
+두께를 구할 때 additive로 랜더링 하다 보니 시간이 굉장히 많이 걸리는 것으로 확인 depthstencillstate를 less, greater로 해서 최대 깊이 최소 깊이를 구한 후 (최대 - 최소)로 유체 두께를 구하는 식으로 변경할 예정
+
+#### 11/1
+그림자와 장애물이 없는 유체 렌더링 구현 완료
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
