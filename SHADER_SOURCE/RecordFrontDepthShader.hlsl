@@ -4,7 +4,7 @@
 struct PS_OUT
 {
     float color : SV_Target;
-    float depth : SV_Depth;
+    float depth : SV_DepthLessEqual;
 };
 
 struct PSIn

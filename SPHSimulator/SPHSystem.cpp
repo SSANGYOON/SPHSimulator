@@ -48,6 +48,12 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     InitParticles();
 }
 
+SPHSystem::~SPHSystem()
+{
+    delete[](particles);
+}
+
+
 void SPHSystem::InitParticles()
 {
     Intances = make_unique<InstancingBuffer>();
@@ -67,9 +73,9 @@ void SPHSystem::InitParticles()
                     = (float(rand()) / float((RAND_MAX)) * 0.5f - 1)
                     * settings.h / 10;
                 Vector3 nParticlePos = Vector3(
-                    i * particleSeperation + ranX - 1.5f,
-                    j * particleSeperation + ranY + settings.h + 0.1f,
-                    k * particleSeperation + ranZ + 1.5f);
+                    (i - (int)particleCubeWidth / 2) * particleSeperation + ranX,
+                    (j - (int)particleCubeWidth / 2) * particleSeperation + ranY + settings.h + 0.1f,
+                    (k - (int)particleCubeWidth / 2) * particleSeperation + ranZ);
 
                 size_t particleIndex
                     = i + (j + particleCubeWidth * k) * particleCubeWidth;
@@ -118,27 +124,6 @@ void SPHSystem::InitParticles()
     normalMap = make_unique<Texture>();
     normalMap->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
-    thicknessMap = make_unique<Texture>();
-    thicknessMap->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-}
-
-UINT SPHSystem::GetHashFromCell(int x, int y, int z)
-{
-    return (UINT)((x * 73856093) ^ (y * 19349663) ^ (z * 83492791)) % 32768;
-}
-
-UINT SPHSystem::GetHashOnCPU(Particle& p)
-{
-    Vector3 cell = p.position / settings.h;
-
-    return (UINT)(((int)cell.x * 73856093) ^ ((int)cell.y * 19349663) ^ ((int)cell.z * 83492791)) % 32768;
-}
-
-SPHSystem::~SPHSystem()
-{
-    delete[](particles);
 }
 
 void SPHSystem::update(float deltaTime)
@@ -157,7 +142,6 @@ void SPHSystem::updateParticles(float deltaTime)
     pcb.particlesNum = particleCount;
     pcb.radius = settings.h;
     pcb.massPoly6Product = settings.massPoly6Product;
-    pcb.selfDens = settings.selfDens;
     pcb.gasConstant = settings.gasConstant;
     pcb.restDensity = settings.restDensity;
     pcb.mass = settings.mass;
@@ -166,6 +150,8 @@ void SPHSystem::updateParticles(float deltaTime)
     pcb.viscosity = settings.viscosity;
     pcb.gravity = settings.g;
     pcb.deltaTime = deltaTime;
+    pcb.boundaryCentor = boundaryCentor;
+    pcb.boundarySize = boundarySize;
 
     auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
 
@@ -185,8 +171,8 @@ void SPHSystem::updateParticles(float deltaTime)
 
     auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
     //TODO 4096에서 동적인 테이블 사이즈로
-    for (uint32_t k = 2; k <= 1<<15; k <<= 1){
-        for (uint32_t j = k >> 1; j > 0; j >>= 1){
+    for (uint32_t k = 2; k <= 1 << 15; k <<= 1) {
+        for (uint32_t j = k >> 1; j > 0; j >>= 1) {
 
             ParticleSortCB pscb;
             pscb.j = j;
@@ -230,7 +216,6 @@ void SPHSystem::draw(Camera* Cam)
     //TODO 나중에 해상도 따라서 조절하기
     D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, 1920.f, 1080.f, 0.0f, 1.0f };
     ID3D11DepthStencilView* commonDepth = GEngine->GetCommonDepth();
-
 
     float farClip = Cam->GetFarClip();
     float nearClip = Cam->GetNearClip();
@@ -292,7 +277,7 @@ void SPHSystem::draw(Camera* Cam)
     auto frontDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordFrontDepthShader");
     frontDepthRecordShader->BindShader();
     RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
-    
+
     //Scene Backward Depth Rendering;
     CONTEXT->ClearRenderTargetView(SceneBackwardDepth->GetRTV(), &nearClip);
     CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
@@ -332,21 +317,8 @@ void SPHSystem::draw(Camera* Cam)
     SceneFrontDepth->ClearUAV(2);
     horizontalBlurredFrontDepth->ClearUAV(3);
 
-    //Thickness;
-    auto calculateThicknessShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateThickness");
-    //TODO 나중에 해상도 따라서 조절
-    calculateThicknessShader->SetThreadGroups(1920 / 32, 1080 / 8, 1);
-    
-    SceneFrontDepth->BindUAV(0);
-    SceneBackwardDepth->BindUAV(1);
-    thicknessMap->BindUAV(2);
-
-    calculateThicknessShader->Dispatch();
-
-    SceneBackwardDepth->ClearUAV(1);
-    thicknessMap->ClearUAV(2);
-
     //Getnormal from depth
+    SceneFrontDepth->BindUAV(0);
     normalMap->BindUAV(1);
 
     auto createNormal = GET_SINGLE(Resources)->Find<ComputeShader>(L"createNormal");
@@ -360,26 +332,8 @@ void SPHSystem::draw(Camera* Cam)
 
     //유체 렌더링
 
-    /*auto visualizeDepthShader = GET_SINGLE(Resources)->Find<Shader>(L"visualizeDepthShader");
-    visualizeDepthShader->BindShader();
-    normalMap->BindSRV(ShaderStage::PS, 0);
-    RectMesh->BindBuffer();
-    RectMesh->Render();
-    normalMap->ClearSRV(ShaderStage::PS, 0);
-    
-    auto DrawBackground = GET_SINGLE(Resources)->Find<Shader>(L"DrawBackground");
-
-    DrawBackground->BindShader();
-    cubeMap->BindSRV(ShaderStage::PS, 0);
-    RectMesh->Render();
-
-    auto Sphereshader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
-    
-    Sphereshader->BindShader();
-    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());*/
-
     SceneFrontDepth->BindSRV(ShaderStage::PS, 0);
-    thicknessMap->BindSRV(ShaderStage::PS, 1);
+    SceneBackwardDepth->BindSRV(ShaderStage::PS, 1);
     normalMap->BindSRV(ShaderStage::PS, 2);
     cubeMap->BindSRV(ShaderStage::PS, 3);
 
@@ -388,9 +342,40 @@ void SPHSystem::draw(Camera* Cam)
     RectMesh->Render();
 
     SceneFrontDepth->ClearSRV(ShaderStage::PS, 0);
-    thicknessMap->ClearSRV(ShaderStage::PS, 1);
+    SceneBackwardDepth->ClearSRV(ShaderStage::PS, 1);
     normalMap->ClearSRV(ShaderStage::PS, 2);
     cubeMap->ClearSRV(ShaderStage::PS, 3);
+
+    DrawBoundary(Cam);
+}
+
+void SPHSystem::DrawBoundary(Camera* Cam)
+{
+    DrawWireFrame(Vector3(boundarySize.x, boundarySize.y, 1), Quaternion::Identity, boundaryCentor + Vector3(0.f, 0.f, -boundarySize.z * 0.5f), Cam);
+    DrawWireFrame(Vector3(boundarySize.x, boundarySize.y, 1), Quaternion::Identity, boundaryCentor + Vector3(0.f, 0.f, boundarySize.z * 0.5f), Cam);
+    DrawWireFrame(Vector3(boundarySize.z, boundarySize.y, 1), Quaternion::CreateFromAxisAngle(Vector3(0, 1, 0), XM_PIDIV2), boundaryCentor + Vector3(boundarySize.x * 0.5f, 0.f, 0.f), Cam);
+    DrawWireFrame(Vector3(boundarySize.z, boundarySize.y, 1), Quaternion::CreateFromAxisAngle(Vector3(0, 1, 0), XM_PIDIV2), boundaryCentor + Vector3(-boundarySize.x * 0.5f, 0.f, 0.f), Cam);
+}
+
+void SPHSystem::DrawWireFrame(const Vector3& size, const Quaternion& rotation, const Vector3& translation, Camera* Cam)
+{
+    TransformCB trCB;
+
+    auto outlinedRect = GET_SINGLE(Resources)->Find<Mesh>(L"OutlinedRect");
+    auto wireFrameRenderer = GET_SINGLE(Resources)->Find<Shader>(L"OutLineShader");
+
+    trCB.world = Matrix::CreateScale(size) * Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(translation);
+    trCB.view = Cam->GetViewMatrix();
+    trCB.projection = Cam->GetProjectionMatrix();
+
+    shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
+
+    cb->SetData(&trCB);
+    cb->SetPipline(ShaderStage::VS);
+
+    wireFrameRenderer->BindShader();
+    outlinedRect->BindBuffer();
+    outlinedRect->Render();
 }
 
 void SPHSystem::ImGUIRender()
@@ -398,8 +383,10 @@ void SPHSystem::ImGUIRender()
     ImGui::DragFloat("Blur Depth falloff", &blurDepthFalloff, 0.1, 80.f);
     ImGui::DragInt("SpacialFilterSize", &filterRadius, 1, 30.f);
     ImGui::ColorEdit3("SpecularColor", reinterpret_cast<float*>(&SpecularColor));
+    ImGui::DragFloat("SpecularPower", &SpecularPower, 1.f, 100.f);
     ImGui::DragFloat("AbsortionCoeff", &absorbanceCoff,0.1, 80.f);
     ImGui::ColorEdit3("FluidColor", reinterpret_cast<float*>(&FluidColor));
+    ImGui::DragFloat3("BoundarySize", reinterpret_cast<float*>(&boundarySize));
 }
 
 void SPHSystem::reset() {

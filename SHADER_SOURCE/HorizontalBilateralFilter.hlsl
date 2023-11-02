@@ -9,10 +9,6 @@ RWTexture2D<float> horizontalBlurredFront: register(u3);
 [numthreads(32, 8, 1)]
 void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 {
-	if (DTid.x >= viewPort.x || DTid.y >= viewPort.y)
-	{
-		return;
-	}
 
 	{
 		float depth = frontDepthMap[DTid.xy];
@@ -20,18 +16,19 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 		float sum = 0;
 		float wsum = 0;
 
-		for (int x = -filterRadius; x <= filterRadius; x += 1) {
+		for (float x = -filterRadius; x <= filterRadius + 1e-4; x += 1) {
 
 			uint2 samplePos = uint2(clamp((int)(DTid.x) + x, 0, (int)viewPort.x - 1), DTid.y);
 			float sampleDepth = frontDepthMap[samplePos];
 			// spatial domain
 			float r = x / filterRadius;
-			float w = exp(-r * r / 2);
+			
 			// range domain
 			float r2 = (sampleDepth - depth) / blurDepthFalloff;
-			float g = exp(-r2 * r2 / 2);
-			sum += sampleDepth * w * g;
-			wsum += w * g;
+
+			float w = exp(-r * r / 2 - r2 * r2 / 2);
+			sum += sampleDepth * w;
+			wsum += w;
 		}
 		if (wsum > 0) {
 			sum /= wsum;
@@ -46,18 +43,19 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 		float sum = 0;
 		float wsum = 0;
 
-		for (int x = -filterRadius; x <= filterRadius; x += 1) {
+		for (float x = -filterRadius; x <= filterRadius + 1e-4; x += 1) {
 
 			uint2 samplePos = uint2(clamp((int)(DTid.x) + x, 0, (int)viewPort.x - 1), DTid.y);
 			float sampleDepth = backwardDepthMap[samplePos];
 			// spatial domain
 			float r = x / filterRadius;
-			float w = exp(-r * r / 2);
+
 			// range domain
 			float r2 = (sampleDepth - depth) / blurDepthFalloff;
-			float g = exp(-r2 * r2 / 2);
-			sum += sampleDepth * w * g;
-			wsum += w * g;
+
+			float w = exp(-r * r / 2 - r2 * r2 / 2);
+			sum += sampleDepth * w;
+			wsum += w;
 		}
 		if (wsum > 0) {
 			sum /= wsum;

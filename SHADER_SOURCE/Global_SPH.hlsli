@@ -32,15 +32,17 @@ cbuffer ParticleSettings : register(b2)
 	uint particlesNum;
 	float radius;
 	float massPoly6Product;
-	float selfDens;
 	float gasConstant;
 	float restDensity;
 	float mass;
 	float spikyGrad;
 	float spikyLap;
+	float3 boundaryCentor;
 	float viscosity;
+	float3 boundarySize;
 	float gravity;
 	float deltaTime;
+	float3 simulationpadding;
 
 	//TODO
 	//surfaceTensionConstant

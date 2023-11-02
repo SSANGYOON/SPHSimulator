@@ -35,57 +35,6 @@ void SY::TestLayer::OnDetach()
 
 void SY::TestLayer::OnUpdate(float timestep)
 {
-
-	auto outlinedRect = GET_SINGLE(Resources)->Find<Mesh>(L"OutlinedRect");
-	auto wireFrameRenderer = GET_SINGLE(Resources)->Find<Shader>(L"OutLineShader");
-
-	TransformCB trCB;
-
-	trCB.world = Matrix::CreateScale(Vector3(10,10,1)) * Matrix::CreateTranslation(Vector3(0,5,-5));
-	trCB.view = Cam->GetViewMatrix();
-	trCB.projection = Cam->GetProjectionMatrix();
-
-	shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
-	cb->SetData(&trCB);
-	cb->SetPipline(ShaderStage::VS);
-
-	wireFrameRenderer->BindShader();
-	outlinedRect->BindBuffer();
-	outlinedRect->Render();
-
-	trCB.world = Matrix::CreateScale(Vector3(10, 10, 1)) * Matrix::CreateRotationY(XM_PIDIV2) * Matrix::CreateTranslation(Vector3(5, 5, 0));
-	trCB.view = Cam->GetViewMatrix();
-	trCB.projection = Cam->GetProjectionMatrix();
-
-	cb->SetData(&trCB);
-	cb->SetPipline(ShaderStage::VS);
-
-	wireFrameRenderer->BindShader();
-	outlinedRect->BindBuffer();
-	outlinedRect->Render();
-
-	trCB.world = Matrix::CreateScale(Vector3(10, 10, 1)) * Matrix::CreateRotationY(XM_PIDIV2) * Matrix::CreateTranslation(Vector3(-5, 5, 0));
-	trCB.view = Cam->GetViewMatrix();
-	trCB.projection = Cam->GetProjectionMatrix();
-
-	cb->SetData(&trCB);
-	cb->SetPipline(ShaderStage::VS);
-
-	wireFrameRenderer->BindShader();
-	outlinedRect->BindBuffer();
-	outlinedRect->Render();
-
-	trCB.world = Matrix::CreateScale(Vector3(10, 10, 1)) * Matrix::CreateTranslation(Vector3(0, 5, 5));
-	trCB.view = Cam->GetViewMatrix();
-	trCB.projection = Cam->GetProjectionMatrix();
-
-	cb->SetData(&trCB);
-	cb->SetPipline(ShaderStage::VS);
-
-	wireFrameRenderer->BindShader();
-	outlinedRect->BindBuffer();
-	outlinedRect->Render();
-
 	Cam->Update();
 	sphSystem->update(timestep);
 	sphSystem->draw(Cam.get());
@@ -120,8 +69,6 @@ void SY::TestLayer::OnImGuiRender()
 		Cam->SetAspect(WinX / WinY);
 		Cam->SetRotation(Quaternion::Identity);
 	}
-
-
 
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
@@ -167,7 +114,6 @@ bool SY::TestLayer::OnMouseMoved(MouseMovedEvent& e)
 	int ny = (int)e.GetY();
 
 	int maxDelta = 100;
-
 
 	int dx = std::clamp(nx - MouseX, -maxDelta, maxDelta);
 	int dy = std::clamp(-(ny - MouseY), -maxDelta, maxDelta);

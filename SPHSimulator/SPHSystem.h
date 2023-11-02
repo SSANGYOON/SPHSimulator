@@ -59,7 +59,6 @@ private:
 	unique_ptr<Texture> horizontalBlurredFrontDepth;
 	unique_ptr<Texture> horizontalBlurredBackwardDepth;
 
-	unique_ptr<Texture> thicknessMap;
 	unique_ptr<Texture> normalMap;
 	
 	float blurDepthFalloff = 24.f;
@@ -69,12 +68,16 @@ private:
 	float SpecularPower = 100.f;
 	float absorbanceCoff = 0.1f;
 	Vector3 FluidColor = Vector3(0.0, 0.5, 0.9);
+
+	Vector3 boundaryCentor = Vector3(0, 0, 0);
+	Vector3 boundarySize = Vector3(10, 10, 10);
+
 	//Particle GPUSortedParticle[32768];
 	//UINT Table[32768];
 
 	float WinX = 4;
 	float WinY = 3;
 
-	UINT GetHashFromCell(int x, int y, int z);
-	UINT GetHashOnCPU(Particle& p);
+	void DrawBoundary(Camera* Cam);
+	void DrawWireFrame(const Vector3& size, const Quaternion& rotation, const Vector3& translation, Camera* Cam);
 };

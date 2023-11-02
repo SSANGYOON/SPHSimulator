@@ -2,7 +2,7 @@
 #include "Global_SPH.hlsli"
 
 Texture2D<float> frontDepthMap: register(t0);
-Texture2D<float> thicknessMap: register(t1);
+Texture2D<float> backwardDepthMap: register(t1);
 Texture2D<float3> normalMap: register(t2);
 TextureCube cubeMap : register(t3);
 
@@ -38,10 +38,6 @@ float4 PS_MAIN(PSIn In) : SV_Target
 		return cubeMap.Sample(linearSampler, normalize(In.ScreenToWorld - In.EyePos));
 	}
 
-	float3 absorbance = 1 - fluidColor;
-	float thickness = thicknessMap.Sample(linearSampler, In.UV);
-	float3 absorbtionColor = exp(-absorbance * thickness * absorbanceCoff);
-
 	//ViewPosition
 	float2 Ndc = 2.f * In.UV - 1.f;
 	Ndc.y *= -1.f;
@@ -59,8 +55,8 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	float3 normal = mul(float4(viewNormal, 0.f), viewInv).xyz;
 
 	float3 VertexToEye = normalize(In.EyePos - worldPos);
-	float3 LightReflect = normalize(reflect(LightDirection, normal));
-	float SpecularFactory = dot(VertexToEye, LightReflect);
+	float3 halfVector = normalize(VertexToEye - LightDirection);
+	float SpecularFactory = max(dot(halfVector, normal), 0);
 	if (SpecularFactory > 0)
 	{
 		SpecularFactory = pow(SpecularFactory, SpecularPower);
@@ -69,17 +65,21 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	float3 ViewDirection = -VertexToEye;
 	float3 Reflection = reflect(ViewDirection, normal);
 	float3 ReflectionTex = cubeMap.Sample(linearSampler, ViewDirection).xyz;
-	float3 ReflectionColor = SpecularFactory * SpecularColor;
+	float3 ReflectionColor = SpecularFactory * SpecularColor * SpecularIntensity * cubeMap.Sample(linearSampler, Reflection).xyz;
 
 	float Radio = 1.0 / 1.33;
 	float3 Refraction = refract(ViewDirection, normal, Radio);
 	
+	float3 absorbance = 1 - fluidColor;
+	float thickness = clamp(backwardDepthMap.Sample(linearSampler, In.UV) - depth, 0, farClip);
+	float3 absorbtionColor = exp(-absorbance * thickness * absorbanceCoff);
+
 	//TODO 방향 수정
 	float3 RefractionColor = absorbtionColor * cubeMap.Sample(linearSampler, Refraction).xyz;
 
 	const float f0 = (1.33 - 1) * (1.33 - 1) / ((1.33 + 1) * (1.33 + 1));
-	float fresnel = f0 + (1.f - f0) * pow(1.0 - max(dot(viewNormal, VertexToEye), 0.0), 5.0);
-	float4 color = float4(RefractionColor, 1.f);
+	float fresnel = f0 + (1.f - f0) * pow(1.0 - max(dot(normal, VertexToEye), 0.0), 5.0);
+	float4 color = float4(lerp(RefractionColor, ReflectionColor, fresnel), 1.f);
 
 	return color;
 }

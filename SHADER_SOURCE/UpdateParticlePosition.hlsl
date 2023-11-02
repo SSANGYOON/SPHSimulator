@@ -23,28 +23,29 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	float3 position = pi.position + velocity * deltaTime;
 
 	// Handle collisions with box
-	if (position.y < radius) {
-		position.y = -position.y + 2 * radius + 0.0001f;
+	if (position.y < radius + boundaryCentor.y - boundarySize.y / 2) {
+		position.y = -position.y + 2 * (radius + boundaryCentor.y - boundarySize.y * 0.5f) + 0.0001f;
 		velocity.y = -velocity.y * elasticity;
 	}
 
-	if (position.x < radius - boxWidth) {
-		position.x = -position.x + 2 * (radius - boxWidth) + 0.0001f;
+	if (position.x < radius + boundaryCentor.x - boundarySize.x / 2) {
+
+		position.x = -position.x + 2 * (radius + boundaryCentor.x - boundarySize.x * 0.5f) + 0.0001f;
 		velocity.x = -velocity.x * elasticity;
 	}
 
-	if (position.x > -radius + boxWidth) {
-		position.x = -position.x + 2 * -(radius - boxWidth) - 0.0001f;
+	if (position.x > -radius + boundaryCentor.x + boundarySize.x / 2) {
+		position.x = -position.x + 2 * (-radius + boundaryCentor.x + boundarySize.x * 0.5f) - 0.0001f;
 		velocity.x = -velocity.x * elasticity;
 	}
 
-	if (position.z < radius - boxWidth) {
-		position.z = -position.z + 2 * (radius - boxWidth) + 0.0001f;
+	if (position.z < radius + boundaryCentor.z - boundarySize.z / 2) {
+		position.z = -position.z + 2 * (radius + boundaryCentor.z - boundarySize.z * 0.5f) + 0.0001f;
 		velocity.z = -velocity.z * elasticity;
 	}
 
-	if (position.z > -radius + boxWidth) {
-		position.z = -position.z + 2 * -(radius - boxWidth) - 0.0001f;
+	if (position.z > -radius + boundaryCentor.z + boundarySize.z / 2) {
+		position.z = -position.z + 2 * (-radius + boundaryCentor.z + boundarySize.z * 0.5f) - 0.0001f;
 		velocity.z = -velocity.z * elasticity;
 	}
 
