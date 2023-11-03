@@ -106,23 +106,23 @@ void SPHSystem::InitParticles()
     */
 
     SceneFrontDepth = make_unique<Texture>();
-    SceneFrontDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    SceneFrontDepth->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     SceneBackwardDepth = make_unique<Texture>();
-    SceneBackwardDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    SceneBackwardDepth->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     horizontalBlurredFrontDepth = make_unique<Texture>();
-    horizontalBlurredFrontDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    horizontalBlurredFrontDepth->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     horizontalBlurredBackwardDepth = make_unique<Texture>();
-    horizontalBlurredBackwardDepth->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    horizontalBlurredBackwardDepth->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     normalMap = make_unique<Texture>();
-    normalMap->Create(1920, 1080, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    normalMap->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 }
 
@@ -214,7 +214,7 @@ void SPHSystem::updateParticles(float deltaTime)
 void SPHSystem::draw(Camera* Cam)
 {
     //TODO 나중에 해상도 따라서 조절하기
-    D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, 1920.f, 1080.f, 0.0f, 1.0f };
+    D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, 1280, 720.f, 0.0f, 1.0f };
     ID3D11DepthStencilView* commonDepth = GEngine->GetCommonDepth();
 
     float farClip = Cam->GetFarClip();
@@ -239,7 +239,7 @@ void SPHSystem::draw(Camera* Cam)
     matCB.farClip = farClip++;
     matCB.nearClip = nearClip;
     // TODO 해상도는 나중에 조절할 수 있도록 하기
-    matCB.viewPort = Vector2(1920, 1080);
+    matCB.viewPort = Vector2(1280, 720);
 
 
     shared_ptr<ConstantBuffer> matcb = GEngine->GetConstantBuffer(Constantbuffer_Type::MATERIAL);
@@ -299,18 +299,21 @@ void SPHSystem::draw(Camera* Cam)
     horizontalBlurredFrontDepth->BindUAV(3);
 
     //HorizontalBlur
-    auto HorizontalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"HorizontalBilateralFilter");
 
-    //TODO 해상도 나중에 조절할 수 있도록 하기
-    HorizontalBilateralFilter->SetThreadGroups(1920 / 32, 1080 / 8, 1);
-    HorizontalBilateralFilter->Dispatch();
+    for (int i = 0; i < 2; i++) {
+        auto HorizontalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"HorizontalBilateralFilter");
 
-    //VerticalBlur
-    auto VerticalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"VerticalBilateralFilter");
+        //TODO 해상도 나중에 조절할 수 있도록 하기
+        HorizontalBilateralFilter->SetThreadGroups(1280 / 16, 720 / 16, 1);
+        HorizontalBilateralFilter->Dispatch();
 
-    //TODO 해상도 나중에 조절할 수 있도록 하기
-    VerticalBilateralFilter->SetThreadGroups(1920 / 32, 1080 / 8, 1);
-    VerticalBilateralFilter->Dispatch();
+        //VerticalBlur
+        auto VerticalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"VerticalBilateralFilter");
+
+        //TODO 해상도 나중에 조절할 수 있도록 하기
+        VerticalBilateralFilter->SetThreadGroups(1280 / 16, 720 / 16, 1);
+        VerticalBilateralFilter->Dispatch();
+    }
 
     SceneBackwardDepth->ClearUAV(0);
     horizontalBlurredBackwardDepth->ClearUAV(1);
@@ -324,7 +327,7 @@ void SPHSystem::draw(Camera* Cam)
     auto createNormal = GET_SINGLE(Resources)->Find<ComputeShader>(L"createNormal");
 
     //TODO 해상도 나중에 조절할 수 있도록 하기
-    createNormal->SetThreadGroups(1920 / 32, 1080 / 8, 1);
+    createNormal->SetThreadGroups(1280 / 16, 720 / 16, 1);
     createNormal->Dispatch();
 
     normalMap->ClearUAV(1);

@@ -311,13 +311,19 @@ void Resources::CreateDefaultResource()
 #pragma region HorizontalBilateralFilter
 	shared_ptr<ComputeShader> HorizontalBilateralFilter = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"HorizontalBilateralFilter", HorizontalBilateralFilter);
-	HorizontalBilateralFilter->Create(L"HorizontalBilateralFilter.hlsl");
+	HorizontalBilateralFilter->Create(L"NarrowBandHorizontalFilter.hlsl");
 #pragma endregion
 
 #pragma region VerticalBilateralFilter
 	shared_ptr<ComputeShader> VerticalBilateralFilter = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"VerticalBilateralFilter", VerticalBilateralFilter);
-	VerticalBilateralFilter->Create(L"VerticalBilateralFilter.hlsl");
+	VerticalBilateralFilter->Create(L"NarrowBandVerticalFilter.hlsl");
+#pragma endregion
+
+#pragma region HorizontalNarrowBandFilter
+	shared_ptr<ComputeShader> HorizontalNarrowBandFilter = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"HorizontalBilateralFilter", HorizontalNarrowBandFilter);
+	HorizontalNarrowBandFilter->Create(L"NarrowBandHorizontalFilter.hlsl");
 #pragma endregion
 
 #pragma region createNormal

@@ -62,7 +62,7 @@ private:
 	unique_ptr<Texture> normalMap;
 	
 	float blurDepthFalloff = 24.f;
-	int filterRadius = 10;
+	int filterRadius = 30;
 	Vector3 SpecularColor = Vector3::One;
 	float SpecularIntensity = 1.f;
 	float SpecularPower = 100.f;

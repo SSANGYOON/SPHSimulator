@@ -58,6 +58,12 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)Composite.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)NarrowBandHorizontalFilter.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)NarrowBandVerticalFilter.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">

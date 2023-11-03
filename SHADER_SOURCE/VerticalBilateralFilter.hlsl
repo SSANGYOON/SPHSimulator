@@ -6,7 +6,7 @@ RWTexture2D<float> horizontalBlurredBackward: register(u1);
 RWTexture2D<float> frontDepthMap: register(u2);
 RWTexture2D<float> horizontalBlurredFront: register(u3);
 
-[numthreads(32, 8, 1)]
+[numthreads(16, 16, 1)]
 void CS_MAIN(uint3 DTid : SV_DispatchThreadID)
 {
 

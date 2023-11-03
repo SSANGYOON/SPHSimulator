@@ -14,7 +14,7 @@ float3 GetEyePos(int2 xy)
 	return eyePos;
 }
 
-[numthreads(32, 8, 1)]
+[numthreads(16, 16, 1)]
 void CS_MAIN(uint3 DTid : SV_DispatchThreadID)
 {
 	// read eye-space depth from texture

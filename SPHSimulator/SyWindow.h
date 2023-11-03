@@ -10,8 +10,8 @@ namespace SY {
 		uint32_t Height;
 
 		WindowProps(const std::wstring& title = L"SY Engine",
-			uint32_t width = 1920,
-			uint32_t height = 1080)
+			uint32_t width = 1280,
+			uint32_t height = 720)
 			: Title(title), Width(width), Height(height)
 		{
 		}
