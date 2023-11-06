@@ -1,14 +1,16 @@
 struct VSIn
 {
-	float3 Pos : POSITION;
+    float3 Pos : POSITION;
     float2 UV : UV;
-	float4 Color : COLOR; 
+    float3 Normal : NORMAL;
+    float4 Color : COLOR;
 };
 
 struct ParticleVSIn
 {
     float3 Pos : POSITION;
     float2 UV : UV;
+    float3 Normal : NORMAL;
     float4 Color : COLOR;
 
     float3 InstancePos : IPOS;

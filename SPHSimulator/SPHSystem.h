@@ -59,7 +59,13 @@ private:
 	unique_ptr<Texture> horizontalBlurredFrontDepth;
 	unique_ptr<Texture> horizontalBlurredBackwardDepth;
 
+	unique_ptr<Texture> backgroundTexture;
+
 	unique_ptr<Texture> normalMap;
+
+	unique_ptr<class Mesh> obstacle;
+
+	unique_ptr<class SimulationObject> so;
 	
 	float blurDepthFalloff = 24.f;
 	int filterRadius = 30;

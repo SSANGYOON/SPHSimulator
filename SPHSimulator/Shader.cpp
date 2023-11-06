@@ -49,10 +49,11 @@ void Shader::CreateShader(const ShaderInfo& info, const ShaderEntry& entry, cons
 
 			{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 			{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{"Color", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{"Color", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
 
-			DEVICE->CreateInputLayout(arrLayoutDesc, 3
+			DEVICE->CreateInputLayout(arrLayoutDesc, 4
 				, _VSBlob->GetBufferPointer()
 				, _VSBlob->GetBufferSize()
 				, _inputLayout.GetAddressOf());
@@ -64,12 +65,13 @@ void Shader::CreateShader(const ShaderInfo& info, const ShaderEntry& entry, cons
 
 			{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 			{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{"Color", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{"Color", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
-			{ "IPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+			{ "IPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1}
 			};
 
-			DEVICE->CreateInputLayout(arrLayoutDesc, 4
+			DEVICE->CreateInputLayout(arrLayoutDesc, 5
 				, _VSBlob->GetBufferPointer()
 				, _VSBlob->GetBufferSize()
 				, _inputLayout.GetAddressOf());

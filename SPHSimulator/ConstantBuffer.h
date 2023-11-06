@@ -57,7 +57,8 @@ CBUFFER(ParticleCB, CBSLOT_PARTICLE)
 	Vector3 boundarySize;
 	float gravity;
 	float deltaTime;
-	Vector3 simulationpadding;
+	UINT tableSize;
+	Vector2 simulationpadding;
 };
 
 CBUFFER(ParticleSortCB, CBSLOT_PARTICLESORT)

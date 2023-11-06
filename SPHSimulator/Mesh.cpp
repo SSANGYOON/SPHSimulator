@@ -18,8 +18,11 @@ Mesh::~Mesh()
 
 HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 {
+	std::filesystem::path parentPath = std::filesystem::current_path().parent_path();
+	wstring fullpath = parentPath.wstring() + L"\\Resources\\" + path;
+
 	fstream fs;
-	fs.open(path, ios_base::in);
+	fs.open(fullpath, ios_base::in);
 
 	if (!fs.is_open())
 	{
@@ -32,6 +35,9 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 		vector<Vector3> normals;
 		vector<Vector2> uvs;
 		vector<Vertex> vertexes;
+		vector<UINT> indexes;
+
+		UINT ind = 0;
 		while (getline(fs, line))
 		{
 			std::stringstream ss;
@@ -69,7 +75,7 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 
 			if (label == "f") {
 
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < 4; i++)
 				{
 					std::string s;
 					size_t pos;
@@ -100,6 +106,14 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 
 					vertexes.push_back(vx);
 				}
+
+				indexes.push_back(ind * 4);
+				indexes.push_back(ind * 4 + 1);
+				indexes.push_back(ind * 4 + 2);
+				indexes.push_back(ind * 4 + 0);
+				indexes.push_back(ind * 4 + 2);
+				indexes.push_back(ind * 4 + 3);
+				ind++;
 			}
 
 			
@@ -107,6 +121,7 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 		fs.close();
 
 		CreateVertexBuffer(vertexes.data(), vertexes.size());
+		CreateIndexBuffer(indexes.data(), indexes.size());
 		_vertexes = vertexes.size();
 	}
 
@@ -147,7 +162,7 @@ void Mesh::CreateIndexBuffer(void* data, UINT count, D3D11_USAGE usage)
 	if (usage == D3D11_USAGE_DYNAMIC)
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	else
-		desc.CPUAccessFlags = 0; 0;
+		desc.CPUAccessFlags = 0;
 
 	D3D11_SUBRESOURCE_DATA subData = {};
 	subData.pSysMem = data;

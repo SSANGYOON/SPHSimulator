@@ -219,14 +219,14 @@ void Resources::CreateDefaultResource()
 
 		shared_ptr<Shader> HardCoded3DShader = std::make_shared<Shader>();
 		Resources::Insert<Shader>(L"HardCoded3DShader", HardCoded3DShader);
-		_info.bst = BSType::AlphaBlend;
-		_info.dst = DSType::Less;
+		_info.bst = BSType::Default;
+		_info.dst = DSType::NoWrite;
 		_info.rst = RSType::SolidBack;
 		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		_entry = {};
 		_entry.VS = true;
 		_entry.PS = true;
-		HardCoded3DShader->CreateShader(_info, _entry, L"HardCoded3DShader.hlsl", false);
+		HardCoded3DShader->CreateShader(_info, _entry, L"HardCoded3DShader.hlsl", true);
 	}
 #pragma endregion
 
@@ -245,24 +245,6 @@ void Resources::CreateDefaultResource()
 		_entry.VS = true;
 		_entry.PS = true;
 		RecordDepthShader->CreateShader(_info, _entry, L"RecordFrontDepthShader.hlsl", false);
-	}
-#pragma endregion
-
-#pragma region RecordBackwardDepth
-	{
-		ShaderInfo _info;
-		ShaderEntry _entry;
-
-		shared_ptr<Shader> RecordDepthShader = std::make_shared<Shader>();
-		Resources::Insert<Shader>(L"RecordBackwardDepthShader", RecordDepthShader);
-		_info.bst = BSType::Default;
-		_info.dst = DSType::Greater;
-		_info.rst = RSType::SolidBack;
-		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		_entry = {};
-		_entry.VS = true;
-		_entry.PS = true;
-		RecordDepthShader->CreateShader(_info, _entry, L"RecordBackwardDepth.hlsl", false);
 	}
 #pragma endregion
 
@@ -339,8 +321,8 @@ void Resources::CreateDefaultResource()
 
 		shared_ptr<Shader> DrawBackground = std::make_shared<Shader>();
 		Resources::Insert<Shader>(L"DrawBackground", DrawBackground);
-		_info.bst = BSType::Additive;
-		_info.dst = DSType::None;
+		_info.bst = BSType::Default;
+		_info.dst = DSType::Less;
 		_info.rst = RSType::SolidBack;
 		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		_entry = {};

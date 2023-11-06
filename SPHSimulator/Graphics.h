@@ -27,15 +27,15 @@ public:
 	ID3D11Device* GetDevice() { return _device.Get(); }
 	ID3D11DeviceContext* GetContext() { return _context.Get(); }
 	IDXGISwapChain* GetSwapChain() { return _swapChain.Get(); }
-
+	
+	WindowInfo GetWindow() { return _window; };
 	void SetWindow(WindowInfo info);
 
 	void SetViewport(UINT left, UINT bottom, UINT right, UINT top);
-	WindowInfo GetWindow() { return _window; }
 	shared_ptr<ConstantBuffer> GetConstantBuffer(Constantbuffer_Type type) { return _constantBuffers[static_cast<UINT8>(type)]; }
 
 	void BindSwapChain();
-	void ClearSwapChain();
+	void ClearSwapChain(bool notClearDepth = false);
 
 	void Quit();
 

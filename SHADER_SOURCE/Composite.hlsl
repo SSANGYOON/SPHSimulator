@@ -5,6 +5,7 @@ Texture2D<float> frontDepthMap: register(t0);
 Texture2D<float> backwardDepthMap: register(t1);
 Texture2D<float3> normalMap: register(t2);
 TextureCube cubeMap : register(t3);
+Texture2D backgroundTexture: register(t4);
 
 const static float3 LightDirection = float3(0.707, -0.707, 0);
 
@@ -35,7 +36,7 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	
 	if (depth > farClip)
 	{
-		return cubeMap.Sample(linearSampler, normalize(In.ScreenToWorld - In.EyePos));
+		return backgroundTexture.Sample(linearSampler, In.UV);
 	}
 
 	//ViewPosition
@@ -47,11 +48,9 @@ float4 PS_MAIN(PSIn In) : SV_Target
 
 	//WorldPosition
 	float3 worldPos = mul(float4(eyePos, 1.f), viewInv).xyz;
-
 	
 	float3 viewNormal = normalMap.Sample(linearSampler, In.UV);
-	viewNormal.x *= -1.f;
-	viewNormal.z *= -1.f;
+	viewNormal.xz *= -1.f;
 	float3 normal = mul(float4(viewNormal, 0.f), viewInv).xyz;
 
 	float3 VertexToEye = normalize(In.EyePos - worldPos);
@@ -68,14 +67,19 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	float3 ReflectionColor = SpecularFactory * SpecularColor * SpecularIntensity * cubeMap.Sample(linearSampler, Reflection).xyz;
 
 	float Radio = 1.0 / 1.33;
-	float3 Refraction = refract(ViewDirection, normal, Radio);
+	float3 RefractionDir = refract(ViewDirection, normal, Radio);
 	
 	float3 absorbance = 1 - fluidColor;
 	float thickness = clamp(backwardDepthMap.Sample(linearSampler, In.UV) - depth, 0, farClip);
 	float3 absorbtionColor = exp(-absorbance * thickness * absorbanceCoff);
 
-	//TODO 방향 수정
-	float3 RefractionColor = absorbtionColor * cubeMap.Sample(linearSampler, Refraction).xyz;
+	float3 RefractionPos = RefractionDir * thickness * 0.5f + worldPos;
+	float4 RefractionNdc = mul(mul(float4(RefractionPos, 1.f), view), projection);
+	float2 RefractionUV = RefractionNdc.xy / RefractionNdc.w;
+	RefractionUV.y *= -1;
+	RefractionUV = RefractionUV * 0.5f + 0.5f;
+
+	float3 RefractionColor = absorbtionColor * backgroundTexture.Sample(linearSampler, RefractionUV);
 
 	const float f0 = (1.33 - 1) * (1.33 - 1) / ((1.33 + 1) * (1.33 + 1));
 	float fresnel = f0 + (1.f - f0) * pow(1.0 - max(dot(normal, VertexToEye), 0.0), 5.0);

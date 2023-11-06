@@ -1,5 +1,4 @@
-const static uint GroupThreadNum = 1024;
-const static uint TABLESIZE = 32768; //262139;
+const static uint GroupThreadNum = 256;
 const static uint NO_PARTICLE = 0xFFFFFFFF;
 
 struct Particle
@@ -42,7 +41,8 @@ cbuffer ParticleSettings : register(b2)
 	float3 boundarySize;
 	float gravity;
 	float deltaTime;
-	float3 simulationpadding;
+	uint tableSize;
+	float2 simulationpadding;
 
 	//TODO
 	//surfaceTensionConstant
@@ -71,7 +71,7 @@ cbuffer ParticleRender : register(b4)
 
 uint GetHash(int3 cell)
 {
-	return (uint)((cell.x * 73856093) ^ (cell.y * 19349663) ^ (cell.z * 83492791)) % TABLESIZE;
+	return (uint)((cell.x * 73856093) ^ (cell.y * 19349663) ^ (cell.z * 83492791)) % tableSize;
 }
 
 uint GetHashValueOfLocation(float3 position)

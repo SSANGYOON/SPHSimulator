@@ -12,7 +12,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
 
 	float boxWidth = 5.f;
-	float elasticity = 0.5;
+	float elasticity = 1.f;
 
 
 	//calculate acceleration and velocity

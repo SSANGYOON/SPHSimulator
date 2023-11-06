@@ -1,61 +1,37 @@
 #include "global.hlsli"
-#include "Global_SPH.hlsli"
 
-const static float3 LightDirection =  float3(-0.707, 0.707, 0);
+const static float3 LightDirection =  float3(0.707, -0.707, 0);
 const static float3 LightColor = float3(1.0, 1.0, 1.0);
 const static float3 DiffuseColor = float3(0.0, 0.5, 0.9);
-
-struct PS_OUT
-{
-    float4 color : SV_Target;
-    float depth : SV_Depth;
-};
 
 struct PSIn
 {
     float4 Pos : SV_Position;
-    float3 ViewPos : ViewPostion;
-    float4 Color : Color;
+    float3 WorldPos : POSITION;
+    float4 Color : COLOR;
+    float3 Normal : NORMAL;
     float2 UV : TEXCOORD;
 };
 
-PSIn VS_MAIN(ParticleVSIn In)
+PSIn VS_MAIN(VSIn In)
 {
-    PSIn Out = (PSIn)0.f;
+    PSIn Out = (PSIn)0;
     Out.UV = In.UV;
 
-    float3 viewLeft = float3(viewInv._m00, viewInv._m01, viewInv._m02);
-    float3 viewUp = float3(viewInv._m10, viewInv._m11, viewInv._m12);
+    float4 worldPos = mul(float4(In.Pos, 1.f), world);
 
-    float4 worldPos = float4( (In.Pos.x * viewLeft + In.Pos.y * viewUp) * 0.15f + In.InstancePos, 1.f);
-
-    float4 viewPos = mul(worldPos, view);
-    Out.Pos = mul(viewPos, projection);
-    Out.ViewPos = mul(float4(In.InstancePos, 1.f), view).xyz;
-    Out.Color = In.Color;
+    Out.WorldPos = worldPos.xyz;
+    Out.Pos = mul(mul(worldPos, view), projection);
+    Out.Normal = In.Normal;
 
     return Out;
 }
 
-PS_OUT PS_MAIN(PSIn In)
+float4 PS_MAIN(PSIn In) : SV_Target
 {
-    PS_OUT OUT = (PS_OUT)0;
-    
-    // calculate eye-space sphere normal from texture coordinates
-    float3 N;
-    N.xy = In.UV * 2.0 - 1.0;
-    float r2 = dot(N.xy, N.xy);
-    if (r2 > 1.0) discard; // kill pixels outside circle
-    N.z = -sqrt(1.0 - r2);
+    // Compute irradiance (sum of ambient & direct lighting)
+    float3 irradiance = DiffuseColor * 0.3f + DiffuseColor * LightColor * max(0,dot(-LightDirection,normalize(In.Normal)));
 
-    // calculate depth
-
-    // calculate depth
-    float4 pixelPos = float4(In.ViewPos + N * radius, 1.0);
-    float4 clipSpacePos = mul(pixelPos, projection);
-    OUT.depth = clipSpacePos.z / clipSpacePos.w;
-
-    OUT.color.xyz = DiffuseColor * 0.3f + DiffuseColor * LightColor * max(0, dot(LightDirection, N));
-    OUT.color.w = 1;
-    return OUT;
+    float4 finalColor = float4(irradiance,1);
+    return finalColor;
 }

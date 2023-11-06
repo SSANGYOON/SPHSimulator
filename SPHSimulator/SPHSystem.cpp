@@ -13,6 +13,8 @@
 #include "InstancingBuffer.h"
 #include "IndirectBuffer.h"
 #include "Texture.h"
+#include "Mesh.h"
+#include "Obstacle.h"
 
 SPHSettings::SPHSettings(
     float mass, float restDensity, float gasConst, float viscosity, float h,
@@ -57,7 +59,7 @@ SPHSystem::~SPHSystem()
 void SPHSystem::InitParticles()
 {
     Intances = make_unique<InstancingBuffer>();
-    Intances->Init(32768);
+    Intances->Init(MaxParticle);
     std::srand(1024);
     float particleSeperation = settings.h + 0.01f;
     for (int i = 0; i < particleCubeWidth; i++) {
@@ -87,10 +89,10 @@ void SPHSystem::InitParticles()
     }
 
     particleBuffer = make_unique<StructuredBuffer>();
-    particleBuffer->Create(sizeof(Particle), 32768, particles,true, false);
+    particleBuffer->Create(sizeof(Particle), MaxParticle, particles,true, false);
 
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
-    hashToParticleIndexTable->Create(sizeof(UINT), 32768, nullptr, true, false);
+    hashToParticleIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
 
     IndirectGPU = make_unique<StructuredBuffer>();
     IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
@@ -98,32 +100,45 @@ void SPHSystem::InitParticles()
     ParticleIndirect = make_unique<IndirectBuffer>(1, sizeof(IndirectArgs), nullptr);
 
     ParticleWorldMatrixes = make_unique<StructuredBuffer>();
-    ParticleWorldMatrixes->Create(sizeof(Vector3), 32768, nullptr, true, false);
+    ParticleWorldMatrixes->Create(sizeof(Vector3), MaxParticle, nullptr, true, false);
 
 
     /*
     텍스쳐 해상도는 나중에 조절
     */
 
+    WindowInfo Info = GEngine->GetWindow();
+
     SceneFrontDepth = make_unique<Texture>();
-    SceneFrontDepth->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    SceneFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     SceneBackwardDepth = make_unique<Texture>();
-    SceneBackwardDepth->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    SceneBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     horizontalBlurredFrontDepth = make_unique<Texture>();
-    horizontalBlurredFrontDepth->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    horizontalBlurredFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     horizontalBlurredBackwardDepth = make_unique<Texture>();
-    horizontalBlurredBackwardDepth->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    horizontalBlurredBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     normalMap = make_unique<Texture>();
-    normalMap->Create(1280, 720, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    normalMap->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    backgroundTexture = make_unique<Texture>();
+    backgroundTexture->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    obstacle = make_unique<Mesh>();
+
+    obstacle->Load(L"Mesh/littleDolphin.obj");
+
+    so = make_unique<Obstacle>();
+    so->SetName("Obstacle");
 }
 
 void SPHSystem::update(float deltaTime)
@@ -136,8 +151,10 @@ void SPHSystem::update(float deltaTime)
 
 void SPHSystem::updateParticles(float deltaTime)
 {
+    UINT TableSize = NextPowerOf2(particleCount);
 
-    UINT groups = particleCount % 1024 > 0 ? ((particleCount >> 10) + 1) : (particleCount >> 10);
+
+    UINT groups = particleCount % 256 > 0 ? ((particleCount >> 8) + 1) : (particleCount >> 8);
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
     pcb.radius = settings.h;
@@ -152,6 +169,7 @@ void SPHSystem::updateParticles(float deltaTime)
     pcb.deltaTime = deltaTime;
     pcb.boundaryCentor = boundaryCentor;
     pcb.boundarySize = boundarySize;
+    pcb.tableSize = TableSize;
 
     auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
 
@@ -161,17 +179,18 @@ void SPHSystem::updateParticles(float deltaTime)
     particleCBuffer->SetPipline(ShaderStage::PS);
 
     auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
-    CalculateHashShader->SetThreadGroups(32, 1, 1);
+    CalculateHashShader->SetThreadGroups(TableSize >> 8, 1, 1);
     particleBuffer->BindUAV(0);
     hashToParticleIndexTable->BindUAV(1);
     CalculateHashShader->Dispatch();
-
+    
     auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
-    BitonicSortShader->SetThreadGroups(32, 1, 1);
+    BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
 
     auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
-    //TODO 4096에서 동적인 테이블 사이즈로
-    for (uint32_t k = 2; k <= 1 << 15; k <<= 1) {
+    
+    
+    for (uint32_t k = 2; k <= TableSize; k <<= 1) {
         for (uint32_t j = k >> 1; j > 0; j >>= 1) {
 
             ParticleSortCB pscb;
@@ -213,12 +232,14 @@ void SPHSystem::updateParticles(float deltaTime)
 
 void SPHSystem::draw(Camera* Cam)
 {
-    //TODO 나중에 해상도 따라서 조절하기
-    D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, 1280, 720.f, 0.0f, 1.0f };
+    WindowInfo Info = GEngine->GetWindow();
+
+    D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, (float)Info.width, (float)Info.height, 0.0f, 1.0f };
     ID3D11DepthStencilView* commonDepth = GEngine->GetCommonDepth();
 
     float farClip = Cam->GetFarClip();
     float nearClip = Cam->GetNearClip();
+    float zero[4] = {};
 
     TransformCB trCB;
 
@@ -238,8 +259,7 @@ void SPHSystem::draw(Camera* Cam)
 
     matCB.farClip = farClip++;
     matCB.nearClip = nearClip;
-    // TODO 해상도는 나중에 조절할 수 있도록 하기
-    matCB.viewPort = Vector2(1280, 720);
+    matCB.viewPort = Vector2((float)Info.width, (float)Info.height);
 
 
     shared_ptr<ConstantBuffer> matcb = GEngine->GetConstantBuffer(Constantbuffer_Type::MATERIAL);
@@ -289,8 +309,12 @@ void SPHSystem::draw(Camera* Cam)
     backwardDepthRecordShader->BindShader();
     RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
 
-    GEngine->BindSwapChain();
-    GEngine->ClearSwapChain();
+    //배경 텍스쳐 바인딩
+    CONTEXT->ClearRenderTargetView(backgroundTexture->GetRTV(), zero);
+    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+    CONTEXT->OMSetRenderTargets(1, backgroundTexture->GetRTVRef(), commonDepth);
+
+    CONTEXT->RSSetViewports(1, &_viewPort);
 
     //Blur
     SceneBackwardDepth->BindUAV(0);
@@ -298,27 +322,26 @@ void SPHSystem::draw(Camera* Cam)
     SceneFrontDepth->BindUAV(2);
     horizontalBlurredFrontDepth->BindUAV(3);
 
-    //HorizontalBlur
+    
 
     for (int i = 0; i < 2; i++) {
+        //HorizontalBlur
         auto HorizontalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"HorizontalBilateralFilter");
 
-        //TODO 해상도 나중에 조절할 수 있도록 하기
-        HorizontalBilateralFilter->SetThreadGroups(1280 / 16, 720 / 16, 1);
+        HorizontalBilateralFilter->SetThreadGroups(Info.width / 16, Info.height  / 16, 1);
         HorizontalBilateralFilter->Dispatch();
 
         //VerticalBlur
         auto VerticalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"VerticalBilateralFilter");
 
-        //TODO 해상도 나중에 조절할 수 있도록 하기
-        VerticalBilateralFilter->SetThreadGroups(1280 / 16, 720 / 16, 1);
+        VerticalBilateralFilter->SetThreadGroups(Info.width / 16, Info.height / 16, 1);
         VerticalBilateralFilter->Dispatch();
     }
 
     SceneBackwardDepth->ClearUAV(0);
     horizontalBlurredBackwardDepth->ClearUAV(1);
     SceneFrontDepth->ClearUAV(2);
-    horizontalBlurredFrontDepth->ClearUAV(3);
+    horizontalBlurredFrontDepth->ClearUAV(3);;
 
     //Getnormal from depth
     SceneFrontDepth->BindUAV(0);
@@ -326,28 +349,61 @@ void SPHSystem::draw(Camera* Cam)
 
     auto createNormal = GET_SINGLE(Resources)->Find<ComputeShader>(L"createNormal");
 
-    //TODO 해상도 나중에 조절할 수 있도록 하기
-    createNormal->SetThreadGroups(1280 / 16, 720 / 16, 1);
+    createNormal->SetThreadGroups(Info.width / 16, Info.height / 16, 1);
     createNormal->Dispatch();
 
     normalMap->ClearUAV(1);
     SceneFrontDepth->ClearUAV(0);
 
+    //배경 렌더링
+    cubeMap->BindSRV(ShaderStage::PS, 0);
+
+    auto backgroundShader = GET_SINGLE(Resources)->Find<Shader>(L"DrawBackground");
+    backgroundShader->BindShader();
+    RectMesh->BindBuffer();
+    RectMesh->Render();
+
+    cubeMap->ClearSRV(ShaderStage::PS, 0);
+
+    //장애물 렌더링(임시)
+
+    auto meshRenderingShader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
+
+    trCB.world = Matrix::Identity * 0.1f;
+    trCB.world._44 = 1.f;
+    trCB.view = Cam->GetViewMatrix();
+    trCB.projection = Cam->GetProjectionMatrix();
+    trCB.viewInv = trCB.view.Invert();
+    trCB.projectionInv = trCB.projection.Invert();
+
+    cb->SetData(&trCB);
+    cb->SetPipline(ShaderStage::VS);
+    cb->SetPipline(ShaderStage::PS);
+    meshRenderingShader->BindShader();
+    obstacle->BindBuffer();
+    obstacle->Render();
+
     //유체 렌더링
+
+    GEngine->BindSwapChain();
+    GEngine->ClearSwapChain(true);
 
     SceneFrontDepth->BindSRV(ShaderStage::PS, 0);
     SceneBackwardDepth->BindSRV(ShaderStage::PS, 1);
     normalMap->BindSRV(ShaderStage::PS, 2);
     cubeMap->BindSRV(ShaderStage::PS, 3);
+    backgroundTexture->BindSRV(ShaderStage::PS, 4);
 
     auto CompositeShader = GET_SINGLE(Resources)->Find<Shader>(L"Composite");
     CompositeShader->BindShader();
+    RectMesh->BindBuffer();
     RectMesh->Render();
 
     SceneFrontDepth->ClearSRV(ShaderStage::PS, 0);
     SceneBackwardDepth->ClearSRV(ShaderStage::PS, 1);
     normalMap->ClearSRV(ShaderStage::PS, 2);
     cubeMap->ClearSRV(ShaderStage::PS, 3);
+    backgroundTexture->ClearSRV(ShaderStage::PS, 4);
 
     DrawBoundary(Cam);
 }
@@ -383,13 +439,62 @@ void SPHSystem::DrawWireFrame(const Vector3& size, const Quaternion& rotation, c
 
 void SPHSystem::ImGUIRender()
 {
-    ImGui::DragFloat("Blur Depth falloff", &blurDepthFalloff, 0.1, 80.f);
+    ImGui::Begin("Fluid Rendering Option");
+
     ImGui::DragInt("SpacialFilterSize", &filterRadius, 1, 30.f);
     ImGui::ColorEdit3("SpecularColor", reinterpret_cast<float*>(&SpecularColor));
     ImGui::DragFloat("SpecularPower", &SpecularPower, 1.f, 100.f);
     ImGui::DragFloat("AbsortionCoeff", &absorbanceCoff,0.1, 80.f);
     ImGui::ColorEdit3("FluidColor", reinterpret_cast<float*>(&FluidColor));
     ImGui::DragFloat3("BoundarySize", reinterpret_cast<float*>(&boundarySize));
+
+
+    static int selected = 0;
+    auto pos = ImGui::GetCursorPos();
+    // selectable list
+    for (int n = 0; n < 10; n++)
+    {
+        ImGui::PushID(n);
+
+        char buf[32];
+        sprintf_s(buf, "##Object %d", n);
+        
+
+        ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
+        if (ImGui::Selectable(buf, n == selected, 0, ImVec2(25, 50))) {
+            selected = n;
+        }
+        ImGui::SetItemAllowOverlap();
+
+        ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
+        ImGui::Text("foo");
+
+        ImGui::SetCursorPos(ImVec2(pos.x + 30, pos.y + 5));
+        if (ImGui::Button("do thing", ImVec2(70, 30)))
+        {
+            ImGui::OpenPopup("Setup?");
+            selected = n;
+            printf("SETUP CLICKED %d\n", n);
+        }
+
+        if (ImGui::BeginPopupModal("Setup?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGuiContext& g = *ImGui::GetCurrentContext();
+
+            ImGui::Text("Setup Popup");
+            if (ImGui::Button("OK", ImVec2(120, 0))) { printf("OK PRESSED!\n"); ImGui::CloseCurrentPopup(); }
+            ImGui::EndPopup();
+        }
+
+        ImGui::SetCursorPos(ImVec2(pos.x, pos.y + 20));
+        ImGui::Text("bar");
+
+        pos.y += 55;
+
+        ImGui::PopID();
+    }
+
+    ImGui::End();
 }
 
 void SPHSystem::reset() {

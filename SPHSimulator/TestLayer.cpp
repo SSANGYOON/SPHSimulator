@@ -61,7 +61,6 @@ void SY::TestLayer::OnImGuiRender()
 	ImGui::DragFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
 	ImGui::DragFloat("Gas Constant", &gasConst, 0.001f, 5.f);
 
-	sphSystem->ImGUIRender();
 	if (ImGui::Button("RESET")) {
 		delete sphSystem;
 		SPHSettings sphSettings(nMass, nRest, gasConst, nVisco, nh, -9.8, 1.f);
@@ -72,6 +71,8 @@ void SY::TestLayer::OnImGuiRender()
 
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
+
+	sphSystem->ImGUIRender();
 }
 
 void SY::TestLayer::OnEvent(Event& e)
@@ -87,6 +88,10 @@ bool SY::TestLayer::OnWindowResize(WindowResizeEvent& e)
 	WinX = e.GetWidth();
 	WinY = e.GetHeight();
 	Cam->SetAspect(WinX / WinY);
+	WindowInfo Info = GEngine->GetWindow();
+	Info.width = WinX;
+	Info.height = WinY;
+	GEngine->SetWindow(Info);
 	return false;
 }
 

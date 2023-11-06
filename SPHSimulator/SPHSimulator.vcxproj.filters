@@ -96,6 +96,12 @@
     <Filter Include="src\Resource\Texture">
       <UniqueIdentifier>{12d30e47-176c-4cb1-902e-e5cb351191c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\SPH\SimulationObject">
+      <UniqueIdentifier>{1e1ee4f8-d553-4c64-85a2-a791603b66e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\SPH\SimulationObject\Obstacle">
+      <UniqueIdentifier>{896b808d-f11e-48fc-8e62-d3008a179096}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -242,6 +248,12 @@
     <ClInclude Include="Texture.h">
       <Filter>src\Resource\Texture</Filter>
     </ClInclude>
+    <ClInclude Include="SimulationObject.h">
+      <Filter>src\SPH\SimulationObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Obstacle.h">
+      <Filter>src\SPH\SimulationObject\Obstacle</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -357,6 +369,12 @@
     </ClCompile>
     <ClCompile Include="Texture.cpp">
       <Filter>src\Resource\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="SimulationObject.cpp">
+      <Filter>src\SPH\SimulationObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Obstacle.cpp">
+      <Filter>src\SPH\SimulationObject\Obstacle</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

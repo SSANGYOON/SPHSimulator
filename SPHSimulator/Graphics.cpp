@@ -92,6 +92,7 @@ void Graphics::SetWindow(WindowInfo info)
 {
 	_window = info;
 	_swapChain->ResizeBuffers(0, info.width, info.height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	_viewPort = { 0,0, (float)info.width , (float)info.height };
 }
 
 void Graphics::SetViewport(UINT left, UINT right, UINT width, UINT height)
@@ -110,12 +111,13 @@ void Graphics::BindSwapChain()
 	CONTEXT->RSSetViewports(1, &_viewPort);
 }
 
-void Graphics::ClearSwapChain()
+void Graphics::ClearSwapChain(bool notClearDepth)
 {
 	float clearColor[4] = { 0.5f,0.5f,0.5f,1.f };
 	CONTEXT->ClearRenderTargetView(_rtv.Get(), clearColor);
 
-	CONTEXT->ClearDepthStencilView(_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+	if(!notClearDepth)
+		CONTEXT->ClearDepthStencilView(_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 }
 
 void Graphics::Quit()
