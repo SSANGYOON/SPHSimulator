@@ -78,6 +78,10 @@ sph 알고리즘 오류 수정 및 quad mesh를 이용한 sphere rendering 구�
 그림자와 장애물이 없는 유체 렌더링 구현 완료
 장애물 메시 주위에 고정된 위치의 경계 파티클을 배치하는 방식으로 장애물 구현 예정
 refraction color는 굴절된 각도에 따라 큐브맵 매핑으로 만들고 있는데 장애물에 대해서는 어떻게 적용할지에 대한 학습이 필요
+
+#### 11/2
+Narrow Range Filter를 이용한 유체 표면 렌더링 개선
+<img src="./Images/transparentFluid.gif">
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
