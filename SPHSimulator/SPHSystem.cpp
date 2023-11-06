@@ -46,7 +46,7 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     started = false;
     
     cubeMap = make_shared<Texture>();
-    cubeMap->Load(L"Texture/MSPath_specularIBL.dds");
+    cubeMap->Load(L"Texture/SaintPetersBasilica.dds");
     InitParticles();
 }
 
