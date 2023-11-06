@@ -82,6 +82,7 @@ refraction color는 굴절된 각도에 따라 큐브맵 매핑으로 만들고 
 #### 11/2
 Narrow Range Filter를 이용한 유체 표면 렌더링 개선
 <img src="./Images/transparentFluid.gif">
+
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
