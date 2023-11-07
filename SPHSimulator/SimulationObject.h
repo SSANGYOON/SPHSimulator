@@ -6,14 +6,14 @@ public:
 	virtual ~SimulationObject();
 
 	virtual void Update();
-	virtual void Render();
+	virtual void Render(class Camera* Cam) abstract;
 	virtual void ImGuiRender();
 
-private:
+protected:
 	string name;
 	Vector3 position;
 	Quaternion rotation;
-	Vector3 scale;
+	Vector3 scale = Vector3::One;
 	Matrix srt;
 
 public:

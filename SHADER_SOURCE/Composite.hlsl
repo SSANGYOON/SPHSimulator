@@ -6,6 +6,7 @@ Texture2D<float> backwardDepthMap: register(t1);
 Texture2D<float3> normalMap: register(t2);
 TextureCube cubeMap : register(t3);
 Texture2D backgroundTexture: register(t4);
+Texture2D<float> obstacleDepthMap: register(t5);
 
 const static float3 LightDirection = float3(0.707, -0.707, 0);
 
@@ -70,7 +71,15 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	float3 RefractionDir = refract(ViewDirection, normal, Radio);
 	
 	float3 absorbance = 1 - fluidColor;
-	float thickness = clamp(backwardDepthMap.Sample(linearSampler, In.UV) - depth, 0, farClip);
+
+	float backwardDepth = backwardDepthMap.Sample(linearSampler, In.UV);
+	float obstacleDepth = obstacleDepthMap.Sample(linearSampler, In.UV);
+	float thickness = min(backwardDepth, obstacleDepth) - min(depth, obstacleDepth);
+	thickness = clamp(thickness, 0, farClip);
+
+	if(thickness <= 0.f)
+		return backgroundTexture.Sample(linearSampler, In.UV);
+
 	float3 absorbtionColor = exp(-absorbance * thickness * absorbanceCoff);
 
 	float3 RefractionPos = RefractionDir * thickness * 0.5f + worldPos;

@@ -15,10 +15,6 @@ void SimulationObject::Update()
 	srt = Matrix::CreateScale(scale) * Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position);
 }
 
-void SimulationObject::Render()
-{
-}
-
 void SimulationObject::ImGuiRender()
 {
 	char buf[255];

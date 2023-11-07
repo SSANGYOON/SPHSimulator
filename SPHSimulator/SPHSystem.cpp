@@ -133,12 +133,18 @@ void SPHSystem::InitParticles()
     backgroundTexture->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
-    obstacle = make_unique<Mesh>();
+    obstacleDepth = make_unique<Texture>();
+    obstacleDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    shared_ptr<Mesh> obstacle = make_shared<Mesh>();
 
     obstacle->Load(L"Mesh/littleDolphin.obj");
 
-    so = make_unique<Obstacle>();
-    so->SetName("Obstacle");
+    auto obs = make_shared<Obstacle>();
+    obs->SetName("Dolphin");
+    obs->SetMesh(obstacle);
+    simulationObjects.push_back(obs);
 }
 
 void SPHSystem::update(float deltaTime)
@@ -309,12 +315,31 @@ void SPHSystem::draw(Camera* Cam)
     backwardDepthRecordShader->BindShader();
     RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
 
+    ID3D11RenderTargetView* backgroundRTVS[2] = { backgroundTexture->GetRTV() , obstacleDepth->GetRTV() };
+
     //배경 텍스쳐 바인딩
     CONTEXT->ClearRenderTargetView(backgroundTexture->GetRTV(), zero);
+    CONTEXT->ClearRenderTargetView(obstacleDepth->GetRTV(), &farClip);
     CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
-    CONTEXT->OMSetRenderTargets(1, backgroundTexture->GetRTVRef(), commonDepth);
+    CONTEXT->OMSetRenderTargets(2, backgroundRTVS, commonDepth);
 
     CONTEXT->RSSetViewports(1, &_viewPort);
+
+    //배경 렌더링
+    cubeMap->BindSRV(ShaderStage::PS, 0);
+
+    auto backgroundShader = GET_SINGLE(Resources)->Find<Shader>(L"DrawBackground");
+    backgroundShader->BindShader();
+    RectMesh->BindBuffer();
+    RectMesh->Render();
+
+    cubeMap->ClearSRV(ShaderStage::PS, 0);
+
+    //장애물 렌더링(임시)
+    for (auto& simulationObject : simulationObjects)
+    {
+        simulationObject->Render(Cam);
+    }
 
     //Blur
     SceneBackwardDepth->BindUAV(0);
@@ -322,8 +347,7 @@ void SPHSystem::draw(Camera* Cam)
     SceneFrontDepth->BindUAV(2);
     horizontalBlurredFrontDepth->BindUAV(3);
 
-    
-
+  
     for (int i = 0; i < 2; i++) {
         //HorizontalBlur
         auto HorizontalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"HorizontalBilateralFilter");
@@ -355,44 +379,18 @@ void SPHSystem::draw(Camera* Cam)
     normalMap->ClearUAV(1);
     SceneFrontDepth->ClearUAV(0);
 
-    //배경 렌더링
-    cubeMap->BindSRV(ShaderStage::PS, 0);
-
-    auto backgroundShader = GET_SINGLE(Resources)->Find<Shader>(L"DrawBackground");
-    backgroundShader->BindShader();
-    RectMesh->BindBuffer();
-    RectMesh->Render();
-
-    cubeMap->ClearSRV(ShaderStage::PS, 0);
-
-    //장애물 렌더링(임시)
-
-    auto meshRenderingShader = GET_SINGLE(Resources)->Find<Shader>(L"HardCoded3DShader");
-
-    trCB.world = Matrix::Identity * 0.1f;
-    trCB.world._44 = 1.f;
-    trCB.view = Cam->GetViewMatrix();
-    trCB.projection = Cam->GetProjectionMatrix();
-    trCB.viewInv = trCB.view.Invert();
-    trCB.projectionInv = trCB.projection.Invert();
-
-    cb->SetData(&trCB);
-    cb->SetPipline(ShaderStage::VS);
-    cb->SetPipline(ShaderStage::PS);
-    meshRenderingShader->BindShader();
-    obstacle->BindBuffer();
-    obstacle->Render();
 
     //유체 렌더링
 
     GEngine->BindSwapChain();
-    GEngine->ClearSwapChain(true);
+    GEngine->ClearSwapChain();
 
     SceneFrontDepth->BindSRV(ShaderStage::PS, 0);
     SceneBackwardDepth->BindSRV(ShaderStage::PS, 1);
     normalMap->BindSRV(ShaderStage::PS, 2);
     cubeMap->BindSRV(ShaderStage::PS, 3);
     backgroundTexture->BindSRV(ShaderStage::PS, 4);
+    obstacleDepth->BindSRV(ShaderStage::PS, 5);
 
     auto CompositeShader = GET_SINGLE(Resources)->Find<Shader>(L"Composite");
     CompositeShader->BindShader();
@@ -404,6 +402,7 @@ void SPHSystem::draw(Camera* Cam)
     normalMap->ClearSRV(ShaderStage::PS, 2);
     cubeMap->ClearSRV(ShaderStage::PS, 3);
     backgroundTexture->ClearSRV(ShaderStage::PS, 4);
+    obstacleDepth->ClearSRV(ShaderStage::PS, 5);
 
     DrawBoundary(Cam);
 }
@@ -448,11 +447,14 @@ void SPHSystem::ImGUIRender()
     ImGui::ColorEdit3("FluidColor", reinterpret_cast<float*>(&FluidColor));
     ImGui::DragFloat3("BoundarySize", reinterpret_cast<float*>(&boundarySize));
 
+    ImGui::End();
+
+    ImGui::Begin("SimulationObjects");
 
     static int selected = 0;
     auto pos = ImGui::GetCursorPos();
     // selectable list
-    for (int n = 0; n < 10; n++)
+    for (int n = 0; n < simulationObjects.size(); n++)
     {
         ImGui::PushID(n);
 
@@ -461,38 +463,26 @@ void SPHSystem::ImGUIRender()
         
 
         ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
-        if (ImGui::Selectable(buf, n == selected, 0, ImVec2(25, 50))) {
+        if (ImGui::Selectable(buf, n == selected, 0)) {
             selected = n;
         }
         ImGui::SetItemAllowOverlap();
 
         ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
-        ImGui::Text("foo");
+        string s = simulationObjects[n]->GetName();
+        ImGui::Text(s.c_str());
 
-        ImGui::SetCursorPos(ImVec2(pos.x + 30, pos.y + 5));
-        if (ImGui::Button("do thing", ImVec2(70, 30)))
-        {
-            ImGui::OpenPopup("Setup?");
-            selected = n;
-            printf("SETUP CLICKED %d\n", n);
-        }
-
-        if (ImGui::BeginPopupModal("Setup?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGuiContext& g = *ImGui::GetCurrentContext();
-
-            ImGui::Text("Setup Popup");
-            if (ImGui::Button("OK", ImVec2(120, 0))) { printf("OK PRESSED!\n"); ImGui::CloseCurrentPopup(); }
-            ImGui::EndPopup();
-        }
-
-        ImGui::SetCursorPos(ImVec2(pos.x, pos.y + 20));
-        ImGui::Text("bar");
-
-        pos.y += 55;
+        pos.y += 20;
 
         ImGui::PopID();
     }
+
+    ImGui::End();
+
+    ImGui::Begin("Detail");
+
+    if (selected < simulationObjects.size())
+        simulationObjects[selected]->ImGuiRender();
 
     ImGui::End();
 }

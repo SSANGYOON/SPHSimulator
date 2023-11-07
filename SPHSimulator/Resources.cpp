@@ -220,7 +220,7 @@ void Resources::CreateDefaultResource()
 		shared_ptr<Shader> HardCoded3DShader = std::make_shared<Shader>();
 		Resources::Insert<Shader>(L"HardCoded3DShader", HardCoded3DShader);
 		_info.bst = BSType::Default;
-		_info.dst = DSType::NoWrite;
+		_info.dst = DSType::Less;
 		_info.rst = RSType::SolidBack;
 		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		_entry = {};

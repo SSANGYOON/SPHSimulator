@@ -13,6 +13,12 @@ struct PSIn
     float2 UV : TEXCOORD;
 };
 
+struct PSOut
+{
+    float4 Color : SV_Target0;
+    float Depth : SV_Target1;
+};
+
 PSIn VS_MAIN(VSIn In)
 {
     PSIn Out = (PSIn)0;
@@ -27,11 +33,15 @@ PSIn VS_MAIN(VSIn In)
     return Out;
 }
 
-float4 PS_MAIN(PSIn In) : SV_Target
+PSOut PS_MAIN(PSIn In)
 {
     // Compute irradiance (sum of ambient & direct lighting)
     float3 irradiance = DiffuseColor * 0.3f + DiffuseColor * LightColor * max(0,dot(-LightDirection,normalize(In.Normal)));
 
     float4 finalColor = float4(irradiance,1);
-    return finalColor;
+
+    PSOut Out = (PSOut)0;
+    Out.Color = finalColor;
+    Out.Depth = In.Pos.w;
+    return Out;
 }
