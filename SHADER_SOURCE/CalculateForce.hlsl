@@ -30,19 +30,24 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 						break;
 					}
 
-					float3 diff = pj.position - pi.position;
+					float3 diff = pi.position - pj.position;
+					float3 velocityDiff = pi.velocity - pj.velocity;
 					float dist = length(diff);
+
 					if (dist < radius && dist > 1e-3f) {
-						float3 dir = normalize(diff);
 
 						//apply pressure force
-						float3 pressureForce = -dir * mass * (pi.pressure + pj.pressure) / (2 * pj.density) * spikyGrad;
-						pressureForce *= pow(radius - dist, 2);
+						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist * 2.f / radius) *
+							normalize(diff);
+
+						float3 pressureForce = -mass / pi.density * gradPressure;
 						pi.force += pressureForce;
 
 						//apply viscosity force
-						float3 velocityDif = pj.velocity - pi.velocity;
-						float3 viscoForce = viscosity * mass * (velocityDif / pj.density) * spikyLap * (radius - dist);
+						float3 laplacianVelocity = 2 * mass / pi.density * (velocityDiff) /
+							(dist * dist + 0.01f * radius * radius) *
+							CubicSplineGrad(dist * 2.f / radius) * dist;
+						float3 viscoForce = mass * viscosity * laplacianVelocity;
 						pi.force += viscoForce;
 					}
 					pjIndex++;

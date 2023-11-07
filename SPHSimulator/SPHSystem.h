@@ -8,8 +8,7 @@ struct SPHSettings
 		float h, float g, float tension);
 
 	Matrix sphereScale;
-	float poly6, spikyGrad, spikyLap, gasConstant, mass, h2, selfDens,
-		restDensity, viscosity, h, g, tension, massPoly6Product;
+	float gasConstant, mass, h2,restDensity, viscosity, h, g, tension;
 };
 
 class StructuredBuffer;

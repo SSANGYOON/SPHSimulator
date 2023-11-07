@@ -28,19 +28,16 @@ cbuffer ParticleSettings : register(b2)
 {
 	uint particlesNum;
 	float radius;
-	float massPoly6Product;
 	float gasConstant;
 	float restDensity;
 	float mass;
-	float spikyGrad;
-	float spikyLap;
 	float3 boundaryCentor;
 	float viscosity;
 	float3 boundarySize;
 	float gravity;
 	float deltaTime;
 	uint tableSize;
-	float2 simulationpadding;
+	float simulationpadding;
 
 	//TODO
 	//surfaceTensionConstant
@@ -82,31 +79,18 @@ uint GetHashValueOfLocation(float3 position)
 float cubicspline(float q)
 {
 	const float coeff = 3.0f / (2.0f * 3.141592f);
-	if (q > 2.f)
-	{
-		return 0;
-	}
-	else
-	{
 
-		float ans = 0.f;
-		if (q < 1.f)
-		{
-			ans = 2.f / 3.f - q * q + 0.5f * q * q * q;
-		}
-		else
-		{
-			float r = 2.f - q;
-			ans = r * r * r / 6;
-		}
-
-		return coeff * ans;
-	}
+	if (q < 1.0f)
+		return coeff * (2.0f / 3.0f - q * q + 0.5f * q * q * q);
+	else if (q < 2.0f)
+		return coeff * pow(2.0f - q, 3.0f) / 6.0f;
+	else // q >= 2.0f
+		return 0.0f;
 }
+float CubicSplineGrad(const float q) {
 
-float CubicSplineGrad(float q) {
 
-	float coeff = 3.0f / (2.0f * 3.141592f);
+	const float coeff = 3.0f / (2.0f * 3.141592f);
 
 	if (q < 1.0f)
 		return coeff * (-2.0f * q + 1.5f * q * q);

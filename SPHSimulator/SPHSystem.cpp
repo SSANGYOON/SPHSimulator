@@ -28,12 +28,7 @@ SPHSettings::SPHSettings(
     , g(g)
     , tension(tension)
 {
-    poly6 = 315.0f / (64.0f * XM_PI * pow(h, 9));
-    spikyGrad = -45.0f / (XM_PI * pow(h, 6));
-    spikyLap = 45.0f / (XM_PI * pow(h, 6));
     h2 = h * h;
-    selfDens = mass * poly6 * pow(h, 6);
-    massPoly6Product = mass * poly6;
     sphereScale = Matrix::CreateScale(Vector3(h/2.f));
 }
 
@@ -50,14 +45,14 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     cubeMap->Load(L"Texture/SaintPetersBasilica.dds");
     InitParticles();
 
-    shared_ptr<Mesh> obstacle = make_shared<Mesh>();
+    //shared_ptr<Mesh> obstacle = make_shared<Mesh>();
 
-    obstacle->Load(L"Mesh/bowl.obj");
+   // obstacle->Load(L"Mesh/bowl.obj");
 
-    auto obs = make_shared<Obstacle>();
-    obs->SetName("Dolphin");
-    obs->SetMesh(obstacle);
-    simulationObjects.push_back(obs);
+    //auto obs = make_shared<Obstacle>();
+    //obs->SetName("Dolphin");
+    //obs->SetMesh(obstacle);
+    //simulationObjects.push_back(obs);
 }
 
 SPHSystem::~SPHSystem()
@@ -169,12 +164,9 @@ void SPHSystem::updateParticles(float deltaTime)
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
     pcb.radius = settings.h;
-    pcb.massPoly6Product = settings.massPoly6Product;
     pcb.gasConstant = settings.gasConstant;
     pcb.restDensity = settings.restDensity;
     pcb.mass = settings.mass;
-    pcb.spikyGrad = settings.spikyGrad;
-    pcb.spikyLap = settings.spikyLap;
     pcb.viscosity = settings.viscosity;
     pcb.gravity = settings.g;
     pcb.deltaTime = deltaTime;
@@ -489,12 +481,12 @@ void SPHSystem::ImGUIRender()
 
         ImGui::Begin("Detail");
 
-        if (selected < simulationObjects.size())
+        if (simulationObjects.size() > 0 && selected < simulationObjects.size())
             simulationObjects[selected]->ImGuiRender();
 
         ImGui::End();
 
-        if (selected < simulationObjects.size())
+        if (simulationObjects.size() > 0 && selected < simulationObjects.size())
             simulationObjects[selected]->ManipulateGuizmo(View, Projection);
     }
 }

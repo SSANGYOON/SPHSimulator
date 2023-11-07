@@ -46,19 +46,16 @@ CBUFFER(ParticleCB, CBSLOT_PARTICLE)
 {
 	UINT particlesNum;
 	float radius;
-	float massPoly6Product;
 	float gasConstant;
 	float restDensity;
 	float mass;
-	float spikyGrad;
-	float spikyLap;
 	Vector3 boundaryCentor;
 	float viscosity;
 	Vector3 boundarySize;
 	float gravity;
 	float deltaTime;
 	UINT tableSize;
-	Vector2 simulationpadding;
+	float simulationpadding;
 };
 
 CBUFFER(ParticleSortCB, CBSLOT_PARTICLESORT)
