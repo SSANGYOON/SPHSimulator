@@ -15,6 +15,7 @@
 #include "Texture.h"
 #include "Mesh.h"
 #include "Obstacle.h"
+#include "ImGuizmo.h"
 
 SPHSettings::SPHSettings(
     float mass, float restDensity, float gasConst, float viscosity, float h,
@@ -48,6 +49,15 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     cubeMap = make_shared<Texture>();
     cubeMap->Load(L"Texture/SaintPetersBasilica.dds");
     InitParticles();
+
+    shared_ptr<Mesh> obstacle = make_shared<Mesh>();
+
+    obstacle->Load(L"Mesh/bowl.obj");
+
+    auto obs = make_shared<Obstacle>();
+    obs->SetName("Dolphin");
+    obs->SetMesh(obstacle);
+    simulationObjects.push_back(obs);
 }
 
 SPHSystem::~SPHSystem()
@@ -136,29 +146,24 @@ void SPHSystem::InitParticles()
     obstacleDepth = make_unique<Texture>();
     obstacleDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
-    shared_ptr<Mesh> obstacle = make_shared<Mesh>();
-
-    obstacle->Load(L"Mesh/littleDolphin.obj");
-
-    auto obs = make_shared<Obstacle>();
-    obs->SetName("Dolphin");
-    obs->SetMesh(obstacle);
-    simulationObjects.push_back(obs);
 }
 
 void SPHSystem::update(float deltaTime)
 {
+    for (auto& sims : simulationObjects)
+    {
+        sims->Update();
+    }
     if (!started) return;
     // To increase system stability, a fixed deltaTime is set
     deltaTime = 0.003;
+    
     updateParticles(deltaTime);
 }
 
 void SPHSystem::updateParticles(float deltaTime)
 {
     UINT TableSize = NextPowerOf2(particleCount);
-
 
     UINT groups = particleCount % 256 > 0 ? ((particleCount >> 8) + 1) : (particleCount >> 8);
     ParticleCB pcb = {};
@@ -238,6 +243,8 @@ void SPHSystem::updateParticles(float deltaTime)
 
 void SPHSystem::draw(Camera* Cam)
 {
+    View = Cam->GetViewMatrix();
+    Projection = Cam->GetProjectionMatrix();
     WindowInfo Info = GEngine->GetWindow();
 
     D3D11_VIEWPORT _viewPort = { 0.0f, 0.0f, (float)Info.width, (float)Info.height, 0.0f, 1.0f };
@@ -250,10 +257,10 @@ void SPHSystem::draw(Camera* Cam)
     TransformCB trCB;
 
     trCB.world = Matrix::Identity;
-    trCB.view = Cam->GetViewMatrix();
-    trCB.projection = Cam->GetProjectionMatrix();
-    trCB.viewInv = trCB.view.Invert();
-    trCB.projectionInv = trCB.projection.Invert();
+    trCB.view = View;
+    trCB.projection = Projection;
+    trCB.viewInv = View.Invert();
+    trCB.projectionInv = Projection.Invert();
 
     shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
     cb->SetData(&trCB);
@@ -423,8 +430,8 @@ void SPHSystem::DrawWireFrame(const Vector3& size, const Quaternion& rotation, c
     auto wireFrameRenderer = GET_SINGLE(Resources)->Find<Shader>(L"OutLineShader");
 
     trCB.world = Matrix::CreateScale(size) * Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(translation);
-    trCB.view = Cam->GetViewMatrix();
-    trCB.projection = Cam->GetProjectionMatrix();
+    trCB.view = View;
+    trCB.projection = Projection;
 
     shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::TRANSFORM);
 
@@ -449,42 +456,47 @@ void SPHSystem::ImGUIRender()
 
     ImGui::End();
 
-    ImGui::Begin("SimulationObjects");
+    if (!started) {
+        ImGui::Begin("SimulationObjects");
 
-    static int selected = 0;
-    auto pos = ImGui::GetCursorPos();
-    // selectable list
-    for (int n = 0; n < simulationObjects.size(); n++)
-    {
-        ImGui::PushID(n);
+        static int selected = 0;
+        auto pos = ImGui::GetCursorPos();
+        // selectable list
+        for (int n = 0; n < simulationObjects.size(); n++)
+        {
+            ImGui::PushID(n);
 
-        char buf[32];
-        sprintf_s(buf, "##Object %d", n);
-        
+            char buf[32];
+            sprintf_s(buf, "##Object %d", n);
 
-        ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
-        if (ImGui::Selectable(buf, n == selected, 0)) {
-            selected = n;
+
+            ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
+            if (ImGui::Selectable(buf, n == selected, 0)) {
+                selected = n;
+            }
+            ImGui::SetItemAllowOverlap();
+
+            ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
+            string s = simulationObjects[n]->GetName();
+            ImGui::Text(s.c_str());
+
+            pos.y += 20;
+
+            ImGui::PopID();
         }
-        ImGui::SetItemAllowOverlap();
 
-        ImGui::SetCursorPos(ImVec2(pos.x, pos.y));
-        string s = simulationObjects[n]->GetName();
-        ImGui::Text(s.c_str());
+        ImGui::End();
 
-        pos.y += 20;
+        ImGui::Begin("Detail");
 
-        ImGui::PopID();
+        if (selected < simulationObjects.size())
+            simulationObjects[selected]->ImGuiRender();
+
+        ImGui::End();
+
+        if (selected < simulationObjects.size())
+            simulationObjects[selected]->ManipulateGuizmo(View, Projection);
     }
-
-    ImGui::End();
-
-    ImGui::Begin("Detail");
-
-    if (selected < simulationObjects.size())
-        simulationObjects[selected]->ImGuiRender();
-
-    ImGui::End();
 }
 
 void SPHSystem::reset() {

@@ -76,6 +76,9 @@ private:
 	Vector3 boundaryCentor = Vector3(0, 0, 0);
 	Vector3 boundarySize = Vector3(10, 10, 10);
 
+	Matrix View;
+	Matrix Projection;
+
 	//Particle GPUSortedParticle[32768];
 	//UINT Table[32768];
 

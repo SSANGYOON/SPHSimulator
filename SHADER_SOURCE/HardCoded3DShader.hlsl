@@ -2,7 +2,7 @@
 
 const static float3 LightDirection =  float3(0.707, -0.707, 0);
 const static float3 LightColor = float3(1.0, 1.0, 1.0);
-const static float3 DiffuseColor = float3(0.0, 0.5, 0.9);
+const static float3 DiffuseColor = float3(242.f / 255.f, 50.f / 51.f, 68.f / 255.f);
 
 struct PSIn
 {

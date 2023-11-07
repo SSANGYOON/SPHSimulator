@@ -24,8 +24,6 @@ RWStructuredBuffer<uint> neighborTable : register(u1);
 RWStructuredBuffer<IndirectArgs> IndirectBuffer : register(u2);
 RWStructuredBuffer<float3> ParticleWorld : register(u3);
 
-groupshared uint LocalPrefixSum[GroupThreadNum];
-
 cbuffer ParticleSettings : register(b2)
 {
 	uint particlesNum;

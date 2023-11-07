@@ -21,8 +21,7 @@ void Obstacle::Render(Camera* Cam)
     
     TransformCB trCB;
 
-    trCB.world = Matrix::CreateScale(scale) * Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position);
-    trCB.world._44 = 1.f;
+    trCB.world = srt;
     trCB.view = Cam->GetViewMatrix();
     trCB.projection = Cam->GetProjectionMatrix();
     trCB.viewInv = trCB.view.Invert();

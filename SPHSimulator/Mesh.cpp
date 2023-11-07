@@ -37,6 +37,8 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 		vector<Vertex> vertexes;
 		vector<UINT> indexes;
 
+		int s = 0;
+
 		UINT ind = 0;
 		while (getline(fs, line))
 		{
@@ -72,48 +74,92 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 				//push the normal to the normals list
 				normals.push_back(normal);
 			}
+			if (label == "s") {
+				ss >> s;
+			}
 
 			if (label == "f") {
 
-				for (int i = 0; i < 4; i++)
-				{
-					std::string s;
-					size_t pos;
-					std::string v;
+				if (s == 2) {
+					for (int i = 0; i < 4; i++)
+					{
+						std::string s;
+						size_t pos;
+						std::string v;
 
-					//search face for / delimeter
+						//search face for / delimeter
 
-					int a, b, c;
+						int a, b, c;
 
-					ss >> s;
-					pos = s.find("/");
-					v = s.substr(0, pos);
-					a = std::stoi(v) - 1;
+						ss >> s;
+						pos = s.find("/");
+						v = s.substr(0, pos);
+						a = std::stoi(v) - 1;
 
-					s.erase(0, pos + 1);
+						s.erase(0, pos + 1);
 
-					pos = s.find("/");
-					v = s.substr(0, pos);
-					b = std::stoi(v) - 1;
+						pos = s.find("/");
+						v = s.substr(0, pos);
+						b = std::stoi(v) - 1;
 
-					s.erase(0, pos + 1);
+						s.erase(0, pos + 1);
 
-					c = std::stoi(s) - 1;
-					Vertex vx;
-					vx.pos = positions[a];
-					vx.uv = uvs[b];
-					vx.normal = normals[c];
+						c = std::stoi(s) - 1;
+						Vertex vx;
+						vx.pos = positions[a];
+						vx.uv = uvs[b];
+						vx.normal = normals[c];
 
-					vertexes.push_back(vx);
+						vertexes.push_back(vx);
+					}
+
+					indexes.push_back(ind * 4);
+					indexes.push_back(ind * 4 + 1);
+					indexes.push_back(ind * 4 + 2);
+					indexes.push_back(ind * 4 + 0);
+					indexes.push_back(ind * 4 + 2);
+					indexes.push_back(ind * 4 + 3);
+					ind++;
 				}
+				else
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						std::string s;
+						size_t pos;
+						std::string v;
 
-				indexes.push_back(ind * 4);
-				indexes.push_back(ind * 4 + 1);
-				indexes.push_back(ind * 4 + 2);
-				indexes.push_back(ind * 4 + 0);
-				indexes.push_back(ind * 4 + 2);
-				indexes.push_back(ind * 4 + 3);
-				ind++;
+						//search face for / delimeter
+
+						int a, b, c;
+
+						ss >> s;
+						pos = s.find("/");
+						v = s.substr(0, pos);
+						a = std::stoi(v) - 1;
+
+						s.erase(0, pos + 1);
+
+						pos = s.find("/");
+						v = s.substr(0, pos);
+						b = std::stoi(v) - 1;
+
+						s.erase(0, pos + 1);
+
+						c = std::stoi(s) - 1;
+						Vertex vx;
+						vx.pos = positions[a];
+						vx.uv = uvs[b];
+						vx.normal = normals[c];
+
+						vertexes.push_back(vx);
+					}
+
+					indexes.push_back(ind * 3);
+					indexes.push_back(ind * 3 + 1);
+					indexes.push_back(ind * 3 + 2);
+					ind++;
+				}
 			}
 
 			
