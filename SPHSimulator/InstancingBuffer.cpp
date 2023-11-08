@@ -36,11 +36,22 @@ void InstancingBuffer::AddData(Vector3& params)
 	_data.push_back(params);
 }
 
+void InstancingBuffer::PushData(const vector<Vector3>& data)
+{
+	_count = data.size();
+	Init(_count);
+
+	D3D11_MAPPED_SUBRESOURCE sub = {};
+	CONTEXT->Map(_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &sub);
+	memcpy(sub.pData, data.data(), data.size() * sizeof(Vector3));
+	CONTEXT->Unmap(_buffer.Get(), 0);
+}
+
 void InstancingBuffer::PushData()
 {
-	const UINT dataCount = GetCount();
-	if (dataCount > _maxCount)
-		Init(dataCount);
+	_count = GetCount();
+	if (_count > _maxCount)
+		Init(_count);
 
 	D3D11_MAPPED_SUBRESOURCE sub = {};
 	CONTEXT->Map(_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &sub);

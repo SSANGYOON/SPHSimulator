@@ -65,7 +65,7 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	float3 ViewDirection = -VertexToEye;
 	float3 Reflection = reflect(ViewDirection, normal);
 	float3 ReflectionTex = cubeMap.Sample(linearSampler, ViewDirection).xyz;
-	float3 ReflectionColor = SpecularFactory * SpecularColor * SpecularIntensity * cubeMap.Sample(linearSampler, Reflection).xyz;
+	float3 ReflectionColor = cubeMap.Sample(linearSampler, Reflection).xyz;
 
 	float Radio = 1.0 / 1.33;
 	float3 RefractionDir = refract(ViewDirection, normal, Radio);
@@ -88,7 +88,7 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	RefractionUV.y *= -1;
 	RefractionUV = RefractionUV * 0.5f + 0.5f;
 
-	float3 RefractionColor = absorbtionColor * backgroundTexture.Sample(linearSampler, RefractionUV);
+	float3 RefractionColor = absorbtionColor * backgroundTexture.Sample(linearSampler, RefractionUV).xyz;
 
 	const float f0 = (1.33 - 1) * (1.33 - 1) / ((1.33 + 1) * (1.33 + 1));
 	float fresnel = f0 + (1.f - f0) * pow(1.0 - max(dot(normal, VertexToEye), 0.0), 5.0);

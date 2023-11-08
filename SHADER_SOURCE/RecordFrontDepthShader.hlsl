@@ -20,12 +20,8 @@ PSIn VS_MAIN(ParticleVSIn In)
     PSIn Out = (PSIn)0.f;
     Out.UV = In.UV;
 
-    float3 viewLeft = float3(viewInv._m00, viewInv._m01, viewInv._m02);
-    float3 viewUp = float3(viewInv._m10, viewInv._m11, viewInv._m12);
-
-    float4 worldPos = float4((In.Pos.x * viewLeft + In.Pos.y * viewUp) * radius + In.InstancePos, 1.f);
-
-    float4 viewPos = mul(worldPos, view);
+    float4 worldPos = float4(In.InstancePos, 1.f);
+    float4 viewPos = mul(worldPos, view) + float4(In.Pos.xy * radius, 0, 0);
     Out.Pos = mul(viewPos, projection);
     Out.ViewPos = mul(float4(In.InstancePos, 1.f), view).xyz;
     Out.Color = In.Color;

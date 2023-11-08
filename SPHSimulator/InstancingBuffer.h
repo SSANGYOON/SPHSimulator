@@ -10,8 +10,11 @@ public:
 
 	void Clear();
 	void AddData(Vector3& params);
+	void PushData(const vector<Vector3>& data);
 	void PushData();
 	void SetDataFromBuffer(ComPtr<ID3D11Buffer> _src);
+
+	UINT						_count = 0;
 
 public:
 	UINT						GetCount() { return static_cast<UINT>(_data.size()); }
@@ -25,5 +28,6 @@ private:
 	ComPtr<ID3D11Buffer>		_buffer;
 
 	UINT						_maxCount = 0;
+	
 	vector<Vector3>	_data;
 };

@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "pch.h"
 #include "Mesh.h"
 #include "Graphics.h"
@@ -9,7 +11,11 @@
 Mesh::Mesh()
 	:Resource(RESOURCE_TYPE::MESH)
 	, _indexes(0)
+	, voxelset{}
+	, indexes{}
+	, vertexes{}
 {
+
 }
 
 Mesh::~Mesh()
@@ -34,8 +40,6 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 		vector<Vector3> positions;
 		vector<Vector3> normals;
 		vector<Vector2> uvs;
-		vector<Vertex> vertexes;
-		vector<UINT> indexes;
 
 		int s = 0;
 
@@ -119,6 +123,7 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 					indexes.push_back(ind * 4 + 0);
 					indexes.push_back(ind * 4 + 2);
 					indexes.push_back(ind * 4 + 3);
+
 					ind++;
 				}
 				else
@@ -158,11 +163,10 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 					indexes.push_back(ind * 3);
 					indexes.push_back(ind * 3 + 1);
 					indexes.push_back(ind * 3 + 2);
+
 					ind++;
 				}
-			}
-
-			
+			}	
 		}
 		fs.close();
 
@@ -216,6 +220,56 @@ void Mesh::CreateIndexBuffer(void* data, UINT count, D3D11_USAGE usage)
 	_indexes = count;
 }
 
+void Mesh::rasterizeTriangle(const Vector3& p0, const Vector3& p1, const Vector3& p2, float h)
+{
+	Vector3 minV = Vector3::Min(Vector3::Min(p0, p1),p2);
+	Vector3 maxV = Vector3::Max(Vector3::Max(p0, p1), p2);
+
+	Vector3 e0 = p1 - p0;
+	Vector3 e1 = p2 - p0;
+	Vector3 normal = e0.Cross(e1);
+
+	normal.Normalize();
+
+	for (int z = int(minV.z / (h * 0.5f)) - 1; z <= int(maxV.z / (h * 0.5f)) + 1; ++z) {
+		for (int y = int(minV.y / (h * 0.5f)) - 1; y <= int(maxV.y / (h * 0.5f)) + 1; ++y) {
+			for (int x = int(minV.x / (h * 0.5f)) - 1; x <= int(maxV.x / (h * 0.5f)) + 1; ++x) {
+				Vector3 center = Vector3(x + 0.5f, y + 0.5f, z + 0.5f) * (h * 0.5f);
+				float d = (center - p0).Dot(normal);
+
+				// check if voxel intersects triangle plane
+				if (std::abs(d) < pow(2.f, 0.5f) * (h * 0.5f)) {
+
+					// check if projected voxel center lies within triangle
+					Vector3 p = center - d * normal;
+					float twoArea = e0.Cross(e1).Length();
+					float s = (p - p0).Cross(e1).Length();
+					float t = (p - p0).Cross(e0).Length();
+
+					if (twoArea  >= s + t)
+						voxelset.insert(make_tuple(x,y,z));
+				}
+			}
+		}
+	}
+}
+
+void Mesh::Voxelize(vector<Vector3>& voxels, float cellSize, const Matrix& srt)
+{
+	for (int i = 0; i < _indexes; i += 3)
+	{
+		Vector3 p0 = Vector3::Transform(vertexes[i].pos, srt);
+		Vector3 p1 = Vector3::Transform(vertexes[i + 1].pos, srt);
+		Vector3 p2 = Vector3::Transform(vertexes[i + 2].pos, srt);
+		rasterizeTriangle(p0, p1, p2, cellSize);
+	}
+
+	for (auto& voxel : voxelset)
+	{
+		voxels.push_back(Vector3((float)get<0>(voxel) + 0.5f, (float)get<1>(voxel) + 0.5f, (float)get<2>(voxel) + 0.5f) * (cellSize * 0.5f));
+	}
+}
+
 void Mesh::SetIndexData(void* data, UINT count)
 {
 	D3D11_MAPPED_SUBRESOURCE sub = {};
@@ -247,13 +301,21 @@ void Mesh::RenderInstanced(InstancingBuffer* instances)
 {
 	if (!_indexBuffer)
 	{
-
 		UINT stride[] = { sizeof(Vertex), sizeof(Vector3) };
 		UINT offset[] = { 0, 0 };
 
 		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
 		CONTEXT->IASetVertexBuffers(0, 2, views, stride, offset);
-		CONTEXT->DrawInstanced(_vertexes, instances->GetCount(), 0, 0);
+		CONTEXT->DrawInstanced(_vertexes, instances->_count, 0, 0);
+	}
+	else
+	{
+		UINT stride[] = { sizeof(Vertex), sizeof(Vector3) };
+		UINT offset[] = { 0, 0 };
+
+		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
+		CONTEXT->IASetVertexBuffers(0, 2, views, stride, offset);
+		CONTEXT->DrawIndexedInstanced(_indexes, instances->_count, 0, 0, 0);
 	}
 }
 

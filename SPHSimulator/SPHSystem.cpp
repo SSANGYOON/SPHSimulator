@@ -43,16 +43,45 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     
     cubeMap = make_shared<Texture>();
     cubeMap->Load(L"Texture/SaintPetersBasilica.dds");
-    InitParticles();
 
-    //shared_ptr<Mesh> obstacle = make_shared<Mesh>();
+    shared_ptr<Mesh> obstacle = make_shared<Mesh>();
 
-   // obstacle->Load(L"Mesh/bowl.obj");
+    obstacle->Load(L"Mesh/bowl.obj");
 
-    //auto obs = make_shared<Obstacle>();
-    //obs->SetName("Dolphin");
-    //obs->SetMesh(obstacle);
-    //simulationObjects.push_back(obs);
+    auto obs = make_shared<Obstacle>();
+    obs->SetName("Dolphin");
+    obs->SetMesh(obstacle);
+    simulationObjects.push_back(obs);
+
+    WindowInfo Info = GEngine->GetWindow();
+
+    SceneFrontDepth = make_unique<Texture>();
+    SceneFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    SceneBackwardDepth = make_unique<Texture>();
+    SceneBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    horizontalBlurredFrontDepth = make_unique<Texture>();
+    horizontalBlurredFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    horizontalBlurredBackwardDepth = make_unique<Texture>();
+    horizontalBlurredBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    normalMap = make_unique<Texture>();
+    normalMap->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    backgroundTexture = make_unique<Texture>();
+    backgroundTexture->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    obstacleDepth = make_unique<Texture>();
+    obstacleDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 }
 
 SPHSystem::~SPHSystem()
@@ -93,11 +122,98 @@ void SPHSystem::InitParticles()
         }
     }
 
+    Intances = make_unique<InstancingBuffer>();
+    Intances->Init(MaxParticle);
+
     particleBuffer = make_unique<StructuredBuffer>();
     particleBuffer->Create(sizeof(Particle), MaxParticle, particles,true, false);
 
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
     hashToParticleIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
+
+    //Initialize BoundaryParticle
+    boundaryVoxels.clear();
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->GetVoxels(boundaryVoxels, settings.h);
+    }
+    boundaryParticleCount = boundaryVoxels.size();
+
+    vector<Particle> boundaryParticles(MaxParticle);
+
+    for (int i = 0; i < boundaryVoxels.size(); i++)
+    {
+        boundaryParticles[i].position = boundaryVoxels[i];
+        boundaryParticles[i].velocity = Vector3::Zero;
+    }
+
+    boundaryParticleBuffer = make_unique<StructuredBuffer>();
+    boundaryParticleBuffer->Create(sizeof(Particle), MaxParticle, boundaryParticles.data(), true, true);
+
+    hashToBoundaryIndexTable = make_unique<StructuredBuffer>();
+    hashToBoundaryIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
+
+    UINT TableSize = NextPowerOf2(particleCount);
+
+    ParticleCB pcb = {};
+    pcb.particlesNum = particleCount;
+    pcb.radius = settings.h;
+    pcb.gasConstant = settings.gasConstant;
+    pcb.restDensity = settings.restDensity;
+    pcb.mass = settings.mass;
+    pcb.viscosity = settings.viscosity;
+    pcb.gravity = settings.g;
+    pcb.deltaTime = 0;
+    pcb.boundaryCentor = boundaryCentor;
+    pcb.boundarySize = boundarySize;
+    pcb.tableSize = TableSize;
+    pcb.boundaryParticlesNum = boundaryParticleCount;
+
+    auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
+
+    particleCBuffer->SetData(&pcb);
+    particleCBuffer->SetPipline(ShaderStage::CS);
+    particleCBuffer->SetPipline(ShaderStage::VS);
+    particleCBuffer->SetPipline(ShaderStage::PS);
+
+    //Boundary Particle에 해시 적용
+    auto CreateBoundaryHash = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateBoundaryHash");
+    CreateBoundaryHash->SetThreadGroups(TableSize >> 8, 1, 1);
+    boundaryParticleBuffer->BindUAV(4);
+    hashToBoundaryIndexTable->BindUAV(5);
+    CreateBoundaryHash->Dispatch();
+    boundaryParticleBuffer->Clear();
+
+    //Boundary particle은 위치가 시간에 따라 변화하지 않아서 미리 정렬
+    boundaryParticleBuffer->BindUAV(0);
+    auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
+    BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
+
+    auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
+    for (uint32_t k = 2; k <= TableSize; k <<= 1) {
+        for (uint32_t j = k >> 1; j > 0; j >>= 1) {
+
+            ParticleSortCB pscb;
+            pscb.j = j;
+            pscb.k = k;
+
+            particleSortBuffer->SetData(&pscb);
+            particleSortBuffer->SetPipline(ShaderStage::CS);
+
+            BitonicSortShader->Dispatch();
+        }
+    }
+    boundaryParticleBuffer->Clear();
+
+    //Boundary particle에 대한 해시테이블 생성
+    boundaryParticleBuffer->BindUAV(4);
+    UINT groups = boundaryParticles.size() % 256 > 0 ? ((boundaryParticles.size() >> 8) + 1) : (boundaryParticles.size() >> 8);
+    auto CreateBoundaryNeighborTable = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateBoundaryNeighborTable");
+    CreateBoundaryNeighborTable->SetThreadGroups(groups, 1, 1);
+    CreateBoundaryNeighborTable->Dispatch();
+    boundaryParticleBuffer->Clear();
 
     IndirectGPU = make_unique<StructuredBuffer>();
     IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
@@ -106,41 +222,6 @@ void SPHSystem::InitParticles()
 
     ParticleWorldMatrixes = make_unique<StructuredBuffer>();
     ParticleWorldMatrixes->Create(sizeof(Vector3), MaxParticle, nullptr, true, false);
-
-
-    /*
-    텍스쳐 해상도는 나중에 조절
-    */
-
-    WindowInfo Info = GEngine->GetWindow();
-
-    SceneFrontDepth = make_unique<Texture>();
-    SceneFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
-    SceneBackwardDepth = make_unique<Texture>();
-    SceneBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
-    horizontalBlurredFrontDepth = make_unique<Texture>();
-    horizontalBlurredFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
-    horizontalBlurredBackwardDepth = make_unique<Texture>();
-    horizontalBlurredBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
-    normalMap = make_unique<Texture>();
-    normalMap->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
-    backgroundTexture = make_unique<Texture>();
-    backgroundTexture->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
-    obstacleDepth = make_unique<Texture>();
-    obstacleDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 }
 
 void SPHSystem::update(float deltaTime)
@@ -158,9 +239,10 @@ void SPHSystem::update(float deltaTime)
 
 void SPHSystem::updateParticles(float deltaTime)
 {
+    UINT groups = particleCount % 256 > 0 ? ((particleCount >> 8) + 1) : (particleCount >> 8);
+    
     UINT TableSize = NextPowerOf2(particleCount);
 
-    UINT groups = particleCount % 256 > 0 ? ((particleCount >> 8) + 1) : (particleCount >> 8);
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
     pcb.radius = settings.h;
@@ -173,6 +255,7 @@ void SPHSystem::updateParticles(float deltaTime)
     pcb.boundaryCentor = boundaryCentor;
     pcb.boundarySize = boundarySize;
     pcb.tableSize = TableSize;
+    pcb.boundaryParticlesNum = boundaryParticleCount;
 
     auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
 
@@ -185,6 +268,8 @@ void SPHSystem::updateParticles(float deltaTime)
     CalculateHashShader->SetThreadGroups(TableSize >> 8, 1, 1);
     particleBuffer->BindUAV(0);
     hashToParticleIndexTable->BindUAV(1);
+    boundaryParticleBuffer->BindUAV(4);
+    hashToBoundaryIndexTable->BindUAV(5);
     CalculateHashShader->Dispatch();
     
     auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
@@ -229,6 +314,8 @@ void SPHSystem::updateParticles(float deltaTime)
     particleBuffer->Clear();
     IndirectGPU->Clear();
     ParticleWorldMatrixes->Clear();
+    boundaryParticleBuffer->Clear();
+    hashToBoundaryIndexTable->Clear();
 
     ParticleIndirect->SetDataFromBuffer(IndirectGPU->GetBuffer());
 }
@@ -278,8 +365,6 @@ void SPHSystem::draw(Camera* Cam)
     prCB.blurDepthFalloff = blurDepthFalloff;
     prCB.filterRadius = filterRadius;
     prCB.SpecularColor = SpecularColor;
-    prCB.SpecularIntensity = SpecularIntensity;
-    prCB.SpecularPower = SpecularPower;
     prCB.absorbanceCoff = absorbanceCoff;
     prCB.fluidColor = FluidColor;
 
@@ -290,8 +375,7 @@ void SPHSystem::draw(Camera* Cam)
     prBuffer->SetPipline(ShaderStage::CS);
 
     auto RectMesh = GET_SINGLE(Resources)->Find<Mesh>(L"RectMesh");
-    Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer());
-
+    
     //Scene Front Depth Rendering;
     CONTEXT->ClearRenderTargetView(SceneFrontDepth->GetRTV(), &farClip);
     CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
@@ -299,10 +383,12 @@ void SPHSystem::draw(Camera* Cam)
 
     CONTEXT->RSSetViewports(1, &_viewPort);
 
-    auto frontDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordFrontDepthShader");
-    frontDepthRecordShader->BindShader();
-    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
-
+    if (started) {
+        Intances->SetDataFromBuffer(ParticleWorldMatrixes->GetBuffer());
+        auto frontDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordFrontDepthShader");
+        frontDepthRecordShader->BindShader();
+        RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+    }
     //Scene Backward Depth Rendering;
     CONTEXT->ClearRenderTargetView(SceneBackwardDepth->GetRTV(), &nearClip);
     CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
@@ -310,9 +396,11 @@ void SPHSystem::draw(Camera* Cam)
 
     CONTEXT->RSSetViewports(1, &_viewPort);
 
-    auto backwardDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordBackwardDepthShader");
-    backwardDepthRecordShader->BindShader();
-    RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+    if (started) {
+        auto backwardDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordBackwardDepthShader");
+        backwardDepthRecordShader->BindShader();
+        RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+    }
 
     ID3D11RenderTargetView* backgroundRTVS[2] = { backgroundTexture->GetRTV() , obstacleDepth->GetRTV() };
 
@@ -346,7 +434,6 @@ void SPHSystem::draw(Camera* Cam)
     SceneFrontDepth->BindUAV(2);
     horizontalBlurredFrontDepth->BindUAV(3);
 
-  
     for (int i = 0; i < 2; i++) {
         //HorizontalBlur
         auto HorizontalBilateralFilter = GET_SINGLE(Resources)->Find<ComputeShader>(L"HorizontalBilateralFilter");
@@ -371,13 +458,11 @@ void SPHSystem::draw(Camera* Cam)
     normalMap->BindUAV(1);
 
     auto createNormal = GET_SINGLE(Resources)->Find<ComputeShader>(L"createNormal");
-
     createNormal->SetThreadGroups(Info.width / 16, Info.height / 16, 1);
     createNormal->Dispatch();
 
     normalMap->ClearUAV(1);
     SceneFrontDepth->ClearUAV(0);
-
 
     //유체 렌더링
 
@@ -441,7 +526,6 @@ void SPHSystem::ImGUIRender()
 
     ImGui::DragInt("SpacialFilterSize", &filterRadius, 1, 30.f);
     ImGui::ColorEdit3("SpecularColor", reinterpret_cast<float*>(&SpecularColor));
-    ImGui::DragFloat("SpecularPower", &SpecularPower, 1.f, 100.f);
     ImGui::DragFloat("AbsortionCoeff", &absorbanceCoff,0.1, 80.f);
     ImGui::ColorEdit3("FluidColor", reinterpret_cast<float*>(&FluidColor));
     ImGui::DragFloat3("BoundarySize", reinterpret_cast<float*>(&boundarySize));
@@ -492,10 +576,10 @@ void SPHSystem::ImGUIRender()
 }
 
 void SPHSystem::reset() {
-    InitParticles();
     started = false;
 }
 
 void SPHSystem::startSimulation() {
     started = true;
+    InitParticles();
 }

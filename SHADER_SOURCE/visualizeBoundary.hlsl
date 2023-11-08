@@ -3,8 +3,8 @@
 
 struct PS_OUT
 {
-    float color : SV_Target;
-    float depth : SV_DepthGreaterEqual;
+    float4 color : SV_Target;
+    float depth : SV_DepthLessEqual;
 };
 
 struct PSIn
@@ -38,14 +38,14 @@ PS_OUT PS_MAIN(PSIn In)
     N.xy = In.UV * 2.0 - 1.0;
     float r2 = dot(N.xy, N.xy);
     if (r2 > 1.0) discard; // kill pixels outside circle
-    N.z = sqrt(1.0 - r2);
+    N.z = -sqrt(1.0 - r2);
 
     // calculate depth
     float4 pixelPos = float4(In.ViewPos + N * radius / 2, 1.0);
     float4 clipSpacePos = mul(pixelPos, projection);
 
     OUT.depth = clipSpacePos.z / clipSpacePos.w;
-    OUT.color = pixelPos.z;
+    OUT.color = float4(1.f,1.f,1.f,1.f);
 
     return OUT;
 }

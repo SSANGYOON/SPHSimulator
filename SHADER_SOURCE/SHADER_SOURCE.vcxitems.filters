@@ -64,6 +64,15 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)NarrowBandVerticalFilter.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)visualizeBoundary.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateBoundaryHash.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateBoundaryNeighborTable.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">

@@ -24,6 +24,9 @@ RWStructuredBuffer<uint> neighborTable : register(u1);
 RWStructuredBuffer<IndirectArgs> IndirectBuffer : register(u2);
 RWStructuredBuffer<float3> ParticleWorld : register(u3);
 
+RWStructuredBuffer<Particle> boundaryParticles : register(u4);
+RWStructuredBuffer<uint> boundaryNeighborTable : register(u5);
+
 cbuffer ParticleSettings : register(b2)
 {
 	uint particlesNum;
@@ -37,7 +40,7 @@ cbuffer ParticleSettings : register(b2)
 	float gravity;
 	float deltaTime;
 	uint tableSize;
-	float simulationpadding;
+	uint boundaryParticlesNum;
 
 	//TODO
 	//surfaceTensionConstant
@@ -71,7 +74,7 @@ uint GetHash(int3 cell)
 
 uint GetHashValueOfLocation(float3 position)
 {
-	int3 cell = position / radius;
+	int3 cell = int3(position / radius + boundarySize * 0.5f);
 
 	return GetHash(cell);
 }

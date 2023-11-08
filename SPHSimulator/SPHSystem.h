@@ -22,6 +22,7 @@ public:
 
 	struct Particle* particles;
 	UINT32 particleCount;
+	UINT32 boundaryParticleCount;
 
 	void update(float deltaTime);
 	void updateParticles(float deltaTime);
@@ -43,14 +44,16 @@ private:
 	shared_ptr<class Mesh> sphere;
 	shared_ptr<Texture> cubeMap;
 
+	unique_ptr<StructuredBuffer> particleBuffer;
+	unique_ptr<StructuredBuffer> hashToParticleIndexTable;
+	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
+
 	unique_ptr<InstancingBuffer> Intances;
 	unique_ptr<StructuredBuffer> IndirectGPU;
 	unique_ptr<class IndirectBuffer> ParticleIndirect;
 
-	unique_ptr<StructuredBuffer> particleBuffer;
-	unique_ptr<StructuredBuffer> hashToParticleIndexTable;
-	
-	unique_ptr<StructuredBuffer> ParticleWorldMatrixes;
+	unique_ptr<StructuredBuffer> boundaryParticleBuffer;
+	unique_ptr<StructuredBuffer> hashToBoundaryIndexTable;
 
 	unique_ptr<Texture> SceneFrontDepth;
 	unique_ptr<Texture> SceneBackwardDepth;
@@ -63,12 +66,11 @@ private:
 	unique_ptr<Texture> obstacleDepth;
 
 	vector<shared_ptr<class SimulationObject>> simulationObjects;
-	
+	vector<Vector3> boundaryVoxels;
+
 	float blurDepthFalloff = 24.f;
 	int filterRadius = 30;
 	Vector3 SpecularColor = Vector3::One;
-	float SpecularIntensity = 1.f;
-	float SpecularPower = 100.f;
 	float absorbanceCoff = 0.1f;
 	Vector3 FluidColor = Vector3(0.0, 0.5, 0.9);
 
@@ -78,8 +80,8 @@ private:
 	Matrix View;
 	Matrix Projection;
 
-	//Particle GPUSortedParticle[32768];
-	//UINT Table[32768];
+	Particle GPUSortedParticle[1 << 18];
+	//UINT Table[1 << 18];
 
 	float WinX = 4;
 	float WinY = 3;

@@ -349,4 +349,34 @@ void Resources::CreateDefaultResource()
 		Composite->CreateShader(_info, _entry, L"Composite.hlsl", true);
 	}
 #pragma endregion
+
+#pragma region visualizeBoundary
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> visualizeBoundary = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"visualizeBoundary", visualizeBoundary);
+		_info.bst = BSType::Default;
+		_info.dst = DSType::Less;
+		_info.rst = RSType::SolidBack;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		visualizeBoundary->CreateShader(_info, _entry, L"visualizeBoundary.hlsl", false);
+	}
+#pragma endregion
+
+#pragma region CreateBoundaryHash
+	shared_ptr<ComputeShader> CreateBoundaryHash = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CreateBoundaryHash", CreateBoundaryHash);
+	CreateBoundaryHash->Create(L"CreateBoundaryHash.hlsl");
+#pragma endregion
+
+#pragma region CreateBoundaryNeighborTable
+	shared_ptr<ComputeShader> CreateBoundaryNeighborTable = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CreateBoundaryNeighborTable", CreateBoundaryNeighborTable);
+	CreateBoundaryNeighborTable->Create(L"CreateBoundaryNeighborTable.hlsl");
+#pragma endregion
 }

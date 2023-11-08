@@ -40,3 +40,8 @@ void Obstacle::Render(Camera* Cam)
     obstacleMesh->BindBuffer();
     obstacleMesh->Render();
 }
+
+void Obstacle::GetVoxels(vector<Vector3>& results, float h)
+{
+    obstacleMesh->Voxelize(results, h, srt);
+}

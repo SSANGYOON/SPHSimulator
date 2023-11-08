@@ -8,7 +8,7 @@ public:
 	virtual ~Obstacle();
 
 	virtual void Render(class Camera* Cam) override;
-	
+	void GetVoxels(vector<Vector3>& results, float h);
 
 private:
 	shared_ptr<Mesh> obstacleMesh;
