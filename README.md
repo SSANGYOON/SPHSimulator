@@ -80,8 +80,26 @@ sph 알고리즘 오류 수정 및 quad mesh를 이용한 sphere rendering 구�
 refraction color는 굴절된 각도에 따라 큐브맵 매핑으로 만들고 있는데 장애물에 대해서는 어떻게 적용할지에 대한 학습이 필요
 
 #### 11/2
+렌더링 옵션 조정을 위한 UI추가
+
+#### 11/3
 Narrow Range Filter를 이용한 유체 표면 렌더링 개선
+
 <img src="./Images/transparentFluid.gif">
+
+#### 11/6
+물에 잠긴 메시도 굴절되어 보이도록 하기 위해서
+refration color 샘플링 과정을 
+cubeMap.Sample(linearSampler, RefractionDir)처럼 큐브맵을 통해서 하는 방식이 아닌
+absorbtionColor * backgroundTexture.Sample(linearSampler, RefractionUV)와 같이 이전에 그린 뒷 배경에서 가져오는 방식으로 변경
+
+#### 11/7
+유체의 경계면이 잘 보이도록 쉐이더 코드를 변경
+
+#### 11/8
+유체의 반사광 맵핑 공식의 잘못된 부분 변경
+
+복셀을 기반으로 한 임의 경계 렌더링 구현(SDF)를 이용해 개선해볼 예정
 
 ## 참고문헌 :
 
