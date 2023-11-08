@@ -96,13 +96,22 @@ absorbtionColor * backgroundTexture.Sample(linearSampler, RefractionUV)와 같�
 #### 11/7
 유체의 경계면이 잘 보이도록 쉐이더 코드를 변경
 
+<img src="./Images/boundary.jpg">
+
 #### 11/8
 유체의 반사광 맵핑 공식의 잘못된 부분 변경
 
-복셀을 기반으로 한 임의 경계 렌더링 구현(SDF)를 이용해 개선해볼 예정
+<img src="./Images/reflection.jpg">
+
+복셀을 기반으로 한 임의 경계 렌더링 구현함 SDF(Signed distance field)를 이용해 개선해볼 예정
+
+<img src="./Images/bowl.gif">
+
 
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
 
 (Particle-Based Fluid Simulation for Interactive Applications)[https://matthias-research.github.io/pages/publications/sca03.pdf]
+
+(Versatile Rigid-Fluid Coupling for Incompressible SPH)https://cg.informatik.uni-freiburg.de/publications/2012_SIGGRAPH_rigidFluidCoupling.pdf
