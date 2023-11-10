@@ -16,7 +16,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
 
 	//calculate acceleration and velocity
-	float3 acceleration = pi.force / pi.density + float3(0, gravity, 0);
+	float3 acceleration = pi.force + float3(0, gravity, 0);
 	float3 velocity = pi.velocity + acceleration * deltaTime;
 
 	// Update position

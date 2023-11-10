@@ -38,17 +38,17 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					if (dist < radius && dist > 1e-3f) {
 
 						//apply pressure force
-						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist * 2.f / radius) *
+						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist / radius) *
 							normalize(diff);
 
-						float3 pressureForce = -mass / pi.density * gradPressure;
+						float3 pressureForce = -gradPressure / pi.density;
 						pi.force += pressureForce;
 
 						//apply viscosity force
 						float3 laplacianVelocity = 2 * mass / pi.density * (velocityDiff) /
 							(dist * dist + 0.01f * radius * radius) *
-							CubicSplineGrad(dist * 2.f / radius) * dist;
-						float3 viscoForce = mass * viscosity * laplacianVelocity;
+							CubicSplineGrad(dist / radius) * dist;
+						float3 viscoForce = viscosity * laplacianVelocity;
 						pi.force += viscoForce;
 					}
 					pjIndex++;
@@ -83,18 +83,18 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					if (dist < radius && dist > 1e-3f) {
 
 						//apply pressure force
-						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist * 2.f / radius) *
+						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist / radius) *
 							normalize(diff);
 
-						float3 pressureForce = -mass / pi.density * gradPressure;
+						float3 pressureForce = -gradPressure / pi.density;
 						pi.force += pressureForce;
 
 						//apply viscosity force
-						/*float3 laplacianVelocity = 2 * mass / pi.density * (velocityDiff) /
+						float3 laplacianVelocity = 2 * mass / pi.density * (velocityDiff) /
 							(dist * dist + 0.01f * radius * radius) *
-							CubicSplineGrad(dist * 2.f / radius) * dist;
-						float3 viscoForce = mass * viscosity * laplacianVelocity;
-						pi.force += viscoForce;*/
+							CubicSplineGrad(dist / radius) * dist;
+						float3 viscoForce = viscosity * laplacianVelocity;
+						pi.force += viscoForce;
 					}
 					pjIndex++;
 				}

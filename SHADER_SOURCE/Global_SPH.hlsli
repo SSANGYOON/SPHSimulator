@@ -81,24 +81,23 @@ uint GetHashValueOfLocation(float3 position)
 
 float cubicspline(float q)
 {
-	const float coeff = 3.0f / (2.0f * 3.141592f);
+	const float coeff = 8 / (3.141592f * pow(radius, 3));
 
-	if (q < 1.0f)
-		return coeff * (2.0f / 3.0f - q * q + 0.5f * q * q * q);
-	else if (q < 2.0f)
-		return coeff * pow(2.0f - q, 3.0f) / 6.0f;
-	else // q >= 2.0f
+	if (q < 0.5f)
+		return coeff * (6.f * q * q * (q - 1.f) + 1.f);
+	else if (q < 1.f)
+		return coeff * pow(1.0f - q, 3.0f) * 2.f;
+	else // q >= 1.f
 		return 0.0f;
 }
-float CubicSplineGrad(const float q) {
+float CubicSplineGrad(const float q) 
+{
+	const float coeff = 8.f / (3.141592f * pow(radius, 4));
 
-
-	const float coeff = 3.0f / (2.0f * 3.141592f);
-
-	if (q < 1.0f)
-		return coeff * (-2.0f * q + 1.5f * q * q);
-	else if (q < 2.0f)
-		return coeff * -0.5f * (2.0f - q) * (2.0f - q);
-	else // q >= 2.0f
+	if (q < 0.5f)
+		return coeff * (18.f * q - 12.f) * q;
+	else if (q < 1.f)
+		return coeff * -6.f * (1.f - q) * (1.f - q);
+	else // q >= 1.f
 		return 0.0f;
 }

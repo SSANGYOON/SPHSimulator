@@ -31,7 +31,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         }
                         float dist = length(pj.position - pi.position);
                         if (dist < radius) {
-                            pDensity += mass * cubicspline(dist * 2.0f / radius);
+                            pDensity += mass * cubicspline(dist / radius);
                         }
 
                         pjIndex++;
@@ -56,7 +56,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         }
                         float dist = length(pj.position - pi.position);
                         if (dist < radius) {
-                            pDensity += mass * cubicspline(dist * 2.0f / radius);
+                            pDensity += mass * cubicspline(dist / radius);
                         }
 
                         pjIndex++;
@@ -99,7 +99,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         }
                         float dist = length(pj.position - pi.position);
                         if (dist < radius) {
-                            pDensity += mass * cubicspline(dist * 2.0f / radius);
+                            pDensity += mass * cubicspline(dist / radius);
                         }
 
                         pjIndex++;
@@ -124,7 +124,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         }
                         float dist = length(pj.position - pi.position);
                         if (dist < radius) {
-                            pDensity += mass * cubicspline(dist * 2.0f / radius);
+                            pDensity += mass * cubicspline(dist / radius);
                         }
 
                         pjIndex++;
