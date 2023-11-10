@@ -84,7 +84,7 @@ refraction color는 굴절된 각도에 따라 큐브맵 매핑으로 만들고 
 
 #### 11/3
 Narrow Range Filter를 이용한 유체 표면 렌더링 개선
-
+[https://www.semanticscholar.org/paper/A-Narrow-Range-Filter-for-Screen-Space-Fluid-Truong-Yuksel/50373abc8713985851823528e4e3ac2a494e43da]
 <img src="./Images/transparentFluid.gif">
 
 ### 5주차
