@@ -73,6 +73,9 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)CreateBoundaryNeighborTable.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)BoundaryParticleVolume.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">

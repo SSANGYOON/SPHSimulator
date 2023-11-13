@@ -82,15 +82,17 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
 					if (dist < 2.f * radius && dist > 1e-3f) {
 
+						float boundaryParticleMass = restDensity / pj.density;
+
 						//apply pressure force
-						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist / radius) *
+						float3 gradPressure = pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density) + (pi.pressure / (pi.density * pi.density)) * CubicSplineGrad(dist / radius) *
 							normalize(diff);
 
 						float3 pressureForce = -gradPressure / pi.density;
 						pi.force += pressureForce;
 
 						//apply viscosity force
-						float3 laplacianVelocity = 2 * mass / pi.density * (velocityDiff) /
+						float3 laplacianVelocity = 2 * boundaryParticleMass / pi.density * (velocityDiff) /
 							(dist * dist + 0.01f * radius * radius) *
 							CubicSplineGrad(dist / radius) * dist;
 						float3 viscoForce = viscosity * laplacianVelocity;
