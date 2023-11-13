@@ -9,7 +9,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
 	Particle pi = Particles[piIndex];
 
-	int3 cell = (pi.position / radius + 0.5f * boundarySize);
+	int3 cell = (pi.position / (2 * radius) + 0.5f * boundarySize);
 	float h2 = radius * radius;
 
 	//From Fluid
@@ -35,7 +35,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					float3 velocityDiff = pi.velocity - pj.velocity;
 					float dist = length(diff);
 
-					if (dist < radius && dist > 1e-3f) {
+					if (dist < 2 * radius && dist > 1e-3f) {
 
 						//apply pressure force
 						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist / radius) *
@@ -80,7 +80,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					float3 velocityDiff = pi.velocity - pj.velocity;
 					float dist = length(diff);
 
-					if (dist < radius && dist > 1e-3f) {
+					if (dist < 2.f * radius && dist > 1e-3f) {
 
 						//apply pressure force
 						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist / radius) *

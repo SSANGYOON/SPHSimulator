@@ -74,30 +74,30 @@ uint GetHash(int3 cell)
 
 uint GetHashValueOfLocation(float3 position)
 {
-	int3 cell = int3(position / radius + boundarySize * 0.5f);
+	int3 cell = int3(position / (2 * radius) + boundarySize * 0.5f);
 
 	return GetHash(cell);
 }
 
 float cubicspline(float q)
 {
-	const float coeff = 8 / (3.141592f * pow(radius, 3));
+	const float coeff = 1.f / (3.141592f * pow(radius, 3));
 
-	if (q < 0.5f)
-		return coeff * (6.f * q * q * (q - 1.f) + 1.f);
-	else if (q < 1.f)
-		return coeff * pow(1.0f - q, 3.0f) * 2.f;
-	else // q >= 1.f
+	if (q < 1.f)
+		return coeff * (0.75 * q * q * (q - 2.f) + 1.f);
+	else if (q < 2.f)
+		return coeff * pow(2.0f - q, 3.0f) * 0.25f;
+	else // q >= 2.f
 		return 0.0f;
 }
 float CubicSplineGrad(const float q) 
 {
-	const float coeff = 8.f / (3.141592f * pow(radius, 4));
+	const float coeff = 1.f / (3.141592f * pow(radius, 3));
 
-	if (q < 0.5f)
-		return coeff * (18.f * q - 12.f) * q;
-	else if (q < 1.f)
-		return coeff * -6.f * (1.f - q) * (1.f - q);
-	else // q >= 1.f
+	if (q < 1.f)
+		return coeff * (2.25f * q - 3.f) * q;
+	else if (q < 2.f)
+		return coeff * -0.75f * (2.f - q) * (2.f - q);
+	else // q >= 2.f
 		return 0.0f;
 }

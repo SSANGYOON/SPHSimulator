@@ -126,7 +126,7 @@ void SPHSystem::InitParticles()
     Intances->Init(MaxParticle);
 
     particleBuffer = make_unique<StructuredBuffer>();
-    particleBuffer->Create(sizeof(Particle), MaxParticle, particles,true, false);
+    particleBuffer->Create(sizeof(Particle), MaxParticle, particles,true, true);
 
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
     hashToParticleIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
