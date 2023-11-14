@@ -9,7 +9,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
 	Particle pi = Particles[piIndex];
 
-	int3 cell = (pi.position / (2 * radius) + 0.5f * boundarySize);
+	int3 cell = int3((pi.position + boundarySize * 0.5f) / (2 * radius));
 	float h2 = radius * radius;
 
 	//From Fluid

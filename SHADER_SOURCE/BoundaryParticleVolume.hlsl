@@ -8,7 +8,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
     if (DId < boundaryParticlesNum)
     {
         Particle pi = boundaryParticles[DId];
-        int3 cell = (pi.position / (2 * radius) + 0.5f * boundarySize);
+        int3 cell = int3((pi.position + boundarySize * 0.5f) / (2 * radius));
         uint piIndex = DId;
         float pDensity = 0.f;
 
