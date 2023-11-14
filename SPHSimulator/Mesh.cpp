@@ -11,7 +11,8 @@
 Mesh::Mesh()
 	:Resource(RESOURCE_TYPE::MESH)
 	, _indexes(0)
-	, voxelset{}
+	, sdf{}
+	, projection{}
 	, indexes{}
 	, vertexes{}
 {
@@ -20,6 +21,62 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
+}
+
+// find distance x0 is from segment x1-x2
+static float point_segment_distance(const Vector3& x0, const Vector3& x1, const Vector3& x2, Vector3& proj) {
+	Vector3 dx(x2 - x1);
+	float m2 = dx.LengthSquared();
+	// find parameter value of closest point on segment
+	float s12 = float((x2 - x0).Dot(dx) / m2);
+	if (s12 < 0) {
+		s12 = 0;
+	}
+	else if (s12 > 1) {
+		s12 = 1;
+	}
+	// and find the distance
+
+	proj = s12 * x1 + (1 - s12) * x2;
+	return (x0 - proj).Length();
+}
+
+// find distance x0 is from triangle x1-x2-x3
+static float point_triangle_distance(const Vector3& x0, const Vector3& x1, const Vector3& x2, const Vector3& x3, Vector3& proj) {
+	// first find barycentric coordinates of closest point on infinite plane
+	Vector3 x13(x1 - x3), x23(x2 - x3), x03(x0 - x3);
+	float m13 = x13.LengthSquared(), m23 = x23.LengthSquared(), d = x13.Dot(x23);
+	float invdet = 1.f / std::max(m13 * m23 - d * d, 1e-30f);
+	float a = x13.Dot(x03), b = x23.Dot(x03);
+	// the barycentric coordinates themselves
+	float w23 = invdet * (m23 * a - d * b);
+	float w31 = invdet * (m13 * b - d * a);
+	float w12 = 1 - w23 - w31;
+	if (w23 >= 0 && w31 >= 0 && w12 >= 0) { // if we're inside the triangle
+		proj = w23 * x1 + w31 * x2 + w12 * x3;
+		return (x0 - proj).Length();
+	}
+	else { // we have to clamp to one of the edges
+		Vector3 proj1;
+		Vector3 proj2;
+		Vector3 proj3;
+
+		float d1 = point_segment_distance(x0, x1, x2, proj1);
+		float d2 = point_segment_distance(x0, x1, x3, proj2);
+		float d3 = point_segment_distance(x0, x2, x3, proj3);
+		if (d1 <= d2 && d1 <= d3) {
+			proj = proj1;
+			return d1;
+		}
+		else if(d2 <= d1 && d2 <= d3){
+			proj = proj2;
+			return d2;
+		}
+		else{
+			proj = proj3;
+			return d3;
+		}
+	}
 }
 
 HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
@@ -235,19 +292,12 @@ void Mesh::rasterizeTriangle(const Vector3& p0, const Vector3& p1, const Vector3
 		for (int y = int(minV.y / h) - 1; y <= int(maxV.y / h) + 1; ++y) {
 			for (int x = int(minV.x / h) - 1; x <= int(maxV.x / h) + 1; ++x) {
 				Vector3 center = Vector3(x + 0.5f, y + 0.5f, z + 0.5f) * h;
-				float d = (center - p0).Dot(normal);
-
-				// check if voxel intersects triangle plane
-				if (std::abs(d) < pow(2.f, 0.5f) * h) {
-
-					// check if projected voxel center lies within triangle
-					Vector3 p = center - d * normal;
-					float twoArea = e0.Cross(e1).Length();
-					float s = (p - p0).Cross(e1).Length();
-					float t = (p - p0).Cross(e0).Length();
-
-					if (twoArea  >= s + t)
-						voxelset.insert(make_tuple(x,y,z));
+				Vector3 proj;
+				float d = point_triangle_distance(center, p0, p1, p2, proj);
+				if (sdf.find(make_tuple(x, y, z)) == sdf.end() || sdf[make_tuple(x, y, z)] > d)
+				{
+					sdf[make_tuple(x, y, z)] = d;
+					projection[make_tuple(x, y, z)] = proj;
 				}
 			}
 		}
@@ -256,17 +306,17 @@ void Mesh::rasterizeTriangle(const Vector3& p0, const Vector3& p1, const Vector3
 
 void Mesh::Voxelize(vector<Vector3>& voxels, float cellSize, const Matrix& srt)
 {
-	for (int i = 0; i < _indexes; i += 3)
+	for (int i = 0; 3 * i < _indexes; i++)
 	{
-		Vector3 p0 = Vector3::Transform(vertexes[i].pos, srt);
-		Vector3 p1 = Vector3::Transform(vertexes[i + 1].pos, srt);
-		Vector3 p2 = Vector3::Transform(vertexes[i + 2].pos, srt);
+		Vector3 p0 = Vector3::Transform(vertexes[indexes[3 * i]].pos, srt);
+		Vector3 p1 = Vector3::Transform(vertexes[indexes[3 * i + 1]].pos, srt);
+		Vector3 p2 = Vector3::Transform(vertexes[indexes[3 * i + 2]].pos, srt);
 		rasterizeTriangle(p0, p1, p2, cellSize);
 	}
 
-	for (auto& voxel : voxelset)
+	for (auto& particle : projection)
 	{
-		voxels.push_back(Vector3((float)get<0>(voxel) + 0.5f, (float)get<1>(voxel) + 0.5f, (float)get<2>(voxel) + 0.5f) * cellSize);
+		voxels.push_back(particle.second);
 	}
 }
 

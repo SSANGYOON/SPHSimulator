@@ -102,6 +102,9 @@
     <Filter Include="src\SPH\SimulationObject\Obstacle">
       <UniqueIdentifier>{896b808d-f11e-48fc-8e62-d3008a179096}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Utils\SDF">
+      <UniqueIdentifier>{896f9e15-3a01-4588-87b4-f95015bbbd18}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -253,6 +256,9 @@
     </ClInclude>
     <ClInclude Include="framework.h">
       <Filter>src\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="VoxelGrid.h">
+      <Filter>src\Utils\SDF</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

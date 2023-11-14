@@ -206,6 +206,7 @@
     <ClInclude Include="TestLayer.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="VoxelGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\External\imgui\GraphEditor.cpp">

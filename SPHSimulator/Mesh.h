@@ -1,6 +1,6 @@
 #pragma once
 #include "Resource.h"
-#include <set>
+#include <map>
 
 struct Vertex
 {
@@ -34,12 +34,16 @@ public:
 	void RenderInstanced(InstancingBuffer* instances);
 	void RenderIndexedInstancedIndirect(InstancingBuffer* instances, IndirectBuffer* indirect);
 
+	const vector<Vertex> GetVertexes() const { return vertexes; }
+	const vector<UINT> GetIndexes() const { return indexes; }
+
 private:
 	ComPtr<ID3D11Buffer> _vertexBuffer;
 	ComPtr<ID3D11Buffer> _indexBuffer;
 	vector<Vertex> vertexes;
 	vector<UINT> indexes;
-	set<tuple<int, int, int>> voxelset;
+	map<tuple<int, int, int>, float> sdf;
+	map<tuple<int, int, int>, Vector3> projection;
 	UINT _indexes;
 	UINT _vertexes;
 };

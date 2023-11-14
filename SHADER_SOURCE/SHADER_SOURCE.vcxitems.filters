@@ -76,6 +76,9 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)BoundaryParticleVolume.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)Renderthickness.hlsl">
+      <Filter>Render</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">
