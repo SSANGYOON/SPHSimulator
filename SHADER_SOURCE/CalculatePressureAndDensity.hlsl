@@ -57,7 +57,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         float dist = length(pj.position - pi.position);
                         if (dist < 2.f * radius && dist > 1e-3f) {
                             float boundaryParticleMass = restDensity / pj.density;
-                            pDensity += boundaryParticleMass * cubicspline(dist / radius);;
+                            pDensity += boundaryParticleMass * cubicspline(dist / radius);
                         }
 
                         pjIndex++;

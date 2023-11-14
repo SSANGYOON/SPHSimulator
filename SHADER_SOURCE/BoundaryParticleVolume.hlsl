@@ -5,14 +5,12 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint DId = DispatchThreadID[0];
 
-    //calcultate boundary particle density and pressure
     if (DId < boundaryParticlesNum)
     {
         Particle pi = boundaryParticles[DId];
         int3 cell = (pi.position / (2 * radius) + 0.5f * boundarySize);
         uint piIndex = DId;
         float pDensity = 0.f;
-        float h2 = radius * radius;
 
         //From boundary to boundary
         for (int x = -1; x <= 1; x++) {

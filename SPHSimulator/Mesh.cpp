@@ -231,14 +231,14 @@ void Mesh::rasterizeTriangle(const Vector3& p0, const Vector3& p1, const Vector3
 
 	normal.Normalize();
 
-	for (int z = int(minV.z / (h * 0.5f)) - 1; z <= int(maxV.z / (h * 0.5f)) + 1; ++z) {
-		for (int y = int(minV.y / (h * 0.5f)) - 1; y <= int(maxV.y / (h * 0.5f)) + 1; ++y) {
-			for (int x = int(minV.x / (h * 0.5f)) - 1; x <= int(maxV.x / (h * 0.5f)) + 1; ++x) {
-				Vector3 center = Vector3(x + 0.5f, y + 0.5f, z + 0.5f) * (h * 0.5f);
+	for (int z = int(minV.z / h) - 1; z <= int(maxV.z / h) + 1; ++z) {
+		for (int y = int(minV.y / h) - 1; y <= int(maxV.y / h) + 1; ++y) {
+			for (int x = int(minV.x / h) - 1; x <= int(maxV.x / h) + 1; ++x) {
+				Vector3 center = Vector3(x + 0.5f, y + 0.5f, z + 0.5f) * h;
 				float d = (center - p0).Dot(normal);
 
 				// check if voxel intersects triangle plane
-				if (std::abs(d) < pow(2.f, 0.5f) * (h * 0.5f)) {
+				if (std::abs(d) < pow(2.f, 0.5f) * h) {
 
 					// check if projected voxel center lies within triangle
 					Vector3 p = center - d * normal;
@@ -266,7 +266,7 @@ void Mesh::Voxelize(vector<Vector3>& voxels, float cellSize, const Matrix& srt)
 
 	for (auto& voxel : voxelset)
 	{
-		voxels.push_back(Vector3((float)get<0>(voxel) + 0.5f, (float)get<1>(voxel) + 0.5f, (float)get<2>(voxel) + 0.5f) * (cellSize * 0.5f));
+		voxels.push_back(Vector3((float)get<0>(voxel) + 0.5f, (float)get<1>(voxel) + 0.5f, (float)get<2>(voxel) + 0.5f) * cellSize);
 	}
 }
 

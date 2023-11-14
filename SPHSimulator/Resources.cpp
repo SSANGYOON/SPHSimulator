@@ -379,4 +379,10 @@ void Resources::CreateDefaultResource()
 	Resources::Insert<ComputeShader>(L"CreateBoundaryNeighborTable", CreateBoundaryNeighborTable);
 	CreateBoundaryNeighborTable->Create(L"CreateBoundaryNeighborTable.hlsl");
 #pragma endregion
+
+#pragma region ComputeBoundaryVolume
+	shared_ptr<ComputeShader> ComputeBoundaryVolume = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeBoundaryVolume", ComputeBoundaryVolume);
+	ComputeBoundaryVolume->Create(L"BoundaryParticleVolume.hlsl");
+#pragma endregion
 }

@@ -85,7 +85,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 						float boundaryParticleMass = restDensity / pj.density;
 
 						//apply pressure force
-						float3 gradPressure = pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density) + (pi.pressure / (pi.density * pi.density)) * CubicSplineGrad(dist / radius) *
+						float3 gradPressure = 2 * pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density) + pi.pressure / (pi.density * pi.density)) * CubicSplineGrad(dist / radius) *
 							normalize(diff);
 
 						float3 pressureForce = -gradPressure / pi.density;

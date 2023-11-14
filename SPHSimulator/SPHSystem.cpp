@@ -213,7 +213,13 @@ void SPHSystem::InitParticles()
     auto CreateBoundaryNeighborTable = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateBoundaryNeighborTable");
     CreateBoundaryNeighborTable->SetThreadGroups(groups, 1, 1);
     CreateBoundaryNeighborTable->Dispatch();
+    
+    auto ComputeBoundaryVolume = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeBoundaryVolume");
+    ComputeBoundaryVolume->SetThreadGroups(groups, 1, 1);
+    ComputeBoundaryVolume->Dispatch();
     boundaryParticleBuffer->Clear();
+
+    boundaryParticleBuffer->GetData(GPUSortedParticle);
 
     IndirectGPU = make_unique<StructuredBuffer>();
     IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
