@@ -1,5 +1,6 @@
 const static uint GroupThreadNum = 256;
 const static uint NO_PARTICLE = 0xFFFFFFFF;
+const static float PI = 3.14159265358979323846f;
 
 struct Particle
 {
@@ -74,30 +75,33 @@ uint GetHash(int3 cell)
 
 uint GetHashValueOfLocation(float3 position)
 {
-	int3 cell = int3((position + boundarySize * 0.5f) / (2 * radius));
+	int3 cell = int3((position + boundarySize * 0.5f) / radius);
 
 	return GetHash(cell);
 }
 
-float cubicspline(float q)
+float cubic_spline_kernel(const float r)
 {
-	const float coeff = 1.f / (3.141592f * pow(radius, 3));
+	const float q = 2.0f * r / radius;
 
-	if (q < 1.f)
-		return coeff * (0.75 * q * q * (q - 2.f) + 1.f);
-	else if (q < 2.f)
-		return coeff * pow(2.0f - q, 3.0f) * 0.25f;
-	else // q >= 2.f
-		return 0.0f;
+	if (q > 2.0f) return 0.0f;
+	else {
+		const float a = 0.25f / (PI * radius * radius * radius);
+		return a * ((q > 1.0f) ? (2.0f - q) * (2.0f - q) * (2.0f - q) : ((3.0f * q - 6.0f) * q * q + 4.0f));
+	}
 }
-float CubicSplineGrad(const float q) 
-{
-	const float coeff = 1.f / (3.141592f * pow(radius, 3));
 
-	if (q < 1.f)
-		return coeff * (2.25f * q - 3.f) * q;
-	else if (q < 2.f)
-		return coeff * -0.75f * (2.f - q) * (2.f - q);
-	else // q >= 2.f
-		return 0.0f;
+float3 cubic_spline_kernel_gradient(const float3 r)
+{
+	const float q = 2.0f * length(r) / radius;
+
+	if (q > 2.0f) return (float3)0.f;
+	else {
+		const float a = r / (PI * q * radius * radius * radius * radius * radius);
+		return a * ((q > 1.0f) ? ((12.0f - 3.0f * q) * q - 12.0f) : ((9.0f * q - 12.0f) * q));
+	}
+}
+
+float viscosity_kernel_laplacian(const float r) {
+	return (r <= radius) ? (45.0f * (radius - r) / (PI * pow(radius, 6))) : 0.0f;
 }

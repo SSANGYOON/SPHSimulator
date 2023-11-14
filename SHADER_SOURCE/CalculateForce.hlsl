@@ -9,7 +9,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
 	Particle pi = Particles[piIndex];
 
-	int3 cell = int3((pi.position + boundarySize * 0.5f) / (2 * radius));
+	int3 cell = int3((pi.position + boundarySize * 0.5f) / radius);
 	float h2 = radius * radius;
 
 	//From Fluid
@@ -35,19 +35,16 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					float3 velocityDiff = pi.velocity - pj.velocity;
 					float dist = length(diff);
 
-					if (dist < 2 * radius && dist > 1e-3f) {
-
+					if (dist < radius && dist > 1e-5f) {
 						//apply pressure force
-						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) * CubicSplineGrad(dist / radius) *
-							normalize(diff);
+						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) *
+							cubic_spline_kernel_gradient(diff);
 
 						float3 pressureForce = -gradPressure / pi.density;
 						pi.force += pressureForce;
 
 						//apply viscosity force
-						float3 laplacianVelocity = 2 * mass / pi.density * (velocityDiff) /
-							(dist * dist + 0.01f * radius * radius) *
-							CubicSplineGrad(dist / radius) * dist;
+						float3 laplacianVelocity = -mass * (velocityDiff / pi.density) * viscosity_kernel_laplacian(dist);
 						float3 viscoForce = viscosity * laplacianVelocity;
 						pi.force += viscoForce;
 					}
@@ -80,21 +77,19 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					float3 velocityDiff = pi.velocity - pj.velocity;
 					float dist = length(diff);
 
-					if (dist < 2.f * radius && dist > 1e-3f) {
+					if (dist < radius && dist > 1e-5f) {
 
 						float boundaryParticleMass = restDensity / pj.density;
 
 						//apply pressure force
-						float3 gradPressure = 2 * pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density) + pi.pressure / (pi.density * pi.density)) * CubicSplineGrad(dist / radius) *
-							normalize(diff);
+						float3 gradPressure = pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density)) *
+							cubic_spline_kernel_gradient(diff);
 
 						float3 pressureForce = -gradPressure / pi.density;
 						pi.force += pressureForce;
 
 						//apply viscosity force
-						float3 laplacianVelocity = 2 * boundaryParticleMass / pi.density * (velocityDiff) /
-							(dist * dist + 0.01f * radius * radius) *
-							CubicSplineGrad(dist / radius) * dist;
+						float3 laplacianVelocity = -boundaryParticleMass * (velocityDiff / pi.density) * viscosity_kernel_laplacian(dist);
 						float3 viscoForce = viscosity * laplacianVelocity;
 						pi.force += viscoForce;
 					}

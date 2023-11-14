@@ -46,5 +46,5 @@ void Obstacle::GetVoxels(vector<Vector3>& results, float h)
 {
     obstacleMesh->Voxelize(results, h, srt);
 
-    VoxelGrid<float> sdf(int(10/0.15f) + 1, int(10 / 0.15f) + 1, int(10 / 0.15f) + 1);
+    VoxelGrid<float> sdf(int(10/ h) + 1, int(10 / h) + 1, int(10 / h) + 1);
 }

@@ -18,10 +18,9 @@
 #include "ImGuizmo.h"
 
 SPHSettings::SPHSettings(
-    float mass, float restDensity, float gasConst, float viscosity, float h,
+    float restDensity, float gasConst, float viscosity, float h,
     float g, float tension)
-    : mass(mass)
-    , restDensity(restDensity)
+    : restDensity(restDensity)
     , gasConstant(gasConst)
     , viscosity(viscosity)
     , h(h)
@@ -162,7 +161,7 @@ void SPHSystem::InitParticles()
     pcb.radius = settings.h;
     pcb.gasConstant = settings.gasConstant;
     pcb.restDensity = settings.restDensity;
-    pcb.mass = settings.mass;
+    pcb.mass = settings.h * settings.h * settings.h * settings.restDensity;
     pcb.viscosity = settings.viscosity;
     pcb.gravity = settings.g;
     pcb.deltaTime = 0;
@@ -219,8 +218,6 @@ void SPHSystem::InitParticles()
     ComputeBoundaryVolume->Dispatch();
     boundaryParticleBuffer->Clear();
 
-    boundaryParticleBuffer->GetData(GPUSortedParticle);
-
     IndirectGPU = make_unique<StructuredBuffer>();
     IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
 
@@ -254,7 +251,7 @@ void SPHSystem::updateParticles(float deltaTime)
     pcb.radius = settings.h;
     pcb.gasConstant = settings.gasConstant;
     pcb.restDensity = settings.restDensity;
-    pcb.mass = settings.mass;
+    pcb.mass = settings.h * settings.h * settings.h * settings.restDensity;
     pcb.viscosity = settings.viscosity;
     pcb.gravity = settings.g;
     pcb.deltaTime = deltaTime;

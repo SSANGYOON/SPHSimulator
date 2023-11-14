@@ -23,7 +23,7 @@ SY::TestLayer::~TestLayer()
 
 void SY::TestLayer::OnAttach()
 {
-	SPHSettings sphSettings(0.002f, 1, 1, 1.f, 0.15f, -9.8f, 0.2f);
+	SPHSettings sphSettings(1, 1, 1.f, 0.15f, -9.8f, 0.2f);
 	sphSystem = new SPHSystem(30, sphSettings);
 	Cam = make_unique<Camera>();
 }
@@ -43,7 +43,6 @@ void SY::TestLayer::OnUpdate(float timestep)
 void SY::TestLayer::OnImGuiRender()
 {
 	static int numParticles = 30;
-	static float nMass = 0.002f;
 	static float nh = 0.15f;
 	static float nRest = 1.f;
 	static float nVisco = 1.f;
@@ -55,7 +54,6 @@ void SY::TestLayer::OnImGuiRender()
 	ImGui::Text("Change values for the simulation. Press RESET to commit changes");
 
 	ImGui::DragInt("Number of Particles", &numParticles, 10, 600);
-	ImGui::DragFloat("Mass of Particles", &nMass, 0.001f, 0.001f, 0.01f, "%.4f");
 	ImGui::DragFloat("Support Radius", &nh, 0.001f, 1.f);
 	ImGui::DragFloat("Rest Density", &nRest, 1.f, 200.f);
 	ImGui::DragFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
@@ -63,7 +61,7 @@ void SY::TestLayer::OnImGuiRender()
 
 	if (ImGui::Button("RESET")) {
 		delete sphSystem;
-		SPHSettings sphSettings(nMass, nRest, gasConst, nVisco, nh, -9.8, 1.f);
+		SPHSettings sphSettings(nRest, gasConst, nVisco, nh, -9.8, 1.f);
 		sphSystem = new SPHSystem(numParticles, sphSettings);
 		Cam->SetAspect(WinX / WinY);
 		Cam->SetRotation(Quaternion::Identity);
