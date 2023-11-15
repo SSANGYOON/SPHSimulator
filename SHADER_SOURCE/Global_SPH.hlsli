@@ -92,7 +92,7 @@ float cubicspline(float q)
 }
 float CubicSplineGrad(const float q) 
 {
-	const float coeff = 1.f / (3.141592f * pow(radius, 3));
+	const float coeff = 1.f / (3.141592f * pow(radius, 4));
 
 	if (q < 1.f)
 		return coeff * (2.25f * q - 3.f) * q;

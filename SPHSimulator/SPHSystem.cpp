@@ -219,8 +219,6 @@ void SPHSystem::InitParticles()
     ComputeBoundaryVolume->Dispatch();
     boundaryParticleBuffer->Clear();
 
-    boundaryParticleBuffer->GetData(GPUSortedParticle);
-
     IndirectGPU = make_unique<StructuredBuffer>();
     IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
 
@@ -254,7 +252,7 @@ void SPHSystem::updateParticles(float deltaTime)
     pcb.radius = settings.h;
     pcb.gasConstant = settings.gasConstant;
     pcb.restDensity = settings.restDensity;
-    pcb.mass = settings.mass;
+    pcb.mass = settings.h * settings.h * settings.h* settings.restDensity;
     pcb.viscosity = settings.viscosity;
     pcb.gravity = settings.g;
     pcb.deltaTime = deltaTime;
@@ -282,7 +280,6 @@ void SPHSystem::updateParticles(float deltaTime)
     BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
 
     auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
-    
     
     for (uint32_t k = 2; k <= TableSize; k <<= 1) {
         for (uint32_t j = k >> 1; j > 0; j >>= 1) {
