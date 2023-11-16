@@ -115,9 +115,16 @@ SDF를 이용해 고정된 grid 위치에 생성한 경계 파티클을 메시 �
 경계면에 대한 샘플링은 (Versatile Rigid-Fluid Coupling for Incompressible SPH)https://cg.informatik.uni-freiburg.de/publications/2012_SIGGRAPH_rigidFluidCoupling.pdf
 를 참고함
 
-Penetration 문제를 해결할 방법에 대한 고민이 필요
+Penetration 문제를 해결할 방법에 대한 고민이 필요 현재는 경계면에만 파티클을 배치하고 있는데 boundary mesh의 안쪽에도 파티클을 배치하여 penetration을 차단하는 방법을 시도해 볼 예정
 
 <img src="./Images/sdfBoundary.gif">
+
+유체의 유동이 이상하다는 피드백을 받아서
+조금 더 물과 같은 표현을 위해 압력을 구할 때 사용하는 stiffness값을 키우고 점성을 줄여서 테스트를 해 봄
+
+현재는 pressure = stiffness * ((local density / rest density)^7 - 1)와 같은 방법으로 압력을 계산함 
+
+<img src="./Images/high stiffness.gif">
 
 
 ## 참고문헌 :
