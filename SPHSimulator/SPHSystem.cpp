@@ -138,7 +138,6 @@ void SPHSystem::InitParticles()
         if (obstacle)
             obstacle->GetVoxels(boundaryVoxels, settings.h);
     }
-    boundaryParticleCount = boundaryVoxels.size();
 
     vector<Particle> boundaryParticles(MaxParticle);
 
@@ -147,6 +146,43 @@ void SPHSystem::InitParticles()
         boundaryParticles[i].position = boundaryVoxels[i];
         boundaryParticles[i].velocity = Vector3::Zero;
     }
+
+    int ind = boundaryVoxels.size();
+
+    for (float i = boundaryCentor.x - boundarySize.x / 2.f; i <= boundaryCentor.x + boundarySize.x / 2.f; i += settings.h)
+    {
+        for (float k = boundaryCentor.z - boundarySize.z / 2.f; i <= boundaryCentor.z + boundarySize.z / 2.f; i += settings.h)
+        {
+            boundaryParticles[ind].position = Vector3(i, boundaryCentor.y - boundarySize.y / 2.f - settings.h / 2.f, k);
+            boundaryParticles[ind++].velocity = Vector3::Zero;
+        }
+    }
+
+    for (float i = boundaryCentor.x - boundarySize.x / 2.f; i <= boundaryCentor.x + boundarySize.x / 2.f; i += settings.h)
+    {
+        for (float j = boundaryCentor.y - boundarySize.y / 2.f; j <= boundaryCentor.y + boundarySize.y / 2.f; j += settings.h)
+        {
+            boundaryParticles[ind].position = Vector3(i, j, boundaryCentor.z - boundarySize.z / 2.f - settings.h / 2.f);
+            boundaryParticles[ind++].velocity = Vector3::Zero;
+
+            boundaryParticles[ind].position = Vector3(i, j, boundaryCentor.z + boundarySize.z / 2.f + settings.h / 2.f);
+            boundaryParticles[ind++].velocity = Vector3::Zero;
+        }
+    }
+
+    for (float j = boundaryCentor.y - boundarySize.y / 2.f; j <= boundaryCentor.y + boundarySize.y / 2.f; j += settings.h)
+    {
+        for (float k = boundaryCentor.z - boundarySize.z / 2.f; k <= boundaryCentor.z + boundarySize.z / 2.f; k += settings.h)
+        {
+            boundaryParticles[ind].position = Vector3(boundaryCentor.x - boundarySize.x / 2.f - settings.h / 2.f, j, k);
+            boundaryParticles[ind++].velocity = Vector3::Zero;
+
+            boundaryParticles[ind].position = Vector3(boundaryCentor.x + boundarySize.x / 2.f + settings.h / 2.f, j, k);
+            boundaryParticles[ind++].velocity = Vector3::Zero;
+        }
+    }
+
+    boundaryParticleCount = ind;
 
     boundaryParticleBuffer = make_unique<StructuredBuffer>();
     boundaryParticleBuffer->Create(sizeof(Particle), MaxParticle, boundaryParticles.data(), true, true);
