@@ -7,9 +7,9 @@ struct Particle
 	float3 position;
 	float density;
 	float3 velocity;
-	float pressure;
+	float alpha;
 	uint hash;
-	float3 force;
+	float3 accel;
 };
 
 struct IndirectArgs {
@@ -27,6 +27,8 @@ RWStructuredBuffer<float3> ParticleWorld : register(u3);
 
 RWStructuredBuffer<Particle> boundaryParticles : register(u4);
 RWStructuredBuffer<uint> boundaryNeighborTable : register(u5);
+
+RWStructuredBuffer<float> stiffness : register(u6);
 
 cbuffer ParticleSettings : register(b2)
 {

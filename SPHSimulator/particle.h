@@ -7,7 +7,7 @@ struct Particle
     Vector3 position;
     float density;
     Vector3 velocity;
-    float pressure;
+    float alpha;
     UINT hash;
     Vector3 force;
 };

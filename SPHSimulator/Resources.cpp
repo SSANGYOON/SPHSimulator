@@ -194,7 +194,49 @@ void Resources::CreateDefaultResource()
 	CreateNeighborTable->Create(L"CreateNeighborTable.hlsl");
 #pragma endregion
 
-#pragma region CalculatePressureAndDensity
+#pragma region ComputeDensityAndAlpha
+	shared_ptr<ComputeShader> ComputeDensityAndAlpha = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeDensityAndAlpha", ComputeDensityAndAlpha);
+	ComputeDensityAndAlpha->Create(L"ComputeDensityAndAlpha.hlsl");
+#pragma endregion
+
+#pragma region ComputeDivergenceError
+	shared_ptr<ComputeShader> ComputeDivergenceError = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeDivergenceError", ComputeDivergenceError);
+	ComputeDivergenceError->Create(L"ComputeDivergenceError.hlsl");
+#pragma endregion
+
+#pragma region CorrectDivergenceError
+	shared_ptr<ComputeShader> CorrectDivergenceError = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CorrectDivergenceError", CorrectDivergenceError);
+	CorrectDivergenceError->Create(L"CorrectDivergenceError.hlsl");
+#pragma endregion
+
+#pragma region ComputeDensityError
+	shared_ptr<ComputeShader> ComputeDensityError = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeDensityError", ComputeDensityError);
+	ComputeDensityError->Create(L"ComputeDensityError.hlsl");
+#pragma endregion
+
+#pragma region CorrectDensityError
+	shared_ptr<ComputeShader> CorrectDensityError = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CorrectDensityError", CorrectDensityError);
+	CorrectDensityError->Create(L"CorrectDensityError.hlsl");
+#pragma endregion
+
+#pragma region ComputeNonpressureForce
+	shared_ptr<ComputeShader> ComputeNonpressureForce = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeNonpressureForce", ComputeNonpressureForce);
+	ComputeNonpressureForce->Create(L"ComputeNonpressureForce.hlsl");
+#pragma endregion
+
+#pragma region ParticleAdvect
+	shared_ptr<ComputeShader> ParticleAdvect = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ParticleAdvect", ParticleAdvect);
+	ParticleAdvect->Create(L"ParticleAdvect.hlsl");
+#pragma endregion
+
+/*#pragma region CalculatePressureAndDensity
 	shared_ptr<ComputeShader> CalculatePressureAndDensity = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"CalculatePressureAndDensity", CalculatePressureAndDensity);
 	CalculatePressureAndDensity->Create(L"CalculatePressureAndDensity.hlsl");
@@ -210,7 +252,7 @@ void Resources::CreateDefaultResource()
 	shared_ptr<ComputeShader> UpdateParticlePosition = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"UpdateParticlePosition", UpdateParticlePosition);
 	UpdateParticlePosition->Create(L"UpdateParticlePosition.hlsl");
-#pragma endregion
+#pragma endregion*/
 
 #pragma region HardCoded3DShader
 	{

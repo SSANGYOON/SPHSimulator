@@ -55,6 +55,8 @@ private:
 	unique_ptr<StructuredBuffer> boundaryParticleBuffer;
 	unique_ptr<StructuredBuffer> hashToBoundaryIndexTable;
 
+	unique_ptr<StructuredBuffer> stiffnessBuffer;
+
 	unique_ptr<Texture> SceneFrontDepth;
 	unique_ptr<Texture> SceneBackwardDepth;
 
@@ -81,6 +83,9 @@ private:
 	Matrix Projection;
 
 	Particle GPUSortedParticle[1 << 18];
+	array<float, 1 << 18> temporary;
+	float* divergenceError;
+	float* densityError;
 	//UINT Table[1 << 18];
 
 	float WinX = 4;

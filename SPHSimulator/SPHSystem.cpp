@@ -16,6 +16,7 @@
 #include "Mesh.h"
 #include "Obstacle.h"
 #include "ImGuizmo.h"
+#include <numeric>
 
 SPHSettings::SPHSettings(
     float restDensity, float gasConst, float viscosity, float h,
@@ -36,7 +37,10 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     , settings(settings)
 {
     particleCount = particleCubeWidth * particleCubeWidth * particleCubeWidth;
+
     particles = new Particle[MaxParticle];
+    densityError = new float[MaxParticle];
+    divergenceError = new float[MaxParticle];
 
     started = false;
     
@@ -86,6 +90,8 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
 SPHSystem::~SPHSystem()
 {
     delete[](particles);
+    delete[](densityError);
+    delete[](divergenceError);
 }
 
 
@@ -129,6 +135,9 @@ void SPHSystem::InitParticles()
 
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
     hashToParticleIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
+
+    stiffnessBuffer = make_unique<StructuredBuffer>();
+    stiffnessBuffer->Create(sizeof(float), MaxParticle, nullptr, true, true);
 
     //Initialize BoundaryParticle
     boundaryVoxels.clear();
@@ -335,19 +344,47 @@ void SPHSystem::updateParticles(float deltaTime)
     createNeighborTableShader->SetThreadGroups(groups, 1, 1);
     createNeighborTableShader->Dispatch();
 
-    auto calculatePressureAndDensityShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculatePressureAndDensity");
-    calculatePressureAndDensityShader->SetThreadGroups(groups, 1, 1);
-    calculatePressureAndDensityShader->Dispatch();
+    //Step 1 
+    auto ComputeDensityAndAlpha = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityAndAlpha");
+    ComputeDensityAndAlpha->SetThreadGroups(groups, 1, 1);
+    ComputeDensityAndAlpha->Dispatch();
 
-    auto calculateForceShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateForceShader");
-    calculateForceShader->SetThreadGroups(groups, 1, 1);
-    calculateForceShader->Dispatch();
+    //particleBuffer->GetData(GPUSortedParticle);
 
-    auto UpdateParticlePosition = GET_SINGLE(Resources)->Find<ComputeShader>(L"UpdateParticlePosition");
-    UpdateParticlePosition->SetThreadGroups(groups, 1, 1);
-    ParticleWorldMatrixes->BindUAV(3);
-    IndirectGPU->BindUAV(2);
-    UpdateParticlePosition->Dispatch();
+    int iter = 0;
+    float avgDivergenceError = 0;
+    stiffnessBuffer->BindUAV(6);
+    while ((avgDivergenceError > 1e-3 || iter < 1) && iter < 4)
+    {
+        auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
+        ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
+        ComputeDivergenceError->Dispatch();
+
+        stiffnessBuffer->GetData(divergenceError);
+        avgDivergenceError =  std::accumulate(divergenceError, divergenceError + particleCount, 0.0) / particleCount;
+
+        if (avgDivergenceError < 1e-3)
+            break;
+
+        iter++;
+    }
+
+    float avgDensityError = 0;
+
+    while ((avgDensityError > 1e-3 * settings.restDensity || iter < 1) && iter < 4)
+    {
+        auto ComputeDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityError");
+        ComputeDensityError->SetThreadGroups(groups, 1, 1);
+        ComputeDensityError->Dispatch();
+
+        stiffnessBuffer->GetData(densityError);
+        avgDensityError = std::accumulate(densityError, densityError + particleCount, 0.0) / particleCount;
+
+        if (avgDensityError < 1e-3 * settings.restDensity)
+            break;
+
+        iter++;
+    }
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
