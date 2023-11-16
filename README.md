@@ -113,6 +113,8 @@ absorbtionColor * backgroundTexture.Sample(linearSampler, RefractionUV)와 같�
 이전에 구현한 임의 경계 방식이 경계면이 부정확한 문제가 있어
 SDF를 이용해 고정된 grid 위치에 생성한 경계 파티클을 메시 쪽으로 projection을 해서 경계를 샘플링 하는 방식을 사용함
 
+<img src="./Images/sdfBoundary.gif">
+
 
 ## 참고문헌 :
 
