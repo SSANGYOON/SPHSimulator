@@ -121,11 +121,15 @@ Penetration 문제를 해결할 방법에 대한 고민이 필요 현재는 경�
 
 유체의 유동이 이상하다는 피드백을 받아서
 조금 더 물과 같은 표현을 위해 압력을 구할 때 사용하는 stiffness값을 키우고 점성을 줄여서 테스트를 해 봄
-
 현재는 pressure = stiffness * ((local density / rest density)^7 - 1)와 같은 방법으로 압력을 계산함 
+
+stiffness 10, viscosity 0.1
 
 <img src="./Images/high stiffness.gif">
 
+stiffness 1, stiffness 10, viscosity 1
+
+<img src="./Images/low.gif">
 
 ## 참고문헌 :
 
