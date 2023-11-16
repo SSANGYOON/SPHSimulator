@@ -131,6 +131,10 @@ stiffness 1, stiffness 10, viscosity 1
 
 <img src="./Images/low.gif">
 
+stiffness를 크게 했을 때도 아래와 같이 유체가 압축되었을 때 잘 밀어내지 못하는 것으로 판단됨
+
+<img src="./Images/Compression.png">
+
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
