@@ -344,33 +344,17 @@ void SPHSystem::updateParticles(float deltaTime)
     createNeighborTableShader->SetThreadGroups(groups, 1, 1);
     createNeighborTableShader->Dispatch();
 
-    //Step 1 
-    auto ComputeDensityAndAlpha = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityAndAlpha");
-    ComputeDensityAndAlpha->SetThreadGroups(groups, 1, 1);
-    ComputeDensityAndAlpha->Dispatch();
 
-    //particleBuffer->GetData(GPUSortedParticle);
 
-    int iter = 0;
-    float avgDivergenceError = 0;
-    stiffnessBuffer->BindUAV(6);
-    while ((avgDivergenceError > 1e-3 || iter < 1) && iter < 4)
-    {
-        auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
-        ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
-        ComputeDivergenceError->Dispatch();
+    //Step 1 non-pressure force
+    auto ComputeNonpressureForce = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityAndAlpha");
+    ComputeNonpressureForce->SetThreadGroups(groups, 1, 1);
+    ComputeNonpressureForce->Dispatch();
 
-        stiffnessBuffer->GetData(divergenceError);
-        avgDivergenceError =  std::accumulate(divergenceError, divergenceError + particleCount, 0.0) / particleCount;
 
-        if (avgDivergenceError < 1e-3)
-            break;
-
-        iter++;
-    }
-
+    //Step 2 Correct density error
     float avgDensityError = 0;
-
+    int iter = 0;
     while ((avgDensityError > 1e-3 * settings.restDensity || iter < 1) && iter < 4)
     {
         auto ComputeDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityError");
@@ -385,6 +369,31 @@ void SPHSystem::updateParticles(float deltaTime)
 
         iter++;
     }
+
+    int iter = 0;
+    float avgDivergenceError = 0;
+    stiffnessBuffer->BindUAV(6);
+    while ((avgDivergenceError > 1e-3 || iter < 1) && iter < 4)
+    {
+        auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
+        ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
+        ComputeDivergenceError->Dispatch();
+
+        stiffnessBuffer->GetData(divergenceError);
+        avgDivergenceError = std::accumulate(divergenceError, divergenceError + particleCount, 0.0) / particleCount;
+
+        if (avgDivergenceError < 1e-3)
+            break;
+
+        iter++;
+    }
+
+
+    //particleBuffer->GetData(GPUSortedParticle);
+
+   
+
+    
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
