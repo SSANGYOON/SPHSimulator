@@ -98,7 +98,7 @@ float3 cubic_spline_kernel_gradient(const float3 r)
 	if (q > 2.0f) return (float3)0.f;
 	else {
 		const float3 a = 0.25f / (PI * radius * radius * radius * radius) * normalize(r);
-		return a * ((q > 1.0f) ? ((12.0f - 3.0f * q) * q - 12.0f) : ((9.0f * q - 12.0f) * q));
+		return a * ((q > 1.0f) ? ((2.0f - q) * (2.0f - q) * -3.f) : ((9.0f * q - 12.0f) * q));
 	}
 }
 

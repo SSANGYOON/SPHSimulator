@@ -82,17 +82,14 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 						float boundaryParticleMass = restDensity / pj.density;
 
 						//apply pressure force
-						float3 gradPressure = 2 * pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density)) *
-							cubic_spline_kernel_gradient(diff);
+						float3 gradPressure = pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density)) * cubic_spline_kernel_gradient(diff);
 
 						float3 pressureForce = -gradPressure / pi.density;
 						pi.force += pressureForce;
 
-						float boundaryViscosity = viscosity * radius / (2 * pi.density);
-						//apply viscosity force
-						float3 laplacianVelocity = -1.4f * boundaryParticleMass * max(dot(diff, velocityDiff), 0.f) / (dist * dist + 0.01f * radius * radius);
-						float3 viscoForce = boundaryViscosity * laplacianVelocity;
-						pi.force += viscoForce;
+						//apply friction
+						float3 friction = (2 * viscosity * radius / (2 * pi.density)) * boundaryParticleMass * min(dot(velocityDiff, diff), 0) / (dist * dist + 0.01f * radius * radius) * cubic_spline_kernel_gradient(diff);
+						pi.force += friction;
 					}
 					pjIndex++;
 				}
