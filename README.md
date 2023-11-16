@@ -135,6 +135,9 @@ stiffness를 크게 했을 때도 아래와 같이 유체가 압축되었을 때
 
 <img src="./Images/Compression.png">
 
+유체가 압축되었을 때 잘 밀어내지 못하는 것이라면 밀도가 rest desity에서 크게 벗어나지 못하도록 제한하는 DFSPH 방법을 구현해보고자 함
+[https://animation.rwth-aachen.de/media/papers/2015-SCA-DFSPH.pdf]
+
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
