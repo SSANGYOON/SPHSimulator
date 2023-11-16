@@ -9,7 +9,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
 	Particle pi = Particles[piIndex];
 
-	int3 cell = int3((pi.position + boundarySize * 0.5f) / radius);
+	int3 cell = int3((pi.position + boundarySize * 0.5f) / (2 * radius));
 	float h2 = radius * radius;
 
 	//From Fluid
@@ -35,7 +35,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					float3 velocityDiff = pi.velocity - pj.velocity;
 					float dist = length(diff);
 
-					if (dist < radius && dist > 1e-5f) {
+					if (dist < 2 * radius && dist > 1e-5f) {
 						//apply pressure force
 						float3 gradPressure = pi.density * mass * (pi.pressure / (pi.density * pi.density) + pj.pressure / (pj.density * pj.density)) *
 							cubic_spline_kernel_gradient(diff);
@@ -44,8 +44,8 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 						pi.force += pressureForce;
 
 						//apply viscosity force
-						float3 laplacianVelocity = -mass * (velocityDiff / pi.density) * viscosity_kernel_laplacian(dist);
-						float3 viscoForce = viscosity * laplacianVelocity;
+						float3 viscoForce = 2 * viscosity * mass / pj.density * velocityDiff * dot(diff, cubic_spline_kernel_gradient(diff))
+													/ (dist * dist + 0.01f * radius * radius);
 						pi.force += viscoForce;
 					}
 					pjIndex++;
@@ -77,20 +77,21 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					float3 velocityDiff = pi.velocity - pj.velocity;
 					float dist = length(diff);
 
-					if (dist < radius && dist > 1e-5f) {
+					if (dist < 2 * radius && dist > 1e-5f) {
 
 						float boundaryParticleMass = restDensity / pj.density;
 
 						//apply pressure force
-						float3 gradPressure = pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density)) *
+						float3 gradPressure = 2 * pi.density * boundaryParticleMass * (pi.pressure / (pi.density * pi.density)) *
 							cubic_spline_kernel_gradient(diff);
 
 						float3 pressureForce = -gradPressure / pi.density;
 						pi.force += pressureForce;
 
+						float boundaryViscosity = viscosity * radius / (2 * pi.density);
 						//apply viscosity force
-						float3 laplacianVelocity = -boundaryParticleMass * (velocityDiff / pi.density) * viscosity_kernel_laplacian(dist);
-						float3 viscoForce = viscosity * laplacianVelocity;
+						float3 laplacianVelocity = -1.4f * boundaryParticleMass * max(dot(diff, velocityDiff), 0.f) / (dist * dist + 0.01f * radius * radius);
+						float3 viscoForce = boundaryViscosity * laplacianVelocity;
 						pi.force += viscoForce;
 					}
 					pjIndex++;

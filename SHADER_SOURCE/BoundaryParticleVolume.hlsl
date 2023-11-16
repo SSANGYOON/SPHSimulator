@@ -8,7 +8,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
     if (DId < boundaryParticlesNum)
     {
         Particle pi = boundaryParticles[DId];
-        int3 cell = int3((pi.position + boundarySize * 0.5f) / radius);
+        int3 cell = int3((pi.position + boundarySize * 0.5f) / 2 * radius);
         uint piIndex = DId;
         float pDensity = 0.f;
 
@@ -27,7 +27,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                             break;
                         }
                         float dist = length(pj.position - pi.position);
-                        if (dist < radius && dist > 1e-3f) {
+                        if (dist < 2 * radius) {
                             pDensity += cubic_spline_kernel(dist);
                         }
 
