@@ -9,5 +9,7 @@ struct Particle
     Vector3 velocity;
     float alpha;
     UINT hash;
-    Vector3 force;
+    float densityStiffness;
+    float divergenceStiffness;
+    Vector3 acceleration;
 };

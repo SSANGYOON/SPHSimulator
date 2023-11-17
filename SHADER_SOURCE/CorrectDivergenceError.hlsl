@@ -1,17 +1,19 @@
 #include "Global_SPH.hlsli"
 
+RWStructuredBuffer<float> DivergenceError : register(u6);
+
 [numthreads(GroupThreadNum, 1, 1)]
 void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
 	uint piIndex = DispatchThreadID[0];
-	if (piIndex >= particlesNum)
+	if (piIndex >= particlesNum || DivergenceError[0] <= ITERATIONEND)
 		return;
 
 	Particle pi = Particles[piIndex];
 
 	int3 cell = int3((pi.position + boundarySize * 0.5f) / (2 * radius));
 
-	float3 accel = (float3)0.f;
+	float3 a = (float3)0.f;
 	//From Fluid
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) {
@@ -32,7 +34,12 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					}
 
 					float3 diff = pi.position - pj.position;
-					accel += mass * (stiffness[piIndex] + stiffness[pjIndex]) * cubic_spline_kernel_gradient(diff);
+					float dist = length(diff);
+
+					if (dist < 2 * radius && dist > 1e-5f) {
+						a += mass * (pi.divergenceStiffness + pj.divergenceStiffness) * cubic_spline_kernel_gradient(diff);
+					}
+
 					pjIndex++;
 				}
 			}
@@ -59,12 +66,18 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					}
 
 					float3 diff = pi.position - pj.position;
-					accel += mass * stiffness[piIndex] * cubic_spline_kernel_gradient(diff);
+					float dist = length(diff);
+
+					if (dist < 2 * radius && dist > 1e-5f) {
+						float boundaryParticleMass = restDensity / pj.density;
+						a += boundaryParticleMass * pi.divergenceStiffness * cubic_spline_kernel_gradient(diff);
+					}
+
 					pjIndex++;
 				}
 			}
 		}
 	}
 
-	Particles[piIndex].velocity = -accel;
+	Particles[piIndex].velocity -= a;
 }

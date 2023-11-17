@@ -1,6 +1,7 @@
 const static uint GroupThreadNum = 256;
 const static uint NO_PARTICLE = 0xFFFFFFFF;
 const static float PI = 3.14159265358979323846f;
+const static float ITERATIONEND = -1000;
 
 struct Particle
 {
@@ -9,7 +10,9 @@ struct Particle
 	float3 velocity;
 	float alpha;
 	uint hash;
-	float3 accel;
+	float densityStiffness;
+	float divergenceStiffness;
+	float3 acceleration;
 };
 
 struct IndirectArgs {
@@ -27,8 +30,6 @@ RWStructuredBuffer<float3> ParticleWorld : register(u3);
 
 RWStructuredBuffer<Particle> boundaryParticles : register(u4);
 RWStructuredBuffer<uint> boundaryNeighborTable : register(u5);
-
-RWStructuredBuffer<float> stiffness : register(u6);
 
 cbuffer ParticleSettings : register(b2)
 {

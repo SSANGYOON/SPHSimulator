@@ -97,6 +97,15 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)ParticleAdvect.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ParallelReductionOnGroup.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ParallelReductionOnGroupSum.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ApplyAcceleration.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">

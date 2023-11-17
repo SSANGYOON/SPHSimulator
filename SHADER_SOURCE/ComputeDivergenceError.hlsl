@@ -1,17 +1,19 @@
 #include "Global_SPH.hlsli"
 
+RWStructuredBuffer<float> DivergenceError : register(u6);
+
 [numthreads(GroupThreadNum, 1, 1)]
 void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
 	uint piIndex = DispatchThreadID[0];
-	if (piIndex >= particlesNum)
+	if (piIndex >= particlesNum || DivergenceError[0] <= ITERATIONEND)
 		return;
 
 	Particle pi = Particles[piIndex];
 
 	int3 cell = int3((pi.position + boundarySize * 0.5f) / (2 * radius));
 
-	float densityGrad = 0.f;
+	float error = 0.f;
 	//From Fluid
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) {
@@ -36,7 +38,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					float dist = length(diff);
 
 					if (dist < 2 * radius && dist > 1e-5f) {
-						densityGrad += mass * dot(velocityDiff, cubic_spline_kernel_gradient(diff));
+						error += mass * dot(velocityDiff, cubic_spline_kernel_gradient(diff));
 					}
 					pjIndex++;
 				}
@@ -67,13 +69,18 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					float dist = length(diff);
 
 					if (dist < 2 * radius && dist > 1e-5f) {
-						densityGrad += mass * dot(pi.velocity, cubic_spline_kernel_gradient(diff));
+						float boundaryParticleMass = restDensity / pj.density;
+						error += boundaryParticleMass * dot(pi.velocity, cubic_spline_kernel_gradient(diff));
 					}
 					pjIndex++;
 				}
 			}
 		}
 	}
-
-	stiffness[piIndex] = densityGrad;
+	// compression is allowed if density is lower than restDensity
+	if (pi.density + deltaTime * error < restDensity && pi.density <= restDensity)
+		error = 0.0f;
+	
+	Particles[piIndex].divergenceStiffness = error * pi.alpha;
+	DivergenceError[piIndex] = error;
 }

@@ -1,5 +1,7 @@
 #include "Global_SPH.hlsli"
 
+RWStructuredBuffer<float> errorBuffer : register(u6);
+
 [numthreads(GroupThreadNum, 1, 1)]
 void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
@@ -33,7 +35,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         float dist = length(pj.position - pi.position);
                         if (dist < 2.f * radius) {
                             pDensity += mass * cubic_spline_kernel(dist);
-                            if (dist > 1e-5) {
+                            if (dist > 1e-3) {
                                 float3 temp = mass * cubic_spline_kernel_gradient(pj.position - pi.position);
                                 gradientSum += temp;
                                 gradientProduct += dot(temp, temp);
@@ -61,12 +63,12 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                             break;
                         }
                         float dist = length(pj.position - pi.position);
-                        if (dist < 2.f * radius && dist > 1e-5f) {
+                        if (dist < 2.f * radius) {
                             float boundaryParticleMass = restDensity / pj.density;
                             
-                            pDensity += mass * cubic_spline_kernel(dist);
-                            if (dist > 1e-5) {
-                                float3 temp = mass * cubic_spline_kernel_gradient(pj.position - pi.position);
+                            pDensity += boundaryParticleMass * cubic_spline_kernel(dist);
+                            if (dist > 1e-3) {
+                                float3 temp = boundaryParticleMass * cubic_spline_kernel_gradient(pj.position - pi.position);
                                 gradientSum += temp;
                                 gradientProduct += dot(temp, temp);
                             }
@@ -82,5 +84,10 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
         pi.alpha = 1.0f / (gradientProduct + dot(gradientSum, gradientSum));
      
         Particles[DId] = pi;
+
+        if (DId == 0)
+        {
+            errorBuffer[0] = 0.f;
+        }
     }
 }

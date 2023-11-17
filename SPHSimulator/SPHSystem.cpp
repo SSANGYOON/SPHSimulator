@@ -39,22 +39,20 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     particleCount = particleCubeWidth * particleCubeWidth * particleCubeWidth;
 
     particles = new Particle[MaxParticle];
-    densityError = new float[MaxParticle];
-    divergenceError = new float[MaxParticle];
 
     started = false;
     
     cubeMap = make_shared<Texture>();
     cubeMap->Load(L"Texture/SaintPetersBasilica.dds");
 
-    shared_ptr<Mesh> obstacle = make_shared<Mesh>();
+    //shared_ptr<Mesh> obstacle = make_shared<Mesh>();
 
-    obstacle->Load(L"Mesh/bowl.obj");
+    //obstacle->Load(L"Mesh/bowl.obj");
 
-    auto obs = make_shared<Obstacle>();
-    obs->SetName("Dolphin");
-    obs->SetMesh(obstacle);
-    simulationObjects.push_back(obs);
+   // auto obs = make_shared<Obstacle>();
+    //obs->SetName("Dolphin");
+    //obs->SetMesh(obstacle);
+    //simulationObjects.push_back(obs);
 
     WindowInfo Info = GEngine->GetWindow();
 
@@ -90,8 +88,6 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
 SPHSystem::~SPHSystem()
 {
     delete[](particles);
-    delete[](densityError);
-    delete[](divergenceError);
 }
 
 
@@ -123,6 +119,9 @@ void SPHSystem::InitParticles()
                 Particle* particle = &particles[particleIndex];
                 particle->position = nParticlePos;
                 particle->velocity = Vector3::Zero;
+                particle->densityStiffness = 0.f;
+                particle->divergenceStiffness = 0.f;
+                particle->acceleration = Vector3::Zero;
             }
         }
     }
@@ -130,14 +129,16 @@ void SPHSystem::InitParticles()
     Intances = make_unique<InstancingBuffer>();
     Intances->Init(MaxParticle);
 
+    UINT TableSize = NextPowerOf2(particleCount);
+
     particleBuffer = make_unique<StructuredBuffer>();
     particleBuffer->Create(sizeof(Particle), MaxParticle, particles,true, true);
 
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
     hashToParticleIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
 
-    stiffnessBuffer = make_unique<StructuredBuffer>();
-    stiffnessBuffer->Create(sizeof(float), MaxParticle, nullptr, true, true);
+    errorBuffer = make_unique<StructuredBuffer>();
+    errorBuffer->Create(sizeof(float), TableSize, nullptr, true, true);
 
     //Initialize BoundaryParticle
     boundaryVoxels.clear();
@@ -199,8 +200,7 @@ void SPHSystem::InitParticles()
     hashToBoundaryIndexTable = make_unique<StructuredBuffer>();
     hashToBoundaryIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
 
-    UINT TableSize = NextPowerOf2(particleCount);
-
+   
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
     pcb.radius = settings.h;
@@ -261,7 +261,36 @@ void SPHSystem::InitParticles()
     auto ComputeBoundaryVolume = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeBoundaryVolume");
     ComputeBoundaryVolume->SetThreadGroups(groups, 1, 1);
     ComputeBoundaryVolume->Dispatch();
-    boundaryParticleBuffer->Clear();
+
+    //Fluid Particle에 대한 해시테이블 생성
+    auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
+    CalculateHashShader->SetThreadGroups(TableSize >> 8, 1, 1);
+    particleBuffer->BindUAV(0);
+    hashToParticleIndexTable->BindUAV(1);
+    CalculateHashShader->Dispatch();
+
+    for (uint32_t k = 2; k <= TableSize; k <<= 1) {
+        for (uint32_t j = k >> 1; j > 0; j >>= 1) {
+
+            ParticleSortCB pscb;
+            pscb.j = j;
+            pscb.k = k;
+
+            particleSortBuffer->SetData(&pscb);
+            particleSortBuffer->SetPipline(ShaderStage::CS);
+
+            BitonicSortShader->Dispatch();
+        }
+    }
+
+    auto createNeighborTableShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateNeighborTable");
+    createNeighborTableShader->SetThreadGroups(groups, 1, 1);
+    createNeighborTableShader->Dispatch();
+
+    //Compute Density and alpha
+    auto ComputeDensityAndAlpha = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityAndAlpha");
+    ComputeDensityAndAlpha->SetThreadGroups(groups, 1, 1);
+    ComputeDensityAndAlpha->Dispatch();
 
     IndirectGPU = make_unique<StructuredBuffer>();
     IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
@@ -312,20 +341,57 @@ void SPHSystem::updateParticles(float deltaTime)
     particleCBuffer->SetPipline(ShaderStage::VS);
     particleCBuffer->SetPipline(ShaderStage::PS);
 
-    auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
-    CalculateHashShader->SetThreadGroups(TableSize >> 8, 1, 1);
-    particleBuffer->BindUAV(0);
     hashToParticleIndexTable->BindUAV(1);
+    particleBuffer->BindUAV(0);
+    IndirectGPU->BindUAV(2);
+    ParticleWorldMatrixes->BindUAV(3);
     boundaryParticleBuffer->BindUAV(4);
     hashToBoundaryIndexTable->BindUAV(5);
-    CalculateHashShader->Dispatch();
-    
+    errorBuffer->BindUAV(6);
+
+    //Step 1 non-pressure force
+    auto ComputeNonpressureForce = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeNonpressureForce");
+    ComputeNonpressureForce->SetThreadGroups(groups, 1, 1);
+    ComputeNonpressureForce->Dispatch();
+
+    auto applyAcceleration = GET_SINGLE(Resources)->Find<ComputeShader>(L"ApplyAcceleration");
+    applyAcceleration->SetThreadGroups(groups, 1, 1);
+    applyAcceleration->Dispatch();
+
+    particleBuffer->GetData(GPUSortedParticle);
+
+    //Step 2 Correct Density error
+    /*auto ParallelReductionOnGroup = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroup");
+    ParallelReductionOnGroup->SetThreadGroups(TableSize >> 10, 1, 1);
+
+    auto ParallelReductionOnGroupSum = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroupSum");
+    ParallelReductionOnGroupSum->SetThreadGroups(1, 1, 1);
+
+    auto CorrectDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDensityError");
+    auto ComputeDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityError");
+    CorrectDensityError->SetThreadGroups(groups, 1, 1);
+    ComputeDensityError->SetThreadGroups(groups, 1, 1);
+
+    //iteration
+    for (int i = 0; i < 4; i++)
+    {
+        //use previous stiffness for warm start
+        CorrectDensityError->Dispatch();
+        ComputeDensityError->Dispatch();
+
+        ParallelReductionOnGroup->Dispatch();
+        ParallelReductionOnGroupSum->Dispatch();
+    }*/
+
+    //Step 3 move particles
+    auto ParticleAdvect = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParticleAdvect");
+    ParticleAdvect->SetThreadGroups(groups, 1, 1);
+    ParticleAdvect->Dispatch();
+
+    //Step 4 Find neighbors for each particle
+    auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
     auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
     BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
-
-    auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
-    
-    
     for (uint32_t k = 2; k <= TableSize; k <<= 1) {
         for (uint32_t j = k >> 1; j > 0; j >>= 1) {
 
@@ -344,56 +410,27 @@ void SPHSystem::updateParticles(float deltaTime)
     createNeighborTableShader->SetThreadGroups(groups, 1, 1);
     createNeighborTableShader->Dispatch();
 
+    //Step 5 update density and alpha
+    auto ComputeDensityAndAlpha = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityAndAlpha");
+    ComputeDensityAndAlpha->SetThreadGroups(groups, 1, 1);
+    ComputeDensityAndAlpha->Dispatch();
 
-
-    //Step 1 non-pressure force
-    auto ComputeNonpressureForce = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityAndAlpha");
-    ComputeNonpressureForce->SetThreadGroups(groups, 1, 1);
-    ComputeNonpressureForce->Dispatch();
-
-
-    //Step 2 Correct density error
-    float avgDensityError = 0;
-    int iter = 0;
-    while ((avgDensityError > 1e-3 * settings.restDensity || iter < 1) && iter < 4)
+    //Step 6 Correct Divergence error
+    /*auto CorrectDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDivergenceError");
+    auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
+    CorrectDivergenceError->SetThreadGroups(groups, 1, 1);
+    ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
+    
+    //iteration
+    for (int i = 0; i < 4; i++)
     {
-        auto ComputeDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityError");
-        ComputeDensityError->SetThreadGroups(groups, 1, 1);
-        ComputeDensityError->Dispatch();
-
-        stiffnessBuffer->GetData(densityError);
-        avgDensityError = std::accumulate(densityError, densityError + particleCount, 0.0) / particleCount;
-
-        if (avgDensityError < 1e-3 * settings.restDensity)
-            break;
-
-        iter++;
-    }
-
-    int iter = 0;
-    float avgDivergenceError = 0;
-    stiffnessBuffer->BindUAV(6);
-    while ((avgDivergenceError > 1e-3 || iter < 1) && iter < 4)
-    {
-        auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
-        ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
+        //use previous stiffness for warm start
+        CorrectDivergenceError->Dispatch();
         ComputeDivergenceError->Dispatch();
 
-        stiffnessBuffer->GetData(divergenceError);
-        avgDivergenceError = std::accumulate(divergenceError, divergenceError + particleCount, 0.0) / particleCount;
-
-        if (avgDivergenceError < 1e-3)
-            break;
-
-        iter++;
-    }
-
-
-    //particleBuffer->GetData(GPUSortedParticle);
-
-   
-
-    
+        ParallelReductionOnGroup->Dispatch();
+        ParallelReductionOnGroupSum->Dispatch();
+    }*/
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
@@ -401,6 +438,7 @@ void SPHSystem::updateParticles(float deltaTime)
     ParticleWorldMatrixes->Clear();
     boundaryParticleBuffer->Clear();
     hashToBoundaryIndexTable->Clear();
+    errorBuffer->Clear();
 
     ParticleIndirect->SetDataFromBuffer(IndirectGPU->GetBuffer());
 }

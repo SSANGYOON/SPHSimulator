@@ -230,10 +230,28 @@ void Resources::CreateDefaultResource()
 	ComputeNonpressureForce->Create(L"ComputeNonpressureForce.hlsl");
 #pragma endregion
 
+#pragma region ApplyAcceleration
+	shared_ptr<ComputeShader> ApplyAcceleration = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ApplyAcceleration", ApplyAcceleration);
+	ApplyAcceleration->Create(L"ApplyAcceleration.hlsl");
+#pragma endregion
+
 #pragma region ParticleAdvect
 	shared_ptr<ComputeShader> ParticleAdvect = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"ParticleAdvect", ParticleAdvect);
 	ParticleAdvect->Create(L"ParticleAdvect.hlsl");
+#pragma endregion
+
+#pragma region ParallelReductionOnGroup
+	shared_ptr<ComputeShader> ParallelReductionOnGroup = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ParallelReductionOnGroup", ParallelReductionOnGroup);
+	ParallelReductionOnGroup->Create(L"ParallelReductionOnGroup.hlsl");
+#pragma endregion
+
+#pragma region ParallelReductionOnGroupSum
+	shared_ptr<ComputeShader> ParallelReductionOnGroupSum = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ParallelReductionOnGroupSum", ParallelReductionOnGroupSum);
+	ParallelReductionOnGroupSum->Create(L"ParallelReductionOnGroupSum.hlsl");
 #pragma endregion
 
 /*#pragma region CalculatePressureAndDensity
