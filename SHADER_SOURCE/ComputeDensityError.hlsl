@@ -6,7 +6,7 @@ RWStructuredBuffer<float> DensityError : register(u6);
 void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
 	uint piIndex = DispatchThreadID[0];
-	if (piIndex >= particlesNum || DensityError[0] <= ITERATIONEND)
+	if (piIndex >= particlesNum || DensityError[0] <= -100)
 		return;
 
 	Particle pi = Particles[piIndex];

@@ -19,10 +19,9 @@
 #include <numeric>
 
 SPHSettings::SPHSettings(
-    float restDensity, float gasConst, float viscosity, float h,
+    float restDensity, float viscosity, float h,
     float g, float tension)
     : restDensity(restDensity)
-    , gasConstant(gasConst)
     , viscosity(viscosity)
     , h(h)
     , g(g)
@@ -45,14 +44,14 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     cubeMap = make_shared<Texture>();
     cubeMap->Load(L"Texture/SaintPetersBasilica.dds");
 
-    //shared_ptr<Mesh> obstacle = make_shared<Mesh>();
+    shared_ptr<Mesh> obstacle = make_shared<Mesh>();
 
-    //obstacle->Load(L"Mesh/bowl.obj");
+    obstacle->Load(L"Mesh/bowl.obj");
 
-   // auto obs = make_shared<Obstacle>();
-    //obs->SetName("Dolphin");
-    //obs->SetMesh(obstacle);
-    //simulationObjects.push_back(obs);
+    auto obs = make_shared<Obstacle>();
+    obs->SetName("Dolphin");
+    obs->SetMesh(obstacle);
+    simulationObjects.push_back(obs);
 
     WindowInfo Info = GEngine->GetWindow();
 
@@ -125,6 +124,8 @@ void SPHSystem::InitParticles()
             }
         }
     }
+
+    
 
     Intances = make_unique<InstancingBuffer>();
     Intances->Init(MaxParticle);
@@ -204,7 +205,6 @@ void SPHSystem::InitParticles()
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
     pcb.radius = settings.h;
-    pcb.gasConstant = settings.gasConstant;
     pcb.restDensity = settings.restDensity;
     pcb.mass = settings.h * settings.h * settings.h * settings.restDensity;
     pcb.viscosity = settings.viscosity;
@@ -323,7 +323,6 @@ void SPHSystem::updateParticles(float deltaTime)
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
     pcb.radius = settings.h;
-    pcb.gasConstant = settings.gasConstant;
     pcb.restDensity = settings.restDensity;
     pcb.mass = settings.h * settings.h * settings.h * settings.restDensity;
     pcb.viscosity = settings.viscosity;
@@ -358,11 +357,9 @@ void SPHSystem::updateParticles(float deltaTime)
     applyAcceleration->SetThreadGroups(groups, 1, 1);
     applyAcceleration->Dispatch();
 
-    particleBuffer->GetData(GPUSortedParticle);
-
     //Step 2 Correct Density error
-    /*auto ParallelReductionOnGroup = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroup");
-    ParallelReductionOnGroup->SetThreadGroups(TableSize >> 10, 1, 1);
+    auto ParallelReductionOnGroup = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroup");
+    ParallelReductionOnGroup->SetThreadGroups(groups, 1, 1);
 
     auto ParallelReductionOnGroupSum = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroupSum");
     ParallelReductionOnGroupSum->SetThreadGroups(1, 1, 1);
@@ -381,7 +378,7 @@ void SPHSystem::updateParticles(float deltaTime)
 
         ParallelReductionOnGroup->Dispatch();
         ParallelReductionOnGroupSum->Dispatch();
-    }*/
+    }
 
     //Step 3 move particles
     auto ParticleAdvect = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParticleAdvect");
@@ -389,6 +386,10 @@ void SPHSystem::updateParticles(float deltaTime)
     ParticleAdvect->Dispatch();
 
     //Step 4 Find neighbors for each particle
+    auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
+    CalculateHashShader->SetThreadGroups(TableSize >> 8, 1, 1);
+    CalculateHashShader->Dispatch();
+
     auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
     auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
     BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
@@ -416,21 +417,25 @@ void SPHSystem::updateParticles(float deltaTime)
     ComputeDensityAndAlpha->Dispatch();
 
     //Step 6 Correct Divergence error
-    /*auto CorrectDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDivergenceError");
+    auto CorrectDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDivergenceError");
     auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
     CorrectDivergenceError->SetThreadGroups(groups, 1, 1);
     ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
     
+    ComputeDivergenceError->Dispatch();
+    ParallelReductionOnGroup->Dispatch();
+    ParallelReductionOnGroupSum->Dispatch();
+
     //iteration
     for (int i = 0; i < 4; i++)
     {
-        //use previous stiffness for warm start
         CorrectDivergenceError->Dispatch();
+        
         ComputeDivergenceError->Dispatch();
 
         ParallelReductionOnGroup->Dispatch();
         ParallelReductionOnGroupSum->Dispatch();
-    }*/
+    }
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();

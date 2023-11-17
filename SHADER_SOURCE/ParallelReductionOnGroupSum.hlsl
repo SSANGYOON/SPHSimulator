@@ -9,7 +9,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadId :
 	uint gid = GroupThreadId.x;
 
 	if (gid * 1024 < particlesNum)
-		groupSum[gid] = target[gid * 1024];
+		groupSum[gid] = target[gid * 256];
 
 	uint n = tableSize >> 11;
 

@@ -77,5 +77,5 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 		}
 	}
 
-	Particles[piIndex].velocity -= -a / deltaTime;
+	Particles[piIndex].velocity -= a / deltaTime;
 }

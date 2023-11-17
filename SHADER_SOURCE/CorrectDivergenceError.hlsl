@@ -39,7 +39,6 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 					if (dist < 2 * radius && dist > 1e-5f) {
 						a += mass * (pi.divergenceStiffness + pj.divergenceStiffness) * cubic_spline_kernel_gradient(diff);
 					}
-
 					pjIndex++;
 				}
 			}
@@ -72,7 +71,6 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 						float boundaryParticleMass = restDensity / pj.density;
 						a += boundaryParticleMass * pi.divergenceStiffness * cubic_spline_kernel_gradient(diff);
 					}
-
 					pjIndex++;
 				}
 			}

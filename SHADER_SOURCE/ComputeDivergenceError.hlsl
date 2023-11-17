@@ -77,6 +77,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 			}
 		}
 	}
+
 	// compression is allowed if density is lower than restDensity
 	if (pi.density + deltaTime * error < restDensity && pi.density <= restDensity)
 		error = 0.0f;

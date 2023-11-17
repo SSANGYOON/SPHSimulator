@@ -23,7 +23,7 @@ SY::TestLayer::~TestLayer()
 
 void SY::TestLayer::OnAttach()
 {
-	SPHSettings sphSettings(1, 1, 1.f, 0.15f, -9.8f, 0.2f);
+	SPHSettings sphSettings(1, 1.f, 0.15f, -9.8f, 0.2f);
 	sphSystem = new SPHSystem(30, sphSettings);
 	Cam = make_unique<Camera>();
 }
@@ -57,11 +57,10 @@ void SY::TestLayer::OnImGuiRender()
 	ImGui::DragFloat("Support Radius", &nh, 0.001f, 1.f);
 	ImGui::DragFloat("Rest Density", &nRest, 1.f, 200.f);
 	ImGui::DragFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
-	ImGui::DragFloat("Gas Constant", &gasConst, 0.001f, 5.f);
 
 	if (ImGui::Button("RESET")) {
 		delete sphSystem;
-		SPHSettings sphSettings(nRest, gasConst, nVisco, nh, -9.8, 1.f);
+		SPHSettings sphSettings(nRest, nVisco, nh, -9.8, 1.f);
 		sphSystem = new SPHSystem(numParticles, sphSettings);
 		Cam->SetAspect(WinX / WinY);
 		Cam->SetRotation(Quaternion::Identity);

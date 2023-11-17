@@ -4,11 +4,11 @@
 struct SPHSettings
 {
 	SPHSettings(
-		float restDensity, float gasConst, float viscosity,
+		float restDensity, float viscosity,
 		float h, float g, float tension);
 
 	Matrix sphereScale;
-	float gasConstant, h2, restDensity, viscosity, h, g, tension;
+	float h2, restDensity, viscosity, h, g, tension;
 };
 
 class StructuredBuffer;

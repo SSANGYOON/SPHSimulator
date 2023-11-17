@@ -84,10 +84,5 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
         pi.alpha = 1.0f / (gradientProduct + dot(gradientSum, gradientSum));
      
         Particles[DId] = pi;
-
-        if (DId == 0)
-        {
-            errorBuffer[0] = 0.f;
-        }
     }
 }
