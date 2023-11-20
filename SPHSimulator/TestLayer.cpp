@@ -14,6 +14,12 @@
 #include <algorithm>
 
 SY::TestLayer::TestLayer()
+	: MouseX(-1)
+	, MouseY(-1)
+	, currentTime(0)
+	, deltaTime(0.f)
+	, prevTime(0)
+	, sphSystem{}
 {
 }
 
@@ -60,7 +66,7 @@ void SY::TestLayer::OnImGuiRender()
 
 	if (ImGui::Button("RESET")) {
 		delete sphSystem;
-		SPHSettings sphSettings(nRest, nVisco, nh, -9.8, 1.f);
+		SPHSettings sphSettings(nRest, nVisco, nh, -9.8f, 1.f);
 		sphSystem = new SPHSystem(numParticles, sphSettings);
 		Cam->SetAspect(WinX / WinY);
 		Cam->SetRotation(Quaternion::Identity);
@@ -82,12 +88,12 @@ void SY::TestLayer::OnEvent(Event& e)
 
 bool SY::TestLayer::OnWindowResize(WindowResizeEvent& e)
 {
-	WinX = e.GetWidth();
-	WinY = e.GetHeight();
+	WinX = (float)e.GetWidth();
+	WinY = (float)e.GetHeight();
 	Cam->SetAspect(WinX / WinY);
 	WindowInfo Info = GEngine->GetWindow();
-	Info.width = WinX;
-	Info.height = WinY;
+	Info.width = e.GetWidth();
+	Info.height = e.GetHeight();
 	GEngine->SetWindow(Info);
 	return false;
 }

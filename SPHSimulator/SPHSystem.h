@@ -74,7 +74,7 @@ private:
 	int filterRadius = 30;
 	Vector3 SpecularColor = Vector3::One;
 	float absorbanceCoff = 0.1f;
-	Vector3 FluidColor = Vector3(0.0, 0.5, 0.9);
+	Vector3 FluidColor = Vector3(0.f, 0.5f, 0.9f);
 
 	Vector3 boundaryCentor = Vector3(0, 0, 0);
 	Vector3 boundarySize = Vector3(10, 10, 10);

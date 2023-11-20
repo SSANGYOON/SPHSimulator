@@ -7,7 +7,7 @@
 #include "Resources.h"
 #include "Shader.h"
 #include "VoxelGrid.h"
-#include "SDF.H"
+#include "SDF.h"
 Obstacle::Obstacle()
 {
 }
@@ -44,7 +44,7 @@ void Obstacle::Render(Camera* Cam)
 
 void Obstacle::GetVoxels(vector<Vector3>& results, float h)
 {
-    obstacleMesh->Voxelize(results, h, srt);
+    VoxelGrid<float> sdf;
 
-    VoxelGrid<float> sdf(int(10/ h) + 1, int(10 / h) + 1, int(10 / h) + 1);
+    SDF::build(obstacleMesh, sdf, scale, h);
 }

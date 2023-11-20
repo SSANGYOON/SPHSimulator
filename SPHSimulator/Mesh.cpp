@@ -7,6 +7,7 @@
 #include <sstream>
 #include "InstancingBuffer.h"
 #include "IndirectBuffer.h"
+#include <limits>
 
 Mesh::Mesh()
 	:Resource(RESOURCE_TYPE::MESH)
@@ -15,6 +16,7 @@ Mesh::Mesh()
 	, projection{}
 	, indexes{}
 	, vertexes{}
+	, _vertexes{}
 {
 
 }
@@ -227,9 +229,9 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 		}
 		fs.close();
 
-		CreateVertexBuffer(vertexes.data(), vertexes.size());
-		CreateIndexBuffer(indexes.data(), indexes.size());
-		_vertexes = vertexes.size();
+		CreateVertexBuffer(vertexes.data(), (UINT)vertexes.size());
+		CreateIndexBuffer(indexes.data(), (UINT)indexes.size());
+		_vertexes = (UINT)vertexes.size();
 	}
 
 	return S_OK;
@@ -306,11 +308,11 @@ void Mesh::rasterizeTriangle(const Vector3& p0, const Vector3& p1, const Vector3
 
 void Mesh::Voxelize(vector<Vector3>& voxels, float cellSize, const Matrix& srt)
 {
-	for (int i = 0; 3 * i < _indexes; i++)
+	for (unsigned long long i = 0; 3 * i < _indexes; i++)
 	{
-		Vector3 p0 = Vector3::Transform(vertexes[indexes[3 * i]].pos, srt);
-		Vector3 p1 = Vector3::Transform(vertexes[indexes[3 * i + 1]].pos, srt);
-		Vector3 p2 = Vector3::Transform(vertexes[indexes[3 * i + 2]].pos, srt);
+		Vector3 p0 = Vector3::Transform(vertexes[indexes[(size_t)3 * i]].pos, srt);
+		Vector3 p1 = Vector3::Transform(vertexes[indexes[(size_t)3 * i + 1ULL]].pos, srt);
+		Vector3 p2 = Vector3::Transform(vertexes[indexes[(size_t)3 * i + 2ULL]].pos, srt);
 		rasterizeTriangle(p0, p1, p2, cellSize);
 	}
 

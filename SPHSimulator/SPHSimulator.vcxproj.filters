@@ -260,6 +260,9 @@
     <ClInclude Include="VoxelGrid.h">
       <Filter>src\Utils\SDF</Filter>
     </ClInclude>
+    <ClInclude Include="SDF.h">
+      <Filter>src\Utils\SDF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -381,6 +384,9 @@
     </ClCompile>
     <ClCompile Include="Obstacle.cpp">
       <Filter>src\SPH\SimulationObject\Obstacle</Filter>
+    </ClCompile>
+    <ClCompile Include="SDF.cpp">
+      <Filter>src\Utils\SDF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -9,5 +9,6 @@ public:
     // for triangle soup, but a closed mesh is needed for accurate signs. Distances for all grid
     // cells within exact_band cells of a triangle should be exact, further away a distance is
     // calculated but it might not be to the closest triangle - just one nearby.
-    static void build(const shared_ptr<class Mesh> mesh, VoxelGrid<float>& sdf, const Matrix& srt,const int exact_band = 1);
+    static void build(const shared_ptr<class Mesh> mesh, VoxelGrid<float>& sdf, const Vector3& scale, const float cellSize);
+
 };

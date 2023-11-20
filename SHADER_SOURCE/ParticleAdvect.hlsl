@@ -20,28 +20,38 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	// Handle collisions with box
 	if (position.y < radius * 0.5f + boundaryCentor.y - boundarySize.y / 2) {
 		position.y = -position.y + 2 * (radius * 0.5f + boundaryCentor.y - boundarySize.y * 0.5f) + 0.0001f;
-		velocity.y = -velocity.y * elasticity;
+		if(velocity.y < 0.f)
+			velocity.y = -velocity.y * elasticity;
+	}
+
+	if (position.y > -radius * 0.5f + boundaryCentor.y + boundarySize.y / 2) {
+		position.y = -position.y + 2 * (-radius * 0.5f + boundaryCentor.y + boundarySize.y * 0.5f) - 0.0001f;
+		if (velocity.y > 0.f)
+			velocity.y = -velocity.y * elasticity;
 	}
 
 	if (position.x < radius * 0.5f + boundaryCentor.x - boundarySize.x / 2) {
-
 		position.x = -position.x + 2 * (radius * 0.5f + boundaryCentor.x - boundarySize.x * 0.5f) + 0.0001f;
-		velocity.x = -velocity.x * elasticity;
+		if (velocity.x < 0.f)
+			velocity.x = -velocity.x * elasticity;
 	}
 
 	if (position.x > -radius * 0.5f + boundaryCentor.x + boundarySize.x / 2) {
 		position.x = -position.x + 2 * (-radius * 0.5f + boundaryCentor.x + boundarySize.x * 0.5f) - 0.0001f;
-		velocity.x = -velocity.x * elasticity;
+		if (velocity.x > 0.f)
+			velocity.x = -velocity.x * elasticity;
 	}
 
 	if (position.z < radius * 0.5f + boundaryCentor.z - boundarySize.z / 2) {
 		position.z = -position.z + 2 * (radius * 0.5f + boundaryCentor.z - boundarySize.z * 0.5f) + 0.0001f;
-		velocity.z = -velocity.z * elasticity;
+		if (velocity.z < 0.f)
+			velocity.z = -velocity.z * elasticity;
 	}
 
 	if (position.z > -radius * 0.5f + boundaryCentor.z + boundarySize.z / 2) {
 		position.z = -position.z + 2 * (-radius * 0.5f + boundaryCentor.z + boundarySize.z * 0.5f) - 0.0001f;
-		velocity.z = -velocity.z * elasticity;
+		if (velocity.z > 0.f)
+			velocity.z = -velocity.z * elasticity;
 	}
 
 	Particles[piIndex].position = position;

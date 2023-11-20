@@ -32,11 +32,12 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         if (pj.hash != cellHash) {
                             break;
                         }
-                        float dist = length(pj.position - pi.position);
+                        float3 diff = pi.position - pj.position;
+                        float dist = length(diff);
                         if (dist < 2.f * radius) {
                             pDensity += mass * cubic_spline_kernel(dist);
                             if (dist > 1e-3) {
-                                float3 temp = mass * cubic_spline_kernel_gradient(pj.position - pi.position);
+                                float3 temp = mass * cubic_spline_kernel_gradient(diff);
                                 gradientSum += temp;
                                 gradientProduct += dot(temp, temp);
                             }
@@ -62,13 +63,14 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         if (pj.hash != cellHash) {
                             break;
                         }
-                        float dist = length(pj.position - pi.position);
+                        float3 diff = pi.position - pj.position;
+                        float dist = length(diff);
                         if (dist < 2.f * radius) {
                             float boundaryParticleMass = restDensity / pj.density;
                             
                             pDensity += boundaryParticleMass * cubic_spline_kernel(dist);
                             if (dist > 1e-3) {
-                                float3 temp = boundaryParticleMass * cubic_spline_kernel_gradient(pj.position - pi.position);
+                                float3 temp = boundaryParticleMass * cubic_spline_kernel_gradient(diff);
                                 gradientSum += temp;
                                 gradientProduct += dot(temp, temp);
                             }

@@ -34,8 +34,8 @@ public:
 	void RenderInstanced(InstancingBuffer* instances);
 	void RenderIndexedInstancedIndirect(InstancingBuffer* instances, IndirectBuffer* indirect);
 
-	const vector<Vertex> GetVertexes() const { return vertexes; }
-	const vector<UINT> GetIndexes() const { return indexes; }
+	const vector<Vertex>& GetVertexes() const { return vertexes; }
+	const vector<UINT>& GetIndexes() const { return indexes; }
 
 private:
 	ComPtr<ID3D11Buffer> _vertexBuffer;

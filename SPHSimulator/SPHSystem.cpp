@@ -152,18 +152,21 @@ void SPHSystem::InitParticles()
 
     vector<Particle> boundaryParticles(MaxParticle);
 
-    for (int i = 0; i < boundaryVoxels.size(); i++)
+    /*/for (int i = 0; i < boundaryVoxels.size(); i++)
     {
         boundaryParticles[i].position = boundaryVoxels[i];
         boundaryParticles[i].velocity = Vector3::Zero;
-    }
+    }*/
 
     int ind = boundaryVoxels.size();
 
-    for (float i = boundaryCentor.x - boundarySize.x / 2.f; i <= boundaryCentor.x + boundarySize.x / 2.f; i += settings.h)
+    /*for (float i = boundaryCentor.x - boundarySize.x / 2.f; i <= boundaryCentor.x + boundarySize.x / 2.f; i += settings.h)
     {
         for (float k = boundaryCentor.z - boundarySize.z / 2.f; i <= boundaryCentor.z + boundarySize.z / 2.f; i += settings.h)
         {
+            boundaryParticles[ind].position = Vector3(i, boundaryCentor.y + boundarySize.y / 2.f + settings.h / 2.f, k);
+            boundaryParticles[ind++].velocity = Vector3::Zero;
+
             boundaryParticles[ind].position = Vector3(i, boundaryCentor.y - boundarySize.y / 2.f - settings.h / 2.f, k);
             boundaryParticles[ind++].velocity = Vector3::Zero;
         }
@@ -191,7 +194,7 @@ void SPHSystem::InitParticles()
             boundaryParticles[ind].position = Vector3(boundaryCentor.x + boundarySize.x / 2.f + settings.h / 2.f, j, k);
             boundaryParticles[ind++].velocity = Vector3::Zero;
         }
-    }
+    }*/
 
     boundaryParticleCount = ind;
 
@@ -421,21 +424,16 @@ void SPHSystem::updateParticles(float deltaTime)
     auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
     CorrectDivergenceError->SetThreadGroups(groups, 1, 1);
     ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
-    
-    ComputeDivergenceError->Dispatch();
-    ParallelReductionOnGroup->Dispatch();
-    ParallelReductionOnGroupSum->Dispatch();
 
     //iteration
-    for (int i = 0; i < 4; i++)
+    /*for (int i = 0; i < 4; i++)
     {
-        CorrectDivergenceError->Dispatch();
-        
         ComputeDivergenceError->Dispatch();
-
         ParallelReductionOnGroup->Dispatch();
         ParallelReductionOnGroupSum->Dispatch();
-    }
+
+        CorrectDivergenceError->Dispatch();
+    }*/
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
