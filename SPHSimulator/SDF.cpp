@@ -5,13 +5,13 @@
 
 // find distance x0 is from segment x1-x2
 static float point_segment_distance(const Vector3& x0, const UINT x1, const UINT x2, 
-	const shared_ptr<Mesh>& mesh, const map<pair<UINT, UINT>, Vector3>& edgeNormal, const vector<Vector3>& vertexNormal) {
+	const shared_ptr<Mesh>& mesh, const Vector3& scale, const map<pair<UINT, UINT>, Vector3>& edgeNormal, const vector<Vector3>& vertexNormal) {
 	
 	const vector<Vertex>& vertexes = mesh->GetVertexes();
 	const vector<UINT>& indexes = mesh->GetIndexes();
 
-	const Vector3 x1Pos = vertexes[x1].pos;
-	const Vector3 x2Pos = vertexes[x2].pos;
+	const Vector3 x1Pos = vertexes[x1].pos * scale;
+	const Vector3 x2Pos = vertexes[x2].pos * scale;
 	
 	Vector3 dx = x2Pos - x1Pos;
 	float m2 = dx.LengthSquared();
@@ -35,7 +35,7 @@ static float point_segment_distance(const Vector3& x0, const UINT x1, const UINT
 }
 
 // find distance x0 is from triangle x1-x2-x3
-static float point_triangle_distance(const shared_ptr<Mesh>& mesh, const UINT ind, const Vector3& x0,
+static float point_triangle_distance(const shared_ptr<Mesh>& mesh, const UINT ind, const Vector3& x0, const Vector3& scale,
 	const map<pair<UINT, UINT>, Vector3>& edgeNormal, const vector<Vector3>& vertexNormal) {
 	
 	const vector<Vertex>& vertexes = mesh->GetVertexes();
@@ -45,9 +45,9 @@ static float point_triangle_distance(const shared_ptr<Mesh>& mesh, const UINT in
 	const UINT x2 = indexes[3 * ind + 1];
 	const UINT x3 = indexes[3 * ind + 2];
 
-	const Vector3 x1Pos = vertexes[x1].pos;
-	const Vector3 x2Pos = vertexes[x2].pos;
-	const Vector3 x3Pos = vertexes[x3].pos;
+	const Vector3 x1Pos = vertexes[x1].pos * scale;
+	const Vector3 x2Pos = vertexes[x2].pos * scale;
+	const Vector3 x3Pos = vertexes[x3].pos * scale;
 
 	// first find barycentric coordinates of closest point on infinite plane
 	Vector3 x13 = x1Pos - x3Pos;
@@ -74,9 +74,9 @@ static float point_triangle_distance(const shared_ptr<Mesh>& mesh, const UINT in
 		Vector3 proj2;
 		Vector3 proj3;
 
-		float d1 = point_segment_distance(x0, x1, x2, mesh, edgeNormal, vertexNormal);
-		float d2 = point_segment_distance(x0, x1, x3, mesh, edgeNormal, vertexNormal);
-		float d3 = point_segment_distance(x0, x2, x3, mesh, edgeNormal, vertexNormal);
+		float d1 = point_segment_distance(x0, x1, x2, mesh, scale, edgeNormal, vertexNormal);
+		float d2 = point_segment_distance(x0, x1, x3, mesh, scale, edgeNormal, vertexNormal);
+		float d3 = point_segment_distance(x0, x2, x3, mesh, scale, edgeNormal, vertexNormal);
 
 		if (std::abs(d1) <= std::abs(d2) && std::abs(d1) <= std::abs(d3)) {
 			return d1;
@@ -104,15 +104,13 @@ void SDF::build(const shared_ptr<class Mesh> mesh, VoxelGrid<float>& sdf, const 
 		gridMax = Vector3::Max(pos, gridMax);
 	}
 
-	sdf.resize(int((gridMax.x - gridMin.x) / cellSize) + 6,
-		int((gridMax.y - gridMin.y) / cellSize) + 6, int((gridMax.z - gridMin.z) / cellSize) + 6);
+	sdf.resize(int((gridMax.x - gridMin.x) / cellSize) + 5,
+		int((gridMax.y - gridMin.y) / cellSize) + 5, int((gridMax.z - gridMin.z) / cellSize) + 5);
 
-	sdf.setOrigin(gridMin - Vector3(3 * cellSize));
+	sdf.setOrigin(gridMin - Vector3(2 * cellSize));
 	sdf.setCellSize(cellSize);
 
 	sdf.fill(3 * cellSize);
-
-	vector<Vector3> faceNormal(indexes.size() / 3, Vector3::Zero);
 	map<pair<UINT, UINT>, Vector3> edgeNormal;
 	vector<Vector3> vertexNormal(vertexes.size(), Vector3::Zero);
 
@@ -123,9 +121,9 @@ void SDF::build(const shared_ptr<class Mesh> mesh, VoxelGrid<float>& sdf, const 
 		UINT b = indexes[3 * i + 1];
 		UINT c = indexes[3 * i + 2];
 
-		Vector3 aPos = vertexes[a].pos;
-		Vector3 bPos = vertexes[b].pos;
-		Vector3 cPos = vertexes[c].pos;
+		Vector3 aPos = vertexes[a].pos * scale;
+		Vector3 bPos = vertexes[b].pos * scale;
+		Vector3 cPos = vertexes[c].pos * scale;
 
 		Vector3 normal = (bPos - aPos).Cross(cPos - aPos);
 		normal.Normalize();
@@ -143,10 +141,14 @@ void SDF::build(const shared_ptr<class Mesh> mesh, VoxelGrid<float>& sdf, const 
 		if (edgeNormal.find(caEdge) == edgeNormal.end()) { edgeNormal[caEdge] = Vector3::Zero; }
 		edgeNormal[caEdge] += normal;
 
+		float angleA = std::acos((bPos - aPos).Normalized().Dot((cPos - aPos).Normalized()));
+		float angleB = std::acos((cPos - bPos).Normalized().Dot((aPos - bPos).Normalized()));
+		float angleC = std::acos((bPos - cPos).Normalized().Dot((aPos - cPos).Normalized()));
+
 		//vertexNormal
-		vertexNormal[a] += std::acos((bPos - aPos).Normalized().Dot((cPos - aPos).Normalized())) * normal;
-		vertexNormal[b] += std::acos((cPos - bPos).Normalized().Dot((aPos - bPos).Normalized())) * normal;
-		vertexNormal[c] += std::acos((bPos - cPos).Normalized().Dot((aPos - cPos).Normalized())) * normal;
+		vertexNormal[a] += angleA * normal;
+		vertexNormal[b] += angleB * normal;
+		vertexNormal[c] += angleC * normal;
 	}
 
 	for (Vector3& pos : vertexNormal)
@@ -175,9 +177,9 @@ void SDF::build(const shared_ptr<class Mesh> mesh, VoxelGrid<float>& sdf, const 
 		UINT b = indexes[3 * ind + 1];
 		UINT c = indexes[3 * ind + 2];
 
-		Vector3 aPos = vertexes[a].pos;
-		Vector3 bPos = vertexes[b].pos;
-		Vector3 cPos = vertexes[c].pos;
+		Vector3 aPos = vertexes[a].pos * scale;
+		Vector3 bPos = vertexes[b].pos * scale;
+		Vector3 cPos = vertexes[c].pos * scale;
 
 		double ax = ((double)aPos.x - origin.x) / h;
 		double ay = ((double)aPos.y - origin.y) / h;
@@ -199,7 +201,7 @@ void SDF::build(const shared_ptr<class Mesh> mesh, VoxelGrid<float>& sdf, const 
 			for (int j = j0; j <= j1; ++j) {
 				for (int i = i0; i <= i1; ++i) {
 					Vector3 gx = origin + Vector3(i, j, k) * h;
-					float d = point_triangle_distance(mesh, ind, gx, edgeNormal, vertexNormal);
+					float d = point_triangle_distance(mesh, ind, gx, scale, edgeNormal, vertexNormal);
 					if (abs(d) < abs(sdf(i, j, k))) {
 						sdf(i, j, k) = d;
 					}

@@ -4,12 +4,6 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)BitonicSort.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CalculateForce.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CalculatePressureAndDensity.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)CreateNeighborTable.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
@@ -31,17 +25,8 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)RenderSphere.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)UpdateParticlePosition.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)VisualizeDepth.hlsl">
       <Filter>Render</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)HorizontalBilateralFilter.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)VerticalBilateralFilter.hlsl">
-      <Filter>Compute</Filter>
     </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)CreateNormal.hlsl">
       <Filter>Compute</Filter>
@@ -66,15 +51,6 @@
     </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)visualizeBoundary.hlsl">
       <Filter>Render</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CreateBoundaryHash.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CreateBoundaryNeighborTable.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)BoundaryParticleVolume.hlsl">
-      <Filter>Compute</Filter>
     </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)Renderthickness.hlsl">
       <Filter>Render</Filter>
@@ -104,6 +80,9 @@
       <Filter>Compute</Filter>
     </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)ApplyAcceleration.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateVolumeMap.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
   </ItemGroup>

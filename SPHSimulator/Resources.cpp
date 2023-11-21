@@ -14,6 +14,97 @@ void Resources::CreateDefaultResource()
 	UINT pointIndex = 0;
 	pointMesh->CreateIndexBuffer(&pointIndex, 1);
 #pragma endregion
+	{
+		shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+		Resources::Insert<Mesh>(L"CubeMesh", mesh);
+		vector<Vertex> vertexes(8);
+
+		vertexes[0].pos = Vector3(-1.f, 1.f, -1.f);
+		vertexes[0].Color = Vector4(1.f, 0.0f, 0.f, 1.0f);
+		vertexes[0].uv = Vector2(0.f, 0.f);
+
+		vertexes[1].pos = Vector3(1.f, 1.f, -1.f);
+		vertexes[1].Color = Vector4(0.f, 1.f, 0.f, 1.0f);
+		vertexes[1].uv = Vector2(1.0f, 0.0f);
+
+		vertexes[2].pos = Vector3(-1.f, -1.f, -1.f);
+		vertexes[2].Color = Vector4(0.f, 0.f, 1.f, 1.0f);
+		vertexes[2].uv = Vector2(1.0f, 1.0f);
+
+		vertexes[3].pos = Vector3(1.f, -1.f, -1.f);
+		vertexes[3].Color = Vector4(1.f, 0.f, 0.f, 1.0f);
+		vertexes[3].uv = Vector2(0.0f, 1.0f);
+
+		vertexes[4].pos = Vector3(-1.f, 1.f, 1.f);
+		vertexes[4].Color = Vector4(1.f, 0.0f, 0.f, 1.0f);
+		vertexes[4].uv = Vector2(0.f, 0.f);
+
+		vertexes[5].pos = Vector3(1.f, 1.f, 1.f);
+		vertexes[5].Color = Vector4(0.f, 1.f, 0.f, 1.0f);
+		vertexes[5].uv = Vector2(1.0f, 0.0f);
+
+		vertexes[6].pos = Vector3(-1.f, -1.f, 1.f);
+		vertexes[6].Color = Vector4(0.f, 0.f, 1.f, 1.0f);
+		vertexes[6].uv = Vector2(1.0f, 1.0f);
+
+		vertexes[7].pos = Vector3(1.f, -1.f, 1.f);
+		vertexes[7].Color = Vector4(1.f, 0.f, 0.f, 1.0f);
+		vertexes[7].uv = Vector2(0.0f, 1.0f);
+
+		mesh->CreateVertexBuffer(vertexes);
+
+		std::vector<UINT> indexes;
+		indexes.push_back(0);
+		indexes.push_back(1);
+		indexes.push_back(2);
+
+		indexes.push_back(1);
+		indexes.push_back(3);
+		indexes.push_back(2);
+
+		indexes.push_back(1);
+		indexes.push_back(5);
+		indexes.push_back(3);
+
+		indexes.push_back(5);
+		indexes.push_back(7);
+		indexes.push_back(3);
+
+		indexes.push_back(5);
+		indexes.push_back(4);
+		indexes.push_back(7);
+
+		indexes.push_back(4);
+		indexes.push_back(6);
+		indexes.push_back(7);
+
+		indexes.push_back(4);
+		indexes.push_back(0);
+		indexes.push_back(6);
+
+		indexes.push_back(0);
+		indexes.push_back(2);
+		indexes.push_back(6);
+
+		indexes.push_back(4);
+		indexes.push_back(5);
+		indexes.push_back(0);
+
+		indexes.push_back(5);
+		indexes.push_back(1);
+		indexes.push_back(0);
+
+		indexes.push_back(2);
+		indexes.push_back(3);
+		indexes.push_back(6);
+
+		indexes.push_back(3);
+		indexes.push_back(7);
+		indexes.push_back(6);
+
+		mesh->CreateIndexBuffer(indexes);
+	}
+#pragma endregion
 
 #pragma region Default Rect
 	shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
@@ -428,6 +519,7 @@ void Resources::CreateDefaultResource()
 	}
 #pragma endregion
 
+	/*
 #pragma region CreateBoundaryHash
 	shared_ptr<ComputeShader> CreateBoundaryHash = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"CreateBoundaryHash", CreateBoundaryHash);
@@ -444,5 +536,12 @@ void Resources::CreateDefaultResource()
 	shared_ptr<ComputeShader> ComputeBoundaryVolume = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"ComputeBoundaryVolume", ComputeBoundaryVolume);
 	ComputeBoundaryVolume->Create(L"BoundaryParticleVolume.hlsl");
+#pragma endregion
+	*/
+
+#pragma region ComputeVolumeMap
+	shared_ptr<ComputeShader> ComputeVolumeMap = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeVolumeMap", ComputeVolumeMap);
+	ComputeVolumeMap->Create(L"CreateVolumeMap.hlsl");
 #pragma endregion
 }

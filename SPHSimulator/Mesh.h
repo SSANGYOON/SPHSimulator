@@ -22,8 +22,10 @@ public:
 
 public:
 	void CreateVertexBuffer(void* data, UINT count, D3D11_USAGE usage = D3D11_USAGE::D3D11_USAGE_DEFAULT);
+	void CreateVertexBuffer(vector<Vertex> vertexVector, D3D11_USAGE usage = D3D11_USAGE::D3D11_USAGE_DEFAULT);
 	void SetVertexData(void* data, UINT count);
 	void SetIndexData(void* data, UINT count);
+	void CreateIndexBuffer(vector<UINT> indexVector, D3D11_USAGE usage = D3D11_USAGE::D3D11_USAGE_DEFAULT);
 	void CreateIndexBuffer(void* data, UINT count, D3D11_USAGE usage = D3D11_USAGE::D3D11_USAGE_DEFAULT);
 	void rasterizeTriangle(const Vector3& p0, const Vector3& p1, const Vector3& p2, float h);
 	void Voxelize(vector<Vector3>& voxels, float cellSize, const Matrix& srt);

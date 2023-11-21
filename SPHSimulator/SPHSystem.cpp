@@ -125,7 +125,12 @@ void SPHSystem::InitParticles()
         }
     }
 
-    
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->ComputeVolumeMap(settings.h);
+    }
 
     Intances = make_unique<InstancingBuffer>();
     Intances->Init(MaxParticle);
@@ -140,70 +145,6 @@ void SPHSystem::InitParticles()
 
     errorBuffer = make_unique<StructuredBuffer>();
     errorBuffer->Create(sizeof(float), TableSize, nullptr, true, true);
-
-    //Initialize BoundaryParticle
-    boundaryVoxels.clear();
-    for (shared_ptr<SimulationObject>& so : simulationObjects)
-    {
-        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
-        if (obstacle)
-            obstacle->GetVoxels(boundaryVoxels, settings.h);
-    }
-
-    vector<Particle> boundaryParticles(MaxParticle);
-
-    /*/for (int i = 0; i < boundaryVoxels.size(); i++)
-    {
-        boundaryParticles[i].position = boundaryVoxels[i];
-        boundaryParticles[i].velocity = Vector3::Zero;
-    }*/
-
-    int ind = boundaryVoxels.size();
-
-    /*for (float i = boundaryCentor.x - boundarySize.x / 2.f; i <= boundaryCentor.x + boundarySize.x / 2.f; i += settings.h)
-    {
-        for (float k = boundaryCentor.z - boundarySize.z / 2.f; i <= boundaryCentor.z + boundarySize.z / 2.f; i += settings.h)
-        {
-            boundaryParticles[ind].position = Vector3(i, boundaryCentor.y + boundarySize.y / 2.f + settings.h / 2.f, k);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-
-            boundaryParticles[ind].position = Vector3(i, boundaryCentor.y - boundarySize.y / 2.f - settings.h / 2.f, k);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-        }
-    }
-
-    for (float i = boundaryCentor.x - boundarySize.x / 2.f; i <= boundaryCentor.x + boundarySize.x / 2.f; i += settings.h)
-    {
-        for (float j = boundaryCentor.y - boundarySize.y / 2.f; j <= boundaryCentor.y + boundarySize.y / 2.f; j += settings.h)
-        {
-            boundaryParticles[ind].position = Vector3(i, j, boundaryCentor.z - boundarySize.z / 2.f - settings.h / 2.f);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-
-            boundaryParticles[ind].position = Vector3(i, j, boundaryCentor.z + boundarySize.z / 2.f + settings.h / 2.f);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-        }
-    }
-
-    for (float j = boundaryCentor.y - boundarySize.y / 2.f; j <= boundaryCentor.y + boundarySize.y / 2.f; j += settings.h)
-    {
-        for (float k = boundaryCentor.z - boundarySize.z / 2.f; k <= boundaryCentor.z + boundarySize.z / 2.f; k += settings.h)
-        {
-            boundaryParticles[ind].position = Vector3(boundaryCentor.x - boundarySize.x / 2.f - settings.h / 2.f, j, k);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-
-            boundaryParticles[ind].position = Vector3(boundaryCentor.x + boundarySize.x / 2.f + settings.h / 2.f, j, k);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-        }
-    }*/
-
-    boundaryParticleCount = ind;
-
-    boundaryParticleBuffer = make_unique<StructuredBuffer>();
-    boundaryParticleBuffer->Create(sizeof(Particle), MaxParticle, boundaryParticles.data(), true, true);
-
-    hashToBoundaryIndexTable = make_unique<StructuredBuffer>();
-    hashToBoundaryIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
-
    
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
@@ -216,7 +157,6 @@ void SPHSystem::InitParticles()
     pcb.boundaryCentor = boundaryCentor;
     pcb.boundarySize = boundarySize;
     pcb.tableSize = TableSize;
-    pcb.boundaryParticlesNum = boundaryParticleCount;
 
     auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
 
@@ -225,47 +165,11 @@ void SPHSystem::InitParticles()
     particleCBuffer->SetPipline(ShaderStage::VS);
     particleCBuffer->SetPipline(ShaderStage::PS);
 
-    //Boundary Particle에 해시 적용
-    auto CreateBoundaryHash = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateBoundaryHash");
-    CreateBoundaryHash->SetThreadGroups(TableSize >> 8, 1, 1);
-    boundaryParticleBuffer->BindUAV(4);
-    hashToBoundaryIndexTable->BindUAV(5);
-    CreateBoundaryHash->Dispatch();
-    boundaryParticleBuffer->Clear();
-
-    //Boundary particle은 위치가 시간에 따라 변화하지 않아서 미리 정렬
-    boundaryParticleBuffer->BindUAV(0);
+    //Fluid Particle에 대한 해시테이블 생성
+    auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
     auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
     BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
 
-    auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
-    for (uint32_t k = 2; k <= TableSize; k <<= 1) {
-        for (uint32_t j = k >> 1; j > 0; j >>= 1) {
-
-            ParticleSortCB pscb;
-            pscb.j = j;
-            pscb.k = k;
-
-            particleSortBuffer->SetData(&pscb);
-            particleSortBuffer->SetPipline(ShaderStage::CS);
-
-            BitonicSortShader->Dispatch();
-        }
-    }
-    boundaryParticleBuffer->Clear();
-
-    //Boundary particle에 대한 해시테이블 생성
-    boundaryParticleBuffer->BindUAV(4);
-    UINT groups = boundaryParticles.size() % 256 > 0 ? ((boundaryParticles.size() >> 8) + 1) : (boundaryParticles.size() >> 8);
-    auto CreateBoundaryNeighborTable = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateBoundaryNeighborTable");
-    CreateBoundaryNeighborTable->SetThreadGroups(groups, 1, 1);
-    CreateBoundaryNeighborTable->Dispatch();
-    
-    auto ComputeBoundaryVolume = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeBoundaryVolume");
-    ComputeBoundaryVolume->SetThreadGroups(groups, 1, 1);
-    ComputeBoundaryVolume->Dispatch();
-
-    //Fluid Particle에 대한 해시테이블 생성
     auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
     CalculateHashShader->SetThreadGroups(TableSize >> 8, 1, 1);
     particleBuffer->BindUAV(0);
@@ -286,6 +190,15 @@ void SPHSystem::InitParticles()
         }
     }
 
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->BindObstacleBuffer();
+    }
+
+    UINT groups = particleCount % 256 > 0 ? ((particleCount >> 8) + 1) : (particleCount >> 8);
+
     auto createNeighborTableShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateNeighborTable");
     createNeighborTableShader->SetThreadGroups(groups, 1, 1);
     createNeighborTableShader->Dispatch();
@@ -294,6 +207,13 @@ void SPHSystem::InitParticles()
     auto ComputeDensityAndAlpha = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityAndAlpha");
     ComputeDensityAndAlpha->SetThreadGroups(groups, 1, 1);
     ComputeDensityAndAlpha->Dispatch();
+
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->ClearObstacleBuffer();
+    }
 
     IndirectGPU = make_unique<StructuredBuffer>();
     IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
@@ -334,7 +254,6 @@ void SPHSystem::updateParticles(float deltaTime)
     pcb.boundaryCentor = boundaryCentor;
     pcb.boundarySize = boundarySize;
     pcb.tableSize = TableSize;
-    pcb.boundaryParticlesNum = boundaryParticleCount;
 
     auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
 
@@ -347,9 +266,14 @@ void SPHSystem::updateParticles(float deltaTime)
     particleBuffer->BindUAV(0);
     IndirectGPU->BindUAV(2);
     ParticleWorldMatrixes->BindUAV(3);
-    boundaryParticleBuffer->BindUAV(4);
-    hashToBoundaryIndexTable->BindUAV(5);
     errorBuffer->BindUAV(6);
+
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->BindObstacleBuffer();
+    }
 
     //Step 1 non-pressure force
     auto ComputeNonpressureForce = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeNonpressureForce");
@@ -439,9 +363,13 @@ void SPHSystem::updateParticles(float deltaTime)
     particleBuffer->Clear();
     IndirectGPU->Clear();
     ParticleWorldMatrixes->Clear();
-    boundaryParticleBuffer->Clear();
-    hashToBoundaryIndexTable->Clear();
     errorBuffer->Clear();
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->ClearObstacleBuffer();
+    }
 
     ParticleIndirect->SetDataFromBuffer(IndirectGPU->GetBuffer());
 }

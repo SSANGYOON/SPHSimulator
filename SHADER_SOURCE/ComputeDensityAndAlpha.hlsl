@@ -18,7 +18,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 
         float3 gradientSum = (float3)0.f;
         float gradientProduct = 0.f;
-        //From fluid to fluid
+
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
@@ -48,38 +48,25 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                 }
             }
         }
+        //boundary handling
+        float3 boundaryLocal = (pi.position - obstaclePos - obstacleOffset) / radius;
 
-        //From boundary to fluid
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
-                    uint cellHash = GetHash(cell + int3(x, y, z));
-                    uint pjIndex = boundaryNeighborTable[cellHash];
-                    if (pjIndex == NO_PARTICLE) {
-                        continue;
-                    }
-                    while (pjIndex < boundaryParticlesNum) {
-                        Particle pj = boundaryParticles[pjIndex];
-                        if (pj.hash != cellHash) {
-                            break;
-                        }
-                        float3 diff = pi.position - pj.position;
-                        float dist = length(diff);
-                        if (dist < 2.f * radius) {
-                            float boundaryParticleMass = restDensity / pj.density;
-                            
-                            pDensity += boundaryParticleMass * cubic_spline_kernel(dist);
-                            if (dist > 1e-3) {
-                                float3 temp = boundaryParticleMass * cubic_spline_kernel_gradient(diff);
-                                gradientSum += temp;
-                                gradientProduct += dot(temp, temp);
-                            }
-                        }
+        if( (boundaryLocal.x > 0 && boundaryLocal.x < obstacleSize.x) &&
+            (boundaryLocal.y > 0 && boundaryLocal.y < obstacleSize.y) &&
+            (boundaryLocal.z > 0 && boundaryLocal.z < obstacleSize.z))
+        {
+            float boundarySDF = triLinearSDF(boundaryLocal);
+            float3 boundaryVolume = triLinearVolume(boundaryLocal);
+            float3 normal = normalize(sdfGradient(boundaryLocal));
 
-                        pjIndex++;
-                    }
-                }
-            }
+            float3 diff = clamp(boundarySDF, 1e-3, 3 * radius) * normal;
+            float dist = length(diff);
+
+            pDensity += boundaryVolume * restDensity * cubic_spline_kernel(dist);
+
+            float3 temp = boundaryVolume * cubic_spline_kernel_gradient(diff);
+            gradientSum += temp;
+            gradientProduct += dot(temp, temp);
         }
 
         pi.density = pDensity;

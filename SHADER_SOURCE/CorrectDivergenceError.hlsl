@@ -45,36 +45,20 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 		}
 	}
 
-	//From Boundary
-	for (int x = -1; x <= 1; x++) {
-		for (int y = -1; y <= 1; y++) {
-			for (int z = -1; z <= 1; z++) {
-				uint cellHash = GetHash(cell + int3(x, y, z));
-				uint pjIndex = boundaryNeighborTable[cellHash];
-				if (pjIndex == NO_PARTICLE) {
-					continue;
-				}
-				while (pjIndex < particlesNum) {
-					if (pjIndex == piIndex) {
-						pjIndex++;
-						continue;
-					}
-					Particle pj = boundaryParticles[pjIndex];
-					if (pj.hash != cellHash) {
-						break;
-					}
+	//boundary handling
+	float3 boundaryLocal = (pi.position - obstaclePos - obstacleOffset) / radius;
 
-					float3 diff = pi.position - pj.position;
-					float dist = length(diff);
+	if ((boundaryLocal.x > 0 && boundaryLocal.x < obstacleSize.x) &&
+		(boundaryLocal.y > 0 && boundaryLocal.y < obstacleSize.y) &&
+		(boundaryLocal.z > 0 && boundaryLocal.z < obstacleSize.z))
+	{
+		float boundarySDF = triLinearSDF(boundaryLocal);
+		float3 boundaryVolume = triLinearVolume(boundaryLocal);
+		float3 normal = normalize(sdfGradient(boundaryLocal));
 
-					if (dist < 2 * radius && dist > 1e-5f) {
-						float boundaryParticleMass = restDensity / pj.density;
-						a += boundaryParticleMass * pi.divergenceStiffness * cubic_spline_kernel_gradient(diff);
-					}
-					pjIndex++;
-				}
-			}
-		}
+		float3 diff = clamp(boundarySDF, 1e-3, 3 * radius) * normal;
+
+		a += boundaryVolume * restDensity * pi.divergenceStiffness * cubic_spline_kernel_gradient(diff);
 	}
 
 	Particles[piIndex].velocity -= a;
