@@ -86,7 +86,7 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 		{
 			for (uint k = 0; k < 5; k++)
 			{
-				float r = 2 * samplePoint[i];
+				float r = samplePoint[i];
 				float theta = PI * (1 + samplePoint[j]);
 				float phi = (1 + samplePoint[k]) * PI / 2.f;
 	
@@ -110,5 +110,5 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 		}
 	}
 	
-	volumeGrid[toLinear(DTid.x, DTid.y, DTid.z)] = sum * cellSize * cellSize * cellSize * PI * PI * 0.5f;
+	volumeGrid[toLinear(DTid.x, DTid.y, DTid.z)] = sum * cellSize * cellSize * cellSize * PI * PI * 0.25f;
 }

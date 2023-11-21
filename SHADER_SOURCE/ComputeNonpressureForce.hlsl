@@ -51,19 +51,24 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	//boundary handling
 	float3 boundaryLocal = (pi.position - obstaclePos - obstacleOffset) / radius;
 
-	if ((boundaryLocal.x > 0 && boundaryLocal.x < obstacleSize.x) &&
-		(boundaryLocal.y > 0 && boundaryLocal.y < obstacleSize.y) &&
-		(boundaryLocal.z > 0 && boundaryLocal.z < obstacleSize.z))
+	if ((boundaryLocal.x > 0 && boundaryLocal.x < obstacleSize.x - 1) &&
+		(boundaryLocal.y > 0 && boundaryLocal.y < obstacleSize.y - 1) &&
+		(boundaryLocal.z > 0 && boundaryLocal.z < obstacleSize.z - 1))
 	{
 		float boundarySDF = triLinearSDF(boundaryLocal);
 		float3 boundaryVolume = triLinearVolume(boundaryLocal);
-		float3 normal = normalize(sdfGradient(boundaryLocal));
+		float3 grad = sdfGradient(boundaryLocal);
 
-		float3 diff = clamp(boundarySDF, 1e-3, 3 * radius) * normal;
-		float dist = length(diff);
+		if (length(grad) > 1e-3)
+		{
+			float3 normal = normalize(grad);
 
-		acceleration += viscosity * boundaryVolume * dot(diff, pi.velocity) * cubic_spline_kernel_gradient(diff)
-			/ (dist * dist + 0.01f * radius * radius);;
+			float3 diff = clamp(boundarySDF, 1e-3, 3 * radius) * normal;
+			float dist = length(diff);
+
+			acceleration += viscosity * boundaryVolume * dot(diff, pi.velocity) * cubic_spline_kernel_gradient(diff)
+				/ (dist * dist + 0.01f * radius * radius);
+		}
 	}
 
 	Particles[piIndex].acceleration = acceleration + float3(0, gravity, 0);

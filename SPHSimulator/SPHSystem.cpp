@@ -297,7 +297,7 @@ void SPHSystem::updateParticles(float deltaTime)
     ComputeDensityError->SetThreadGroups(groups, 1, 1);
 
     //iteration
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 1; i++)
     {
         //use previous stiffness for warm start
         CorrectDensityError->Dispatch();
@@ -350,20 +350,21 @@ void SPHSystem::updateParticles(float deltaTime)
     ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
 
     //iteration
-    /*for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 1; i++)
     {
         ComputeDivergenceError->Dispatch();
         ParallelReductionOnGroup->Dispatch();
         ParallelReductionOnGroupSum->Dispatch();
 
         CorrectDivergenceError->Dispatch();
-    }*/
+    }
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
     IndirectGPU->Clear();
     ParticleWorldMatrixes->Clear();
     errorBuffer->Clear();
+    
     for (shared_ptr<SimulationObject>& so : simulationObjects)
     {
         shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);

@@ -48,17 +48,21 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 	//boundary handling
 	float3 boundaryLocal = (pi.position - obstaclePos - obstacleOffset) / radius;
 
-	if ((boundaryLocal.x > 0 && boundaryLocal.x < obstacleSize.x) &&
-		(boundaryLocal.y > 0 && boundaryLocal.y < obstacleSize.y) &&
-		(boundaryLocal.z > 0 && boundaryLocal.z < obstacleSize.z))
+	if ((boundaryLocal.x > 0 && boundaryLocal.x < obstacleSize.x - 1) &&
+		(boundaryLocal.y > 0 && boundaryLocal.y < obstacleSize.y - 1) &&
+		(boundaryLocal.z > 0 && boundaryLocal.z < obstacleSize.z - 1))
 	{
 		float boundarySDF = triLinearSDF(boundaryLocal);
 		float3 boundaryVolume = triLinearVolume(boundaryLocal);
-		float3 normal = normalize(sdfGradient(boundaryLocal));
+		float3 grad = sdfGradient(boundaryLocal);
 
-		float3 diff = clamp(boundarySDF, 1e-3, 3 * radius) * normal;
+		if (length(grad) > 1e-3)
+		{
+			float3 normal = normalize(grad);
+			float3 diff = clamp(boundarySDF, 1e-3, 3 * radius) * normal;
 
-		a += boundaryVolume * restDensity * pi.divergenceStiffness * cubic_spline_kernel_gradient(diff);
+			a += boundaryVolume * restDensity * pi.divergenceStiffness * cubic_spline_kernel_gradient(diff);
+		}
 	}
 
 	Particles[piIndex].velocity -= a;
