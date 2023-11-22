@@ -64,6 +64,9 @@ private:
 	unique_ptr<Texture> horizontalBlurredBackwardDepth;
 
 	unique_ptr<Texture> backgroundTexture;
+
+	unique_ptr<Texture> thicknessTexture;
+
 	unique_ptr<Texture> normalMap;
 	unique_ptr<Texture> obstacleDepth;
 

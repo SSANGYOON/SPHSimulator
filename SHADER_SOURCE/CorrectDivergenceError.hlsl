@@ -53,7 +53,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 		(boundaryLocal.z > 0 && boundaryLocal.z < obstacleSize.z - 1))
 	{
 		float boundarySDF = triLinearSDF(boundaryLocal);
-		float3 boundaryVolume = triLinearVolume(boundaryLocal);
+		float boundaryVolume = triLinearVolume(boundaryLocal);
 		float3 grad = sdfGradient(boundaryLocal);
 
 		if (length(grad) > 1e-3)

@@ -80,6 +80,7 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 
 	float sum = 0.f;
 	float h = cellSize;
+	
 	for (uint i = 0; i < 5; i++)
 	{
 		for (uint j = 0; j < 5; j++)
@@ -87,10 +88,10 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 			for (uint k = 0; k < 5; k++)
 			{
 				float r = samplePoint[i];
-				float theta = PI * (1 + samplePoint[j]);
-				float phi = (1 + samplePoint[k]) * PI / 2.f;
+				float theta = PI * samplePoint[j];
+				float phi = samplePoint[k] * PI / 2.f;
 	
-				float3 diff = r * float3(sin(phi) * sin(theta), cos(phi), sin(phi) * cos(theta));
+				float3 diff = r * float3(sin(phi) * cos(theta), cos(phi), sin(phi) * sin(theta));
 
 				float jacobian = r * r * sin(phi);
 

@@ -144,9 +144,8 @@ float3 sdfGradient(float3 p)
 {
 	const float eps = 1e-5;
 	return float3(
-		triLinearSDF(p + float3(eps, 0.f, 0.f)) - triLinearSDF(p - float3(eps, 0.f, 0.f)),
-		triLinearSDF(p + float3(0.f, eps, 0.f)) - triLinearSDF(p - float3(0.f, eps, 0.f)),
-		triLinearSDF(p + float3(0.f, 0.f, eps)) - triLinearSDF(p - float3(0.f, 0.f, eps))
+		float3(triLinearSDF(p + float3(eps, 0.f, 0.f)), triLinearSDF(p + float3(0.f, eps, 0.f)), triLinearSDF(p + float3(0.f, 0.f, eps)))
+	  - float3(triLinearSDF(p - float3(eps, 0.f, 0.f)), triLinearSDF(p - float3(0.f, eps, 0.f)), triLinearSDF(p - float3(0.f, 0.f, eps)))
 		) * (0.5f / eps);
 }
 
@@ -182,8 +181,4 @@ float3 cubic_spline_kernel_gradient(const float3 r)
 		const float3 a = 0.25f / (PI * radius * radius * radius * radius) * normalize(r);
 		return a * ((q > 1.0f) ? ((2.0f - q) * (2.0f - q) * -3.f) : ((9.0f * q - 12.0f) * q));
 	}
-}
-
-float viscosity_kernel_laplacian(const float r) {
-	return (r <= 2 * radius) ? (45.0f * (2 * radius - r) / (PI * pow(2 * radius, 6))) : 0.0f;
 }

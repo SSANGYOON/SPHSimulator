@@ -58,9 +58,7 @@ void Obstacle::ComputeVolumeMap(float h)
 
     SDFPropertyCB sdfProperty;
 
-    sdfProperty.X = get<0>(sizexyz);
-    sdfProperty.Y = get<1>(sizexyz);
-    sdfProperty.Z = get<2>(sizexyz);
+    sdfProperty.size = sizexyz;
 
     sdfProperty.cellSize = h;
 
@@ -82,7 +80,6 @@ void Obstacle::ComputeVolumeMap(float h)
     volumeMapShader->Dispatch();
 
     vector<float> volumeVector(size);
-    volumeBuffer->GetData(volumeVector.data());
 }
 
 void Obstacle::BindObstacleBuffer()
