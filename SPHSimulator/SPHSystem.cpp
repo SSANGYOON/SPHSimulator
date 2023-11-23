@@ -16,6 +16,7 @@
 #include "Mesh.h"
 #include "Obstacle.h"
 #include "ImGuizmo.h"
+
 #include <numeric>
 
 SPHSettings::SPHSettings(
@@ -59,16 +60,16 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     SceneFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
-    SceneBackwardDepth = make_unique<Texture>();
-    SceneBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
     horizontalBlurredFrontDepth = make_unique<Texture>();
     horizontalBlurredFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
-    horizontalBlurredBackwardDepth = make_unique<Texture>();
-    horizontalBlurredBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    thicknessTexture = make_unique<Texture>();
+    thicknessTexture->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    horizontalBlurredThickness = make_unique<Texture>();
+    horizontalBlurredThickness->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     normalMap = make_unique<Texture>();
@@ -251,7 +252,7 @@ void SPHSystem::updateParticles(float deltaTime)
     ParallelReductionOnGroupSum->SetThreadGroups(1, 1, 1);
 
     //iteration
-    /*for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 1; i++)
     {
         ComputeDivergenceError->Dispatch();
         
@@ -259,7 +260,7 @@ void SPHSystem::updateParticles(float deltaTime)
         ParallelReductionOnGroupSum->Dispatch();
 
         CorrectDivergenceError->Dispatch();
-    }*/
+    }
 
     //Step 5 non-pressure force
     auto ComputeNonpressureForce = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeNonpressureForce");
@@ -278,7 +279,7 @@ void SPHSystem::updateParticles(float deltaTime)
     ComputeDensityError->SetThreadGroups(groups, 1, 1);
 
     //iteration
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 4; i++)
     {
         CorrectDensityError->Dispatch();
 
@@ -378,18 +379,6 @@ void SPHSystem::draw(Camera* Cam)
         frontDepthRecordShader->BindShader();
         RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
     }
-    //Scene Backward Depth Rendering;
-    CONTEXT->ClearRenderTargetView(SceneBackwardDepth->GetRTV(), &nearClip);
-    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
-    CONTEXT->OMSetRenderTargets(1, SceneBackwardDepth->GetRTVRef(), commonDepth);
-
-    CONTEXT->RSSetViewports(1, &_viewPort);
-
-    if (started) {
-        auto backwardDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordBackwardDepthShader");
-        backwardDepthRecordShader->BindShader();
-        RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
-    }
 
     ID3D11RenderTargetView* backgroundRTVS[2] = { backgroundTexture->GetRTV() , obstacleDepth->GetRTV() };
 
@@ -417,9 +406,30 @@ void SPHSystem::draw(Camera* Cam)
         simulationObject->Render(Cam);
     }
 
+    if (started) {
+        //Scene thickness;
+        CONTEXT->ClearRenderTargetView(thicknessTexture->GetRTV(), zero);
+        CONTEXT->OMSetRenderTargets(1, thicknessTexture->GetRTVRef(), nullptr);
+
+        CONTEXT->RSSetViewports(1, &_viewPort);
+
+        auto thicknessShader = GET_SINGLE(Resources)->Find<Shader>(L"RenderThickness");
+        thicknessShader->BindShader();
+
+        obstacleDepth->BindSRV(ShaderStage::PS, 0);
+        RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+        obstacleDepth->ClearSRV(ShaderStage::PS, 0);
+    }
+
+    GEngine->BindSwapChain();
+    GEngine->ClearSwapChain();
+
     //Blur
     SceneFrontDepth->BindUAV(0);
+
     horizontalBlurredFrontDepth->BindUAV(1);
+    thicknessTexture->BindUAV(2);
+    horizontalBlurredThickness->BindUAV(3);
 
     for (int i = 0; i < 2; i++) {
         //HorizontalBlur
@@ -436,6 +446,9 @@ void SPHSystem::draw(Camera* Cam)
     }
 
     horizontalBlurredFrontDepth->ClearUAV(1);
+    thicknessTexture->ClearUAV(2);
+    horizontalBlurredThickness->ClearUAV(3);
+    
 
     //Getnormal from depth
     normalMap->BindUAV(1);
@@ -449,15 +462,11 @@ void SPHSystem::draw(Camera* Cam)
 
     //À¯Ã¼ ·»´õ¸µ
 
-    GEngine->BindSwapChain();
-    GEngine->ClearSwapChain();
-
     SceneFrontDepth->BindSRV(ShaderStage::PS, 0);
-    SceneBackwardDepth->BindSRV(ShaderStage::PS, 1);
+    thicknessTexture->BindSRV(ShaderStage::PS, 1);
     normalMap->BindSRV(ShaderStage::PS, 2);
     cubeMap->BindSRV(ShaderStage::PS, 3);
     backgroundTexture->BindSRV(ShaderStage::PS, 4);
-    obstacleDepth->BindSRV(ShaderStage::PS, 5);
 
     auto CompositeShader = GET_SINGLE(Resources)->Find<Shader>(L"Composite");
     CompositeShader->BindShader();
@@ -465,11 +474,10 @@ void SPHSystem::draw(Camera* Cam)
     RectMesh->Render();
 
     SceneFrontDepth->ClearSRV(ShaderStage::PS, 0);
-    SceneBackwardDepth->ClearSRV(ShaderStage::PS, 1);
+    thicknessTexture->ClearSRV(ShaderStage::PS, 1);
     normalMap->ClearSRV(ShaderStage::PS, 2);
     cubeMap->ClearSRV(ShaderStage::PS, 3);
     backgroundTexture->ClearSRV(ShaderStage::PS, 4);
-    obstacleDepth->ClearSRV(ShaderStage::PS, 5);
 
     DrawBoundary(Cam);
 }

@@ -156,7 +156,7 @@ uint GetHash(int3 cell)
 
 uint GetHashValueOfLocation(float3 position)
 {
-	int3 cell = int3((position + boundarySize * 0.5f) / (2 * radius));
+	int3 cell = int3((position + boundarySize * 0.5f) / (2.01f * radius));
 
 	return GetHash(cell);
 }

@@ -317,6 +317,8 @@ void Mesh::RenderIndexedInstancedIndirect(InstancingBuffer* instances, IndirectB
 
 		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
 		CONTEXT->IASetVertexBuffers(0, 2, views, stride, offset);
+		if (_indexBuffer)
+			CONTEXT->IASetIndexBuffer(_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 		CONTEXT->DrawIndexedInstancedIndirect(indirect->GetBuffer().Get(), 0);
 	}
 }

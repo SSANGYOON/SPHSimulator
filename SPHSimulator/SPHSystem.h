@@ -37,7 +37,6 @@ public:
 private:
 	SPHSettings settings;
 	size_t particleCubeWidth;
-	
 
 	bool started;
 	void InitParticles();
@@ -58,14 +57,12 @@ private:
 	unique_ptr<StructuredBuffer> errorBuffer;
 
 	unique_ptr<Texture> SceneFrontDepth;
-	unique_ptr<Texture> SceneBackwardDepth;
-
 	unique_ptr<Texture> horizontalBlurredFrontDepth;
-	unique_ptr<Texture> horizontalBlurredBackwardDepth;
-
-	unique_ptr<Texture> backgroundTexture;
 
 	unique_ptr<Texture> thicknessTexture;
+	unique_ptr<Texture> horizontalBlurredThickness;
+
+	unique_ptr<Texture> backgroundTexture;
 
 	unique_ptr<Texture> normalMap;
 	unique_ptr<Texture> obstacleDepth;
@@ -84,11 +81,6 @@ private:
 
 	Matrix View;
 	Matrix Projection;
-
-	Particle GPUSortedParticle[1 << 18];
-	array<float, 1 << 18> temporary;
-
-	//UINT Table[1 << 18];
 
 	float WinX = 4;
 	float WinY = 3;

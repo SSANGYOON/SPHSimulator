@@ -130,13 +130,15 @@ void Resources::CreateDefaultResource()
 	mesh->CreateVertexBuffer(vertexes, 4);
 
 	std::vector<UINT> indexes;
+	indexes.push_back(2);
+	indexes.push_back(3);
+	indexes.push_back(0);
+
 	indexes.push_back(0);
 	indexes.push_back(1);
 	indexes.push_back(2);
 
-	indexes.push_back(2);
-	indexes.push_back(3);
-	indexes.push_back(0);
+	
 
 	mesh->CreateIndexBuffer(indexes.data(), (UINT)indexes.size());
 #pragma endregion
@@ -390,7 +392,7 @@ void Resources::CreateDefaultResource()
 		Resources::Insert<Shader>(L"RecordFrontDepthShader", RecordDepthShader);
 		_info.bst = BSType::Default;
 		_info.dst = DSType::Less;
-		_info.rst = RSType::SolidBack;
+		_info.rst = RSType::SolidNone;
 		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		_entry = {};
 		_entry.VS = true;
@@ -414,6 +416,24 @@ void Resources::CreateDefaultResource()
 		_entry.VS = true;
 		_entry.PS = true;
 		RecordDepthShader->CreateShader(_info, _entry, L"RecordBackwardDepth.hlsl", false);
+	}
+#pragma endregion
+
+#pragma region RenderThickness
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> RenderThickness = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"RenderThickness", RenderThickness);
+		_info.bst = BSType::Additive;
+		_info.dst = DSType::None;
+		_info.rst = RSType::SolidNone;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		RenderThickness->CreateShader(_info, _entry, L"RenderThickness.hlsl", false);
 	}
 #pragma endregion
 

@@ -34,12 +34,6 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)DrawBackGround.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)RecordBackwardDepth.hlsl">
-      <Filter>Render</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CalculateThickness.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)Composite.hlsl">
       <Filter>Render</Filter>
     </FxCompile>

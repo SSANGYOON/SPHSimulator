@@ -111,5 +111,5 @@ void CS_MAIN( uint3 DTid : SV_DispatchThreadID )
 		}
 	}
 	
-	volumeGrid[toLinear(DTid.x, DTid.y, DTid.z)] = sum * cellSize * cellSize * cellSize * PI * PI * 0.25f;
+	volumeGrid[toLinear(DTid.x, DTid.y, DTid.z)] = sum * h * h * h * PI * PI * 0.25f;
 }

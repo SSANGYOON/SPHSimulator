@@ -2,11 +2,10 @@
 #include "Global_SPH.hlsli"
 
 Texture2D<float> frontDepthMap: register(t0);
-Texture2D<float> backwardDepthMap: register(t1);
+Texture2D thicknessMap: register(t1);
 Texture2D<float3> normalMap: register(t2);
 TextureCube cubeMap : register(t3);
 Texture2D backgroundTexture: register(t4);
-Texture2D<float> obstacleDepthMap: register(t5);
 
 const static float3 LightDirection = float3(0.707, -0.707, 0);
 
@@ -56,15 +55,9 @@ float4 PS_MAIN(PSIn In) : SV_Target
 
 	float3 VertexToEye = normalize(In.EyePos - worldPos);
 	float3 halfVector = normalize(VertexToEye - LightDirection);
-	float SpecularFactory = max(dot(halfVector, normal), 0);
-	if (SpecularFactory > 0)
-	{
-		SpecularFactory = pow(SpecularFactory, SpecularPower);
-	}
 
 	float3 ViewDirection = -VertexToEye;
 	float3 Reflection = reflect(ViewDirection, normal);
-	float3 ReflectionTex = cubeMap.Sample(linearSampler, ViewDirection).xyz;
 	float3 ReflectionColor = cubeMap.Sample(linearSampler, Reflection).xyz;
 
 	float Radio = 1.0 / 1.33;
@@ -72,9 +65,7 @@ float4 PS_MAIN(PSIn In) : SV_Target
 	
 	float3 absorbance = 1 - fluidColor;
 
-	float backwardDepth = backwardDepthMap.Sample(linearSampler, In.UV);
-	float obstacleDepth = obstacleDepthMap.Sample(linearSampler, In.UV);
-	float thickness = min(backwardDepth, obstacleDepth) - min(depth, obstacleDepth);
+	float thickness = thicknessMap.Sample(linearSampler, In.UV).x;
 	thickness = clamp(thickness, 0, farClip);
 
 	if(thickness <= 0.f)
