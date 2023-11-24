@@ -229,25 +229,29 @@ $$ x_i - x_i^{\*} = ||SDF(x_i)|| * \frac{grad(SDF(x_i))} {||grad(SDF(x_i))||} $$
 ## 참고문헌 :
 
 이 프로젝트에서 참고한 visicosity simulation 방법
+
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
 
 (Particle-Based Fluid Simulation for Interactive Applications)[https://matthias-research.github.io/pages/publications/sca03.pdf]
 
 particle based boundary handling 방법
+
 (Versatile Rigid-Fluid Coupling for Incompressible SPH)https://cg.informatik.uni-freiburg.de/publications/2012_SIGGRAPH_rigidFluidCoupling.pdf
 
 triangle mesh로부터 discrete sdf를 생성하는 알고리즘에 관한 논문
+
 [https://animation.rwth-aachen.de/media/papers/2015-SCA-DFSPH.pdf]
 
 이 프로젝트에서 사용한 임의 경계 handling 방법
+
 [https://animation.rwth-aachen.de/media/papers/65/2019-MIG-VolumeMaps.pdf]
 
 2017년에 위 논문 저자들이 작성한 boundary handling 기법에 관한 논문 여기서 Gauss-Legendre 구적법을 사용했다는 내용이 있어서 이 프로젝트에서도 사용함
+
 [https://animation.rwth-aachen.de/media/papers/kb17.pdf]
 
-[https://animation.rwth-aachen.de/media/papers/65/2019-MIG-VolumeMaps.pdf]
-
 divergence free sph 논문 최초로 sph에서 const density 조건 뿐만 아니라 divergence free 조건은 이용한 기법을 다룬 논문
+
 [https://animation.rwth-aachen.de/media/papers/2015-SCA-DFSPH.pdf]
 
 
