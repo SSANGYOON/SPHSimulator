@@ -228,7 +228,7 @@ $$ x_i - x_i^{\*} = ||SDF(x_i)|| * \frac{grad(SDF(x_i))} {||grad(SDF(x_i))||} $$
 
 ## 참고문헌 :
 
-이 프로젝트에서 참고한 visicosity simulation 방법
+이 프로젝트에서 참고한 기본적인 sph 방법
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
 
@@ -254,7 +254,13 @@ divergence free sph 논문 최초로 sph에서 const density 조건 뿐만 아�
 
 [https://animation.rwth-aachen.de/media/papers/2015-SCA-DFSPH.pdf]
 
+screen space에서 유체의 렌더링 기법을 다룬 논문
 
+[https://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf]
+
+매끄러운 유체 표현을 위한 유체 표면 필터링 기법
+
+[http://www.cemyuksel.com/research/papers/narrowrangefilter.pdf]
 
 
 
