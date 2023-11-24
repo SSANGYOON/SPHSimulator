@@ -53,12 +53,11 @@ public:
         return _origin + wsP * m_cellSize;
     }
 
+    const T& operator()(int x, int y, int z) const { return _voxels[linearize(x, y, z)]; }
+    T& operator()(int x, int y, int z) { return _voxels[linearize(x, y, z)]; }
 
-    const T& operator()(int x, int y, int z) const { return _voxels[x * y * z]; }
-    T& operator()(int x, int y, int z) { return _voxels[x * y * z]; }
-
-    T value(int x, int y, int z) const { return _voxels[x * y * z]; }
-    void setValue(int x, int y, int z, const T& value) { _voxels[x * y * z] = value; }
+    T value(int x, int y, int z) const { return _voxels[linearize(x, y, z)]; }
+    void setValue(int x, int y, int z, const T& value) { _voxels[linearize(x, y, z)] = value; }
 
     // trilinear filtering
     T trilinear(const Vector3& vsP) const {
@@ -99,6 +98,9 @@ public:
     const T* data() const { return _voxels.data(); }
 
 private:
+    inline size_t linearize(const int x, const int y, const int z) const {
+        return z * size_x * size_y + y * size_x + x;
+    }
 
     int size_x;
     int size_y;

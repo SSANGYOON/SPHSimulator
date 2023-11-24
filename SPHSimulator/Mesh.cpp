@@ -7,6 +7,7 @@
 #include <sstream>
 #include "InstancingBuffer.h"
 #include "IndirectBuffer.h"
+#include <limits>
 
 Mesh::Mesh()
 	:Resource(RESOURCE_TYPE::MESH)
@@ -15,68 +16,13 @@ Mesh::Mesh()
 	, projection{}
 	, indexes{}
 	, vertexes{}
+	, _vertexes{}
 {
 
 }
 
 Mesh::~Mesh()
 {
-}
-
-// find distance x0 is from segment x1-x2
-static float point_segment_distance(const Vector3& x0, const Vector3& x1, const Vector3& x2, Vector3& proj) {
-	Vector3 dx(x2 - x1);
-	float m2 = dx.LengthSquared();
-	// find parameter value of closest point on segment
-	float s12 = float((x2 - x0).Dot(dx) / m2);
-	if (s12 < 0) {
-		s12 = 0;
-	}
-	else if (s12 > 1) {
-		s12 = 1;
-	}
-	// and find the distance
-
-	proj = s12 * x1 + (1 - s12) * x2;
-	return (x0 - proj).Length();
-}
-
-// find distance x0 is from triangle x1-x2-x3
-static float point_triangle_distance(const Vector3& x0, const Vector3& x1, const Vector3& x2, const Vector3& x3, Vector3& proj) {
-	// first find barycentric coordinates of closest point on infinite plane
-	Vector3 x13(x1 - x3), x23(x2 - x3), x03(x0 - x3);
-	float m13 = x13.LengthSquared(), m23 = x23.LengthSquared(), d = x13.Dot(x23);
-	float invdet = 1.f / std::max(m13 * m23 - d * d, 1e-30f);
-	float a = x13.Dot(x03), b = x23.Dot(x03);
-	// the barycentric coordinates themselves
-	float w23 = invdet * (m23 * a - d * b);
-	float w31 = invdet * (m13 * b - d * a);
-	float w12 = 1 - w23 - w31;
-	if (w23 >= 0 && w31 >= 0 && w12 >= 0) { // if we're inside the triangle
-		proj = w23 * x1 + w31 * x2 + w12 * x3;
-		return (x0 - proj).Length();
-	}
-	else { // we have to clamp to one of the edges
-		Vector3 proj1;
-		Vector3 proj2;
-		Vector3 proj3;
-
-		float d1 = point_segment_distance(x0, x1, x2, proj1);
-		float d2 = point_segment_distance(x0, x1, x3, proj2);
-		float d3 = point_segment_distance(x0, x2, x3, proj3);
-		if (d1 <= d2 && d1 <= d3) {
-			proj = proj1;
-			return d1;
-		}
-		else if(d2 <= d1 && d2 <= d3){
-			proj = proj2;
-			return d2;
-		}
-		else{
-			proj = proj3;
-			return d3;
-		}
-	}
 }
 
 HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
@@ -227,12 +173,30 @@ HRESULT Mesh::Load(const std::wstring& path, bool stockObject)
 		}
 		fs.close();
 
-		CreateVertexBuffer(vertexes.data(), vertexes.size());
-		CreateIndexBuffer(indexes.data(), indexes.size());
-		_vertexes = vertexes.size();
+		CreateVertexBuffer(vertexes.data(), (UINT)vertexes.size());
+		CreateIndexBuffer(indexes.data(), (UINT)indexes.size());
+		_vertexes = (UINT)vertexes.size();
 	}
 
 	return S_OK;
+}
+
+void Mesh::CreateVertexBuffer(vector<Vertex> vertexVector, D3D11_USAGE usage)
+{
+	vertexes = vertexVector;
+	// 버텍스 버퍼
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = sizeof(Vertex) * vertexVector.size();
+	desc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+	desc.Usage = usage;
+	if (usage == D3D11_USAGE_DYNAMIC)
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	else
+		desc.CPUAccessFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA subData = {};
+	subData.pSysMem = vertexVector.data();
+	DEVICE->CreateBuffer(&desc, &subData, _vertexBuffer.GetAddressOf());
 }
 
 void Mesh::CreateVertexBuffer(void* data, UINT count, D3D11_USAGE usage)
@@ -260,6 +224,24 @@ void Mesh::SetVertexData(void* data, UINT count)
 	CONTEXT->Unmap(_vertexBuffer.Get(), 0);
 }
 
+void Mesh::CreateIndexBuffer(vector<UINT> indexVector, D3D11_USAGE usage)
+{
+	indexes = indexVector;
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = sizeof(UINT) * indexVector.size();
+	desc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
+	desc.Usage = usage;
+	if (usage == D3D11_USAGE_DYNAMIC)
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	else
+		desc.CPUAccessFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA subData = {};
+	subData.pSysMem = indexVector.data();
+	DEVICE->CreateBuffer(&desc, &subData, _indexBuffer.GetAddressOf());
+	_indexes = indexVector.size();
+}
+
 void Mesh::CreateIndexBuffer(void* data, UINT count, D3D11_USAGE usage)
 {
 	D3D11_BUFFER_DESC desc = {};
@@ -275,49 +257,6 @@ void Mesh::CreateIndexBuffer(void* data, UINT count, D3D11_USAGE usage)
 	subData.pSysMem = data;
 	DEVICE->CreateBuffer(&desc, &subData, _indexBuffer.GetAddressOf());
 	_indexes = count;
-}
-
-void Mesh::rasterizeTriangle(const Vector3& p0, const Vector3& p1, const Vector3& p2, float h)
-{
-	Vector3 minV = Vector3::Min(Vector3::Min(p0, p1),p2);
-	Vector3 maxV = Vector3::Max(Vector3::Max(p0, p1), p2);
-
-	Vector3 e0 = p1 - p0;
-	Vector3 e1 = p2 - p0;
-	Vector3 normal = e0.Cross(e1);
-
-	normal.Normalize();
-
-	for (int z = int(minV.z / h) - 1; z <= int(maxV.z / h) + 1; ++z) {
-		for (int y = int(minV.y / h) - 1; y <= int(maxV.y / h) + 1; ++y) {
-			for (int x = int(minV.x / h) - 1; x <= int(maxV.x / h) + 1; ++x) {
-				Vector3 center = Vector3(x + 0.5f, y + 0.5f, z + 0.5f) * h;
-				Vector3 proj;
-				float d = point_triangle_distance(center, p0, p1, p2, proj);
-				if (sdf.find(make_tuple(x, y, z)) == sdf.end() || sdf[make_tuple(x, y, z)] > d)
-				{
-					sdf[make_tuple(x, y, z)] = d;
-					projection[make_tuple(x, y, z)] = proj;
-				}
-			}
-		}
-	}
-}
-
-void Mesh::Voxelize(vector<Vector3>& voxels, float cellSize, const Matrix& srt)
-{
-	for (int i = 0; 3 * i < _indexes; i++)
-	{
-		Vector3 p0 = Vector3::Transform(vertexes[indexes[3 * i]].pos, srt);
-		Vector3 p1 = Vector3::Transform(vertexes[indexes[3 * i + 1]].pos, srt);
-		Vector3 p2 = Vector3::Transform(vertexes[indexes[3 * i + 2]].pos, srt);
-		rasterizeTriangle(p0, p1, p2, cellSize);
-	}
-
-	for (auto& particle : projection)
-	{
-		voxels.push_back(particle.second);
-	}
 }
 
 void Mesh::SetIndexData(void* data, UINT count)
@@ -378,6 +317,8 @@ void Mesh::RenderIndexedInstancedIndirect(InstancingBuffer* instances, IndirectB
 
 		ID3D11Buffer* views[] = { _vertexBuffer.Get(), instances->GetBuffer() };
 		CONTEXT->IASetVertexBuffers(0, 2, views, stride, offset);
+		if (_indexBuffer)
+			CONTEXT->IASetIndexBuffer(_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 		CONTEXT->DrawIndexedInstancedIndirect(indirect->GetBuffer().Get(), 0);
 	}
 }

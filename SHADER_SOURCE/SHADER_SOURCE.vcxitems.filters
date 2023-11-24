@@ -4,12 +4,6 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)BitonicSort.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CalculateForce.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CalculatePressureAndDensity.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)CreateNeighborTable.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
@@ -31,29 +25,14 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)RenderSphere.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)UpdateParticlePosition.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)VisualizeDepth.hlsl">
       <Filter>Render</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)HorizontalBilateralFilter.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)VerticalBilateralFilter.hlsl">
-      <Filter>Compute</Filter>
     </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)CreateNormal.hlsl">
       <Filter>Compute</Filter>
     </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)DrawBackGround.hlsl">
       <Filter>Render</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)RecordBackwardDepth.hlsl">
-      <Filter>Render</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CalculateThickness.hlsl">
-      <Filter>Compute</Filter>
     </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)Composite.hlsl">
       <Filter>Render</Filter>
@@ -67,17 +46,38 @@
     <FxCompile Include="$(MSBuildThisFileDirectory)visualizeBoundary.hlsl">
       <Filter>Render</Filter>
     </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CreateBoundaryHash.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)CreateBoundaryNeighborTable.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
-    <FxCompile Include="$(MSBuildThisFileDirectory)BoundaryParticleVolume.hlsl">
-      <Filter>Compute</Filter>
-    </FxCompile>
     <FxCompile Include="$(MSBuildThisFileDirectory)Renderthickness.hlsl">
       <Filter>Render</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ComputeDivergenceError.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CorrectDivergenceError.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ComputeDensityError.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CorrectDensityError.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ComputeNonpressureForce.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ParticleAdvect.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ParallelReductionOnGroup.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ParallelReductionOnGroupSum.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)ApplyAcceleration.hlsl">
+      <Filter>Compute</Filter>
+    </FxCompile>
+    <FxCompile Include="$(MSBuildThisFileDirectory)CreateVolumeMap.hlsl">
+      <Filter>Compute</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +94,9 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Global.hlsli">
       <Filter>Include</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)ComputeDensityAndAlpha.hlsl">
+      <Filter>Compute</Filter>
     </None>
   </ItemGroup>
 </Project>

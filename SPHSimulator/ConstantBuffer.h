@@ -8,6 +8,8 @@
 #define CBSLOT_PARTICLE 2
 #define CBSLOT_PARTICLESORT 3
 #define CBSLOT_PARTICLERENDER 4
+#define CBSLOT_SDFPROPERTY 5
+#define CBSLOT_OBSTACLEBUFFER 6
 
 #include "Enums.h"
 
@@ -18,6 +20,8 @@ enum class Constantbuffer_Type : UINT8
 	PARTICLE,
 	PARTICLESORT,
 	PARTICLERENDER,
+	SDFPROPERTY,
+	OBSTACLE,
 	END
 };
 
@@ -46,7 +50,6 @@ CBUFFER(ParticleCB, CBSLOT_PARTICLE)
 {
 	UINT particlesNum;
 	float radius;
-	float gasConstant;
 	float restDensity;
 	float mass;
 	Vector3 boundaryCentor;
@@ -55,7 +58,7 @@ CBUFFER(ParticleCB, CBSLOT_PARTICLE)
 	float gravity;
 	float deltaTime;
 	UINT tableSize;
-	UINT boundaryParticlesNum;
+	Vector2 settingsPadding;
 };
 
 CBUFFER(ParticleSortCB, CBSLOT_PARTICLESORT)
@@ -76,6 +79,27 @@ CBUFFER(ParticleRenderCB, CBSLOT_PARTICLERENDER)
 	float SpecularIntensity;
 	Vector3 fluidColor;
 };
+CBUFFER(SDFPropertyCB, CBSLOT_SDFPROPERTY)
+{
+	UINT size_x;
+	UINT size_y;
+	UINT size_z;
+	float cellSize;
+};
+
+CBUFFER(ObstacleCB, CBSLOT_OBSTACLEBUFFER)
+{
+	Vector3 origin;
+	float padding1;
+	Vector3 offset;
+	float padding2;
+	UINT size_x;
+	UINT size_y;
+	UINT size_z;
+	float padding3;
+	Matrix rotation;
+};
+
 
 struct alignas(16) LightInfo
 {

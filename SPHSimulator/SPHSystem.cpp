@@ -17,15 +17,17 @@
 #include "Obstacle.h"
 #include "ImGuizmo.h"
 
+#include <numeric>
+
 SPHSettings::SPHSettings(
-    float restDensity, float gasConst, float viscosity, float h,
-    float g, float tension)
+    float restDensity, float viscosity, float h,
+    float g, float tension, bool useDivergenceSolver)
     : restDensity(restDensity)
-    , gasConstant(gasConst)
     , viscosity(viscosity)
     , h(h)
     , g(g)
     , tension(tension)
+    , useDivergenceSolver(useDivergenceSolver)
 {
     h2 = h * h;
     sphereScale = Matrix::CreateScale(Vector3(h/2.f));
@@ -36,6 +38,7 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     , settings(settings)
 {
     particleCount = particleCubeWidth * particleCubeWidth * particleCubeWidth;
+
     particles = new Particle[MaxParticle];
 
     started = false;
@@ -58,16 +61,16 @@ SPHSystem::SPHSystem(UINT32 particleCubeWidth, const SPHSettings& settings)
     SceneFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
-    SceneBackwardDepth = make_unique<Texture>();
-    SceneBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
-        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
-
     horizontalBlurredFrontDepth = make_unique<Texture>();
     horizontalBlurredFrontDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
-    horizontalBlurredBackwardDepth = make_unique<Texture>();
-    horizontalBlurredBackwardDepth->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+    thicknessTexture = make_unique<Texture>();
+    thicknessTexture->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET | D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
+        | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
+
+    horizontalBlurredThickness = make_unique<Texture>();
+    horizontalBlurredThickness->Create(Info.width, Info.height, DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT, D3D11_BIND_FLAG::D3D11_BIND_UNORDERED_ACCESS
         | D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE, 0);
 
     normalMap = make_unique<Texture>();
@@ -117,12 +120,24 @@ void SPHSystem::InitParticles()
                 Particle* particle = &particles[particleIndex];
                 particle->position = nParticlePos;
                 particle->velocity = Vector3::Zero;
+                particle->densityStiffness = 0.f;
+                particle->divergenceStiffness = 0.f;
+                particle->acceleration = Vector3::Zero;
             }
         }
     }
 
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->ComputeVolumeMap(settings.h);
+    }
+
     Intances = make_unique<InstancingBuffer>();
     Intances->Init(MaxParticle);
+
+    UINT TableSize = NextPowerOf2(particleCount);
 
     particleBuffer = make_unique<StructuredBuffer>();
     particleBuffer->Create(sizeof(Particle), MaxParticle, particles,true, true);
@@ -130,129 +145,8 @@ void SPHSystem::InitParticles()
     hashToParticleIndexTable = make_unique<StructuredBuffer>();
     hashToParticleIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
 
-    //Initialize BoundaryParticle
-    boundaryVoxels.clear();
-    for (shared_ptr<SimulationObject>& so : simulationObjects)
-    {
-        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
-        if (obstacle)
-            obstacle->GetVoxels(boundaryVoxels, settings.h);
-    }
-
-    vector<Particle> boundaryParticles(MaxParticle);
-
-    for (int i = 0; i < boundaryVoxels.size(); i++)
-    {
-        boundaryParticles[i].position = boundaryVoxels[i];
-        boundaryParticles[i].velocity = Vector3::Zero;
-    }
-
-    int ind = boundaryVoxels.size();
-
-    for (float i = boundaryCentor.x - boundarySize.x / 2.f; i <= boundaryCentor.x + boundarySize.x / 2.f; i += settings.h)
-    {
-        for (float k = boundaryCentor.z - boundarySize.z / 2.f; i <= boundaryCentor.z + boundarySize.z / 2.f; i += settings.h)
-        {
-            boundaryParticles[ind].position = Vector3(i, boundaryCentor.y - boundarySize.y / 2.f - settings.h / 2.f, k);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-        }
-    }
-
-    for (float i = boundaryCentor.x - boundarySize.x / 2.f; i <= boundaryCentor.x + boundarySize.x / 2.f; i += settings.h)
-    {
-        for (float j = boundaryCentor.y - boundarySize.y / 2.f; j <= boundaryCentor.y + boundarySize.y / 2.f; j += settings.h)
-        {
-            boundaryParticles[ind].position = Vector3(i, j, boundaryCentor.z - boundarySize.z / 2.f - settings.h / 2.f);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-
-            boundaryParticles[ind].position = Vector3(i, j, boundaryCentor.z + boundarySize.z / 2.f + settings.h / 2.f);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-        }
-    }
-
-    for (float j = boundaryCentor.y - boundarySize.y / 2.f; j <= boundaryCentor.y + boundarySize.y / 2.f; j += settings.h)
-    {
-        for (float k = boundaryCentor.z - boundarySize.z / 2.f; k <= boundaryCentor.z + boundarySize.z / 2.f; k += settings.h)
-        {
-            boundaryParticles[ind].position = Vector3(boundaryCentor.x - boundarySize.x / 2.f - settings.h / 2.f, j, k);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-
-            boundaryParticles[ind].position = Vector3(boundaryCentor.x + boundarySize.x / 2.f + settings.h / 2.f, j, k);
-            boundaryParticles[ind++].velocity = Vector3::Zero;
-        }
-    }
-
-    boundaryParticleCount = ind;
-
-    boundaryParticleBuffer = make_unique<StructuredBuffer>();
-    boundaryParticleBuffer->Create(sizeof(Particle), MaxParticle, boundaryParticles.data(), true, true);
-
-    hashToBoundaryIndexTable = make_unique<StructuredBuffer>();
-    hashToBoundaryIndexTable->Create(sizeof(UINT), MaxParticle, nullptr, true, false);
-
-    UINT TableSize = NextPowerOf2(particleCount);
-
-    ParticleCB pcb = {};
-    pcb.particlesNum = particleCount;
-    pcb.radius = settings.h;
-    pcb.gasConstant = settings.gasConstant;
-    pcb.restDensity = settings.restDensity;
-    pcb.mass = settings.h * settings.h * settings.h * settings.restDensity;
-    pcb.viscosity = settings.viscosity;
-    pcb.gravity = settings.g;
-    pcb.deltaTime = 0;
-    pcb.boundaryCentor = boundaryCentor;
-    pcb.boundarySize = boundarySize;
-    pcb.tableSize = TableSize;
-    pcb.boundaryParticlesNum = boundaryParticleCount;
-
-    auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
-
-    particleCBuffer->SetData(&pcb);
-    particleCBuffer->SetPipline(ShaderStage::CS);
-    particleCBuffer->SetPipline(ShaderStage::VS);
-    particleCBuffer->SetPipline(ShaderStage::PS);
-
-    //Boundary Particle에 해시 적용
-    auto CreateBoundaryHash = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateBoundaryHash");
-    CreateBoundaryHash->SetThreadGroups(TableSize >> 8, 1, 1);
-    boundaryParticleBuffer->BindUAV(4);
-    hashToBoundaryIndexTable->BindUAV(5);
-    CreateBoundaryHash->Dispatch();
-    boundaryParticleBuffer->Clear();
-
-    //Boundary particle은 위치가 시간에 따라 변화하지 않아서 미리 정렬
-    boundaryParticleBuffer->BindUAV(0);
-    auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
-    BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
-
-    auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
-    for (uint32_t k = 2; k <= TableSize; k <<= 1) {
-        for (uint32_t j = k >> 1; j > 0; j >>= 1) {
-
-            ParticleSortCB pscb;
-            pscb.j = j;
-            pscb.k = k;
-
-            particleSortBuffer->SetData(&pscb);
-            particleSortBuffer->SetPipline(ShaderStage::CS);
-
-            BitonicSortShader->Dispatch();
-        }
-    }
-    boundaryParticleBuffer->Clear();
-
-    //Boundary particle에 대한 해시테이블 생성
-    boundaryParticleBuffer->BindUAV(4);
-    UINT groups = boundaryParticles.size() % 256 > 0 ? ((boundaryParticles.size() >> 8) + 1) : (boundaryParticles.size() >> 8);
-    auto CreateBoundaryNeighborTable = GET_SINGLE(Resources)->Find<ComputeShader>(L"CreateBoundaryNeighborTable");
-    CreateBoundaryNeighborTable->SetThreadGroups(groups, 1, 1);
-    CreateBoundaryNeighborTable->Dispatch();
-    
-    auto ComputeBoundaryVolume = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeBoundaryVolume");
-    ComputeBoundaryVolume->SetThreadGroups(groups, 1, 1);
-    ComputeBoundaryVolume->Dispatch();
-    boundaryParticleBuffer->Clear();
+    errorBuffer = make_unique<StructuredBuffer>();
+    errorBuffer->Create(sizeof(float), TableSize, nullptr, true, true);
 
     IndirectGPU = make_unique<StructuredBuffer>();
     IndirectGPU->Create(sizeof(IndirectArgs), 1, nullptr, true, false);
@@ -271,7 +165,7 @@ void SPHSystem::update(float deltaTime)
     }
     if (!started) return;
     // To increase system stability, a fixed deltaTime is set
-    deltaTime = 0.003;
+    deltaTime = 0.006f;
     
     updateParticles(deltaTime);
 }
@@ -285,7 +179,6 @@ void SPHSystem::updateParticles(float deltaTime)
     ParticleCB pcb = {};
     pcb.particlesNum = particleCount;
     pcb.radius = settings.h;
-    pcb.gasConstant = settings.gasConstant;
     pcb.restDensity = settings.restDensity;
     pcb.mass = settings.h * settings.h * settings.h * settings.restDensity;
     pcb.viscosity = settings.viscosity;
@@ -294,7 +187,6 @@ void SPHSystem::updateParticles(float deltaTime)
     pcb.boundaryCentor = boundaryCentor;
     pcb.boundarySize = boundarySize;
     pcb.tableSize = TableSize;
-    pcb.boundaryParticlesNum = boundaryParticleCount;
 
     auto particleCBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLE);
 
@@ -303,20 +195,27 @@ void SPHSystem::updateParticles(float deltaTime)
     particleCBuffer->SetPipline(ShaderStage::VS);
     particleCBuffer->SetPipline(ShaderStage::PS);
 
+    hashToParticleIndexTable->BindUAV(1);
+    particleBuffer->BindUAV(0);
+    IndirectGPU->BindUAV(2);
+    ParticleWorldMatrixes->BindUAV(3);
+    errorBuffer->BindUAV(6);
+
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->BindObstacleBuffer();
+    }
+
+    //Step 1 Find neighbors for each particle
     auto CalculateHashShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateHashShader");
     CalculateHashShader->SetThreadGroups(TableSize >> 8, 1, 1);
-    particleBuffer->BindUAV(0);
-    hashToParticleIndexTable->BindUAV(1);
-    boundaryParticleBuffer->BindUAV(4);
-    hashToBoundaryIndexTable->BindUAV(5);
     CalculateHashShader->Dispatch();
-    
-    auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
-    BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
 
     auto particleSortBuffer = GEngine->GetConstantBuffer(Constantbuffer_Type::PARTICLESORT);
-    
-    
+    auto BitonicSortShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"BitonicSortShader");
+    BitonicSortShader->SetThreadGroups(TableSize >> 8, 1, 1);
     for (uint32_t k = 2; k <= TableSize; k <<= 1) {
         for (uint32_t j = k >> 1; j > 0; j >>= 1) {
 
@@ -335,26 +234,88 @@ void SPHSystem::updateParticles(float deltaTime)
     createNeighborTableShader->SetThreadGroups(groups, 1, 1);
     createNeighborTableShader->Dispatch();
 
-    auto calculatePressureAndDensityShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculatePressureAndDensity");
-    calculatePressureAndDensityShader->SetThreadGroups(groups, 1, 1);
-    calculatePressureAndDensityShader->Dispatch();
+    //Step 2 update density and alpha
+    auto ComputeDensityAndAlpha = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityAndAlpha");
+    ComputeDensityAndAlpha->SetThreadGroups(groups, 1, 1);
+    ComputeDensityAndAlpha->Dispatch();
 
-    auto calculateForceShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"CalculateForceShader");
-    calculateForceShader->SetThreadGroups(groups, 1, 1);
-    calculateForceShader->Dispatch();
+    auto ParallelReductionOnGroup = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroup");
+    ParallelReductionOnGroup->SetThreadGroups(groups, 1, 1);
 
-    auto UpdateParticlePosition = GET_SINGLE(Resources)->Find<ComputeShader>(L"UpdateParticlePosition");
-    UpdateParticlePosition->SetThreadGroups(groups, 1, 1);
-    ParticleWorldMatrixes->BindUAV(3);
-    IndirectGPU->BindUAV(2);
-    UpdateParticlePosition->Dispatch();
+    auto ParallelReductionOnGroupSum = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroupSum");
+    ParallelReductionOnGroupSum->SetThreadGroups(1, 1, 1);
+
+    if (settings.useDivergenceSolver)
+    {
+        //Step 3 Correct Divergence error
+        auto CorrectDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDivergenceError");
+        auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
+        CorrectDivergenceError->SetThreadGroups(groups, 1, 1);
+        ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
+
+        //Step 4 Correct Divergence error
+        auto ParallelReductionOnGroup = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroup");
+        ParallelReductionOnGroup->SetThreadGroups(groups, 1, 1);
+
+        auto ParallelReductionOnGroupSum = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroupSum");
+        ParallelReductionOnGroupSum->SetThreadGroups(1, 1, 1);
+
+        //iteration
+        for (int i = 0; i < 1; i++)
+        {
+            ComputeDivergenceError->Dispatch();
+
+            ParallelReductionOnGroup->Dispatch();
+            ParallelReductionOnGroupSum->Dispatch();
+
+            CorrectDivergenceError->Dispatch();
+        }
+    }
+
+    //Step 5 non-pressure force
+    auto ComputeNonpressureForce = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeNonpressureForce");
+    ComputeNonpressureForce->SetThreadGroups(groups, 1, 1);
+    ComputeNonpressureForce->Dispatch();
+
+    auto applyAcceleration = GET_SINGLE(Resources)->Find<ComputeShader>(L"ApplyAcceleration");
+    applyAcceleration->SetThreadGroups(groups, 1, 1);
+    applyAcceleration->Dispatch();
+
+
+    //Step 6 Correct Density error
+    auto CorrectDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDensityError");
+    auto ComputeDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityError");
+    CorrectDensityError->SetThreadGroups(groups, 1, 1);
+    ComputeDensityError->SetThreadGroups(groups, 1, 1);
+
+    //iteration
+    for (int i = 0; i < 4; i++)
+    {
+        CorrectDensityError->Dispatch();
+
+        ComputeDensityError->Dispatch();
+
+        ParallelReductionOnGroup->Dispatch();
+        ParallelReductionOnGroupSum->Dispatch();
+    }
+
+    //Step 7 move particles
+    auto ParticleAdvect = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParticleAdvect");
+    ParticleAdvect->SetThreadGroups(groups, 1, 1);
+    ParticleAdvect->Dispatch();
 
     hashToParticleIndexTable->Clear();
     particleBuffer->Clear();
     IndirectGPU->Clear();
     ParticleWorldMatrixes->Clear();
-    boundaryParticleBuffer->Clear();
-    hashToBoundaryIndexTable->Clear();
+    errorBuffer->Clear();
+    
+    for (shared_ptr<SimulationObject>& so : simulationObjects)
+    {
+        shared_ptr<Obstacle> obstacle = dynamic_pointer_cast<Obstacle>(so);
+        if (obstacle)
+            obstacle->ClearObstacleBuffer();
+    }
 
     ParticleIndirect->SetDataFromBuffer(IndirectGPU->GetBuffer());
 }
@@ -428,18 +389,6 @@ void SPHSystem::draw(Camera* Cam)
         frontDepthRecordShader->BindShader();
         RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
     }
-    //Scene Backward Depth Rendering;
-    CONTEXT->ClearRenderTargetView(SceneBackwardDepth->GetRTV(), &nearClip);
-    CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
-    CONTEXT->OMSetRenderTargets(1, SceneBackwardDepth->GetRTVRef(), commonDepth);
-
-    CONTEXT->RSSetViewports(1, &_viewPort);
-
-    if (started) {
-        auto backwardDepthRecordShader = GET_SINGLE(Resources)->Find<Shader>(L"RecordBackwardDepthShader");
-        backwardDepthRecordShader->BindShader();
-        RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
-    }
 
     ID3D11RenderTargetView* backgroundRTVS[2] = { backgroundTexture->GetRTV() , obstacleDepth->GetRTV() };
 
@@ -467,11 +416,30 @@ void SPHSystem::draw(Camera* Cam)
         simulationObject->Render(Cam);
     }
 
+    if (started) {
+        //Scene thickness;
+        CONTEXT->ClearRenderTargetView(thicknessTexture->GetRTV(), zero);
+        CONTEXT->OMSetRenderTargets(1, thicknessTexture->GetRTVRef(), nullptr);
+
+        CONTEXT->RSSetViewports(1, &_viewPort);
+
+        auto thicknessShader = GET_SINGLE(Resources)->Find<Shader>(L"RenderThickness");
+        thicknessShader->BindShader();
+
+        obstacleDepth->BindSRV(ShaderStage::PS, 0);
+        RectMesh->RenderIndexedInstancedIndirect(Intances.get(), ParticleIndirect.get());
+        obstacleDepth->ClearSRV(ShaderStage::PS, 0);
+    }
+
+    GEngine->BindSwapChain();
+    GEngine->ClearSwapChain();
+
     //Blur
-    SceneBackwardDepth->BindUAV(0);
-    horizontalBlurredBackwardDepth->BindUAV(1);
-    SceneFrontDepth->BindUAV(2);
-    horizontalBlurredFrontDepth->BindUAV(3);
+    SceneFrontDepth->BindUAV(0);
+
+    horizontalBlurredFrontDepth->BindUAV(1);
+    thicknessTexture->BindUAV(2);
+    horizontalBlurredThickness->BindUAV(3);
 
     for (int i = 0; i < 2; i++) {
         //HorizontalBlur
@@ -487,13 +455,12 @@ void SPHSystem::draw(Camera* Cam)
         VerticalBilateralFilter->Dispatch();
     }
 
-    SceneBackwardDepth->ClearUAV(0);
-    horizontalBlurredBackwardDepth->ClearUAV(1);
-    SceneFrontDepth->ClearUAV(2);
-    horizontalBlurredFrontDepth->ClearUAV(3);;
+    horizontalBlurredFrontDepth->ClearUAV(1);
+    thicknessTexture->ClearUAV(2);
+    horizontalBlurredThickness->ClearUAV(3);
+    
 
     //Getnormal from depth
-    SceneFrontDepth->BindUAV(0);
     normalMap->BindUAV(1);
 
     auto createNormal = GET_SINGLE(Resources)->Find<ComputeShader>(L"createNormal");
@@ -505,15 +472,11 @@ void SPHSystem::draw(Camera* Cam)
 
     //유체 렌더링
 
-    GEngine->BindSwapChain();
-    GEngine->ClearSwapChain();
-
     SceneFrontDepth->BindSRV(ShaderStage::PS, 0);
-    SceneBackwardDepth->BindSRV(ShaderStage::PS, 1);
+    thicknessTexture->BindSRV(ShaderStage::PS, 1);
     normalMap->BindSRV(ShaderStage::PS, 2);
     cubeMap->BindSRV(ShaderStage::PS, 3);
     backgroundTexture->BindSRV(ShaderStage::PS, 4);
-    obstacleDepth->BindSRV(ShaderStage::PS, 5);
 
     auto CompositeShader = GET_SINGLE(Resources)->Find<Shader>(L"Composite");
     CompositeShader->BindShader();
@@ -521,11 +484,10 @@ void SPHSystem::draw(Camera* Cam)
     RectMesh->Render();
 
     SceneFrontDepth->ClearSRV(ShaderStage::PS, 0);
-    SceneBackwardDepth->ClearSRV(ShaderStage::PS, 1);
+    thicknessTexture->ClearSRV(ShaderStage::PS, 1);
     normalMap->ClearSRV(ShaderStage::PS, 2);
     cubeMap->ClearSRV(ShaderStage::PS, 3);
     backgroundTexture->ClearSRV(ShaderStage::PS, 4);
-    obstacleDepth->ClearSRV(ShaderStage::PS, 5);
 
     DrawBoundary(Cam);
 }

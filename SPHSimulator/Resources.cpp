@@ -14,6 +14,97 @@ void Resources::CreateDefaultResource()
 	UINT pointIndex = 0;
 	pointMesh->CreateIndexBuffer(&pointIndex, 1);
 #pragma endregion
+	{
+		shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+		Resources::Insert<Mesh>(L"CubeMesh", mesh);
+		vector<Vertex> vertexes(8);
+
+		vertexes[0].pos = Vector3(-1.f, 1.f, -1.f);
+		vertexes[0].Color = Vector4(1.f, 0.0f, 0.f, 1.0f);
+		vertexes[0].uv = Vector2(0.f, 0.f);
+
+		vertexes[1].pos = Vector3(1.f, 1.f, -1.f);
+		vertexes[1].Color = Vector4(0.f, 1.f, 0.f, 1.0f);
+		vertexes[1].uv = Vector2(1.0f, 0.0f);
+
+		vertexes[2].pos = Vector3(-1.f, -1.f, -1.f);
+		vertexes[2].Color = Vector4(0.f, 0.f, 1.f, 1.0f);
+		vertexes[2].uv = Vector2(1.0f, 1.0f);
+
+		vertexes[3].pos = Vector3(1.f, -1.f, -1.f);
+		vertexes[3].Color = Vector4(1.f, 0.f, 0.f, 1.0f);
+		vertexes[3].uv = Vector2(0.0f, 1.0f);
+
+		vertexes[4].pos = Vector3(-1.f, 1.f, 1.f);
+		vertexes[4].Color = Vector4(1.f, 0.0f, 0.f, 1.0f);
+		vertexes[4].uv = Vector2(0.f, 0.f);
+
+		vertexes[5].pos = Vector3(1.f, 1.f, 1.f);
+		vertexes[5].Color = Vector4(0.f, 1.f, 0.f, 1.0f);
+		vertexes[5].uv = Vector2(1.0f, 0.0f);
+
+		vertexes[6].pos = Vector3(-1.f, -1.f, 1.f);
+		vertexes[6].Color = Vector4(0.f, 0.f, 1.f, 1.0f);
+		vertexes[6].uv = Vector2(1.0f, 1.0f);
+
+		vertexes[7].pos = Vector3(1.f, -1.f, 1.f);
+		vertexes[7].Color = Vector4(1.f, 0.f, 0.f, 1.0f);
+		vertexes[7].uv = Vector2(0.0f, 1.0f);
+
+		mesh->CreateVertexBuffer(vertexes);
+
+		std::vector<UINT> indexes;
+		indexes.push_back(0);
+		indexes.push_back(1);
+		indexes.push_back(2);
+
+		indexes.push_back(1);
+		indexes.push_back(3);
+		indexes.push_back(2);
+
+		indexes.push_back(1);
+		indexes.push_back(5);
+		indexes.push_back(3);
+
+		indexes.push_back(5);
+		indexes.push_back(7);
+		indexes.push_back(3);
+
+		indexes.push_back(5);
+		indexes.push_back(4);
+		indexes.push_back(7);
+
+		indexes.push_back(4);
+		indexes.push_back(6);
+		indexes.push_back(7);
+
+		indexes.push_back(4);
+		indexes.push_back(0);
+		indexes.push_back(6);
+
+		indexes.push_back(0);
+		indexes.push_back(2);
+		indexes.push_back(6);
+
+		indexes.push_back(4);
+		indexes.push_back(5);
+		indexes.push_back(0);
+
+		indexes.push_back(5);
+		indexes.push_back(1);
+		indexes.push_back(0);
+
+		indexes.push_back(2);
+		indexes.push_back(3);
+		indexes.push_back(6);
+
+		indexes.push_back(3);
+		indexes.push_back(7);
+		indexes.push_back(6);
+
+		mesh->CreateIndexBuffer(indexes);
+	}
+#pragma endregion
 
 #pragma region Default Rect
 	shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
@@ -39,13 +130,15 @@ void Resources::CreateDefaultResource()
 	mesh->CreateVertexBuffer(vertexes, 4);
 
 	std::vector<UINT> indexes;
+	indexes.push_back(2);
+	indexes.push_back(3);
+	indexes.push_back(0);
+
 	indexes.push_back(0);
 	indexes.push_back(1);
 	indexes.push_back(2);
 
-	indexes.push_back(2);
-	indexes.push_back(3);
-	indexes.push_back(0);
+	
 
 	mesh->CreateIndexBuffer(indexes.data(), (UINT)indexes.size());
 #pragma endregion
@@ -194,7 +287,67 @@ void Resources::CreateDefaultResource()
 	CreateNeighborTable->Create(L"CreateNeighborTable.hlsl");
 #pragma endregion
 
-#pragma region CalculatePressureAndDensity
+#pragma region ComputeDensityAndAlpha
+	shared_ptr<ComputeShader> ComputeDensityAndAlpha = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeDensityAndAlpha", ComputeDensityAndAlpha);
+	ComputeDensityAndAlpha->Create(L"ComputeDensityAndAlpha.hlsl");
+#pragma endregion
+
+#pragma region ComputeDivergenceError
+	shared_ptr<ComputeShader> ComputeDivergenceError = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeDivergenceError", ComputeDivergenceError);
+	ComputeDivergenceError->Create(L"ComputeDivergenceError.hlsl");
+#pragma endregion
+
+#pragma region CorrectDivergenceError
+	shared_ptr<ComputeShader> CorrectDivergenceError = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CorrectDivergenceError", CorrectDivergenceError);
+	CorrectDivergenceError->Create(L"CorrectDivergenceError.hlsl");
+#pragma endregion
+
+#pragma region ComputeDensityError
+	shared_ptr<ComputeShader> ComputeDensityError = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeDensityError", ComputeDensityError);
+	ComputeDensityError->Create(L"ComputeDensityError.hlsl");
+#pragma endregion
+
+#pragma region CorrectDensityError
+	shared_ptr<ComputeShader> CorrectDensityError = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"CorrectDensityError", CorrectDensityError);
+	CorrectDensityError->Create(L"CorrectDensityError.hlsl");
+#pragma endregion
+
+#pragma region ComputeNonpressureForce
+	shared_ptr<ComputeShader> ComputeNonpressureForce = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeNonpressureForce", ComputeNonpressureForce);
+	ComputeNonpressureForce->Create(L"ComputeNonpressureForce.hlsl");
+#pragma endregion
+
+#pragma region ApplyAcceleration
+	shared_ptr<ComputeShader> ApplyAcceleration = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ApplyAcceleration", ApplyAcceleration);
+	ApplyAcceleration->Create(L"ApplyAcceleration.hlsl");
+#pragma endregion
+
+#pragma region ParticleAdvect
+	shared_ptr<ComputeShader> ParticleAdvect = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ParticleAdvect", ParticleAdvect);
+	ParticleAdvect->Create(L"ParticleAdvect.hlsl");
+#pragma endregion
+
+#pragma region ParallelReductionOnGroup
+	shared_ptr<ComputeShader> ParallelReductionOnGroup = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ParallelReductionOnGroup", ParallelReductionOnGroup);
+	ParallelReductionOnGroup->Create(L"ParallelReductionOnGroup.hlsl");
+#pragma endregion
+
+#pragma region ParallelReductionOnGroupSum
+	shared_ptr<ComputeShader> ParallelReductionOnGroupSum = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ParallelReductionOnGroupSum", ParallelReductionOnGroupSum);
+	ParallelReductionOnGroupSum->Create(L"ParallelReductionOnGroupSum.hlsl");
+#pragma endregion
+
+/*#pragma region CalculatePressureAndDensity
 	shared_ptr<ComputeShader> CalculatePressureAndDensity = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"CalculatePressureAndDensity", CalculatePressureAndDensity);
 	CalculatePressureAndDensity->Create(L"CalculatePressureAndDensity.hlsl");
@@ -210,7 +363,7 @@ void Resources::CreateDefaultResource()
 	shared_ptr<ComputeShader> UpdateParticlePosition = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"UpdateParticlePosition", UpdateParticlePosition);
 	UpdateParticlePosition->Create(L"UpdateParticlePosition.hlsl");
-#pragma endregion
+#pragma endregion*/
 
 #pragma region HardCoded3DShader
 	{
@@ -239,7 +392,7 @@ void Resources::CreateDefaultResource()
 		Resources::Insert<Shader>(L"RecordFrontDepthShader", RecordDepthShader);
 		_info.bst = BSType::Default;
 		_info.dst = DSType::Less;
-		_info.rst = RSType::SolidBack;
+		_info.rst = RSType::SolidNone;
 		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		_entry = {};
 		_entry.VS = true;
@@ -263,6 +416,24 @@ void Resources::CreateDefaultResource()
 		_entry.VS = true;
 		_entry.PS = true;
 		RecordDepthShader->CreateShader(_info, _entry, L"RecordBackwardDepth.hlsl", false);
+	}
+#pragma endregion
+
+#pragma region RenderThickness
+	{
+		ShaderInfo _info;
+		ShaderEntry _entry;
+
+		shared_ptr<Shader> RenderThickness = std::make_shared<Shader>();
+		Resources::Insert<Shader>(L"RenderThickness", RenderThickness);
+		_info.bst = BSType::Additive;
+		_info.dst = DSType::None;
+		_info.rst = RSType::SolidNone;
+		_info.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		_entry = {};
+		_entry.VS = true;
+		_entry.PS = true;
+		RenderThickness->CreateShader(_info, _entry, L"RenderThickness.hlsl", false);
 	}
 #pragma endregion
 
@@ -368,6 +539,7 @@ void Resources::CreateDefaultResource()
 	}
 #pragma endregion
 
+	/*
 #pragma region CreateBoundaryHash
 	shared_ptr<ComputeShader> CreateBoundaryHash = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"CreateBoundaryHash", CreateBoundaryHash);
@@ -384,5 +556,12 @@ void Resources::CreateDefaultResource()
 	shared_ptr<ComputeShader> ComputeBoundaryVolume = std::make_shared<ComputeShader>();
 	Resources::Insert<ComputeShader>(L"ComputeBoundaryVolume", ComputeBoundaryVolume);
 	ComputeBoundaryVolume->Create(L"BoundaryParticleVolume.hlsl");
+#pragma endregion
+	*/
+
+#pragma region ComputeVolumeMap
+	shared_ptr<ComputeShader> ComputeVolumeMap = std::make_shared<ComputeShader>();
+	Resources::Insert<ComputeShader>(L"ComputeVolumeMap", ComputeVolumeMap);
+	ComputeVolumeMap->Create(L"CreateVolumeMap.hlsl");
 #pragma endregion
 }

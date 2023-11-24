@@ -1,6 +1,8 @@
 #pragma once
 #include "SimulationObject.h"
-#include "Mesh.h"
+#include "VoxelGrid.h"
+
+class StructuredBuffer;
 class Obstacle : public SimulationObject
 {
 public:
@@ -8,12 +10,18 @@ public:
 	virtual ~Obstacle();
 
 	virtual void Render(class Camera* Cam) override;
-	void GetVoxels(vector<Vector3>& results, float h);
+	void ComputeVolumeMap(float h);
+
+	void BindObstacleBuffer();
+	void ClearObstacleBuffer();
 
 private:
-	shared_ptr<Mesh> obstacleMesh;
+	shared_ptr<class Mesh> obstacleMesh;
+	unique_ptr<StructuredBuffer> sdfBuffer;
+	unique_ptr<StructuredBuffer> volumeBuffer;
+	VoxelGrid<float> sdf;
 
 public:
-	inline void SetMesh(shared_ptr<Mesh> mesh) { obstacleMesh = mesh; }
+	inline void SetMesh(shared_ptr<class Mesh> mesh) { obstacleMesh = mesh; }
 };
 

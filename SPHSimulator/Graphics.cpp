@@ -83,6 +83,12 @@ HRESULT Graphics::Init(const WindowInfo& info)
 	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLERENDER] = make_shared<ConstantBuffer>();
 	_constantBuffers[(UINT8)Constantbuffer_Type::PARTICLERENDER]->Init(Constantbuffer_Type::PARTICLERENDER, sizeof(ParticleRenderCB));
 
+	_constantBuffers[(UINT8)Constantbuffer_Type::SDFPROPERTY] = make_shared<ConstantBuffer>();
+	_constantBuffers[(UINT8)Constantbuffer_Type::SDFPROPERTY]->Init(Constantbuffer_Type::SDFPROPERTY, sizeof(SDFPropertyCB));
+
+	_constantBuffers[(UINT8)Constantbuffer_Type::OBSTACLE] = make_shared<ConstantBuffer>();
+	_constantBuffers[(UINT8)Constantbuffer_Type::OBSTACLE]->Init(Constantbuffer_Type::OBSTACLE, sizeof(ObstacleCB));
+
 	BindSwapChain();
 
 	return S_OK;

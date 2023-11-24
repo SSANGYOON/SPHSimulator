@@ -1,13 +1,15 @@
 #include "pch.h"
 #include "Obstacle.h"
 #include "Camera.h"
-#include "Mesh.h"
 #include "ConstantBuffer.h"
 #include "Graphics.h"
 #include "Resources.h"
 #include "Shader.h"
-#include "VoxelGrid.h"
-#include "SDF.H"
+#include "ComputeShader.h"
+#include "SDF.h"
+#include "Mesh.h"
+#include "StructuredBuffer.h"
+
 Obstacle::Obstacle()
 {
 }
@@ -42,9 +44,68 @@ void Obstacle::Render(Camera* Cam)
     obstacleMesh->Render();
 }
 
-void Obstacle::GetVoxels(vector<Vector3>& results, float h)
+void Obstacle::ComputeVolumeMap(float h)
 {
-    obstacleMesh->Voxelize(results, h, srt);
+    SDF::build(obstacleMesh, sdf, scale, h);
 
-    VoxelGrid<float> sdf(int(10/ h) + 1, int(10 / h) + 1, int(10 / h) + 1);
+    sdfBuffer = make_unique<StructuredBuffer>();
+    auto sizexyz = sdf.size();
+    UINT size = get<0>(sizexyz) * get<1>(sizexyz) * get<2>(sizexyz);
+    sdfBuffer->Create(sizeof(float), size, (void*)sdf.data(), true, false);
+
+    volumeBuffer = make_unique<StructuredBuffer>();
+    volumeBuffer->Create(sizeof(float), size, nullptr, true, true);
+
+    SDFPropertyCB sdfProperty;
+
+    sdfProperty.size_x = get<0>(sizexyz);
+    sdfProperty.size_y = get<1>(sizexyz);
+    sdfProperty.size_z = get<2>(sizexyz);
+
+    sdfProperty.cellSize = h;
+
+    shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::SDFPROPERTY);
+    cb->SetData(&sdfProperty);
+    cb->SetPipline(ShaderStage::CS);
+
+    sdfBuffer->BindUAV(0);
+    volumeBuffer->BindUAV(1);
+
+    auto volumeMapShader = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeVolumeMap");
+
+    UINT groupNumX = (get<0>(sizexyz) % 8 > 0) ? get<0>(sizexyz) / 8 + 1 : get<0>(sizexyz) / 8;
+    UINT groupNumY = (get<1>(sizexyz) % 8 > 0) ? get<1>(sizexyz) / 8 + 1 : get<1>(sizexyz) / 8;
+    UINT groupNumZ = (get<2>(sizexyz) % 8 > 0) ? get<2>(sizexyz) / 8 + 1 : get<2>(sizexyz) / 8;
+
+    volumeMapShader->SetThreadGroups(groupNumX, groupNumY, groupNumZ);
+
+    volumeMapShader->Dispatch();
+
+    vector<float> volumeVector(size);
+}
+
+void Obstacle::BindObstacleBuffer()
+{
+    ObstacleCB obstacleCB;
+    obstacleCB.origin = position;
+    obstacleCB.offset = sdf.origin();
+    auto size = sdf.size();
+
+    obstacleCB.size_x = get<0>(size);
+    obstacleCB.size_y = get<1>(size);
+    obstacleCB.size_z = get<2>(size);
+    obstacleCB.rotation = Matrix::CreateFromQuaternion(rotation);
+    
+    shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::OBSTACLE);
+    cb->SetData(&obstacleCB);
+    cb->SetPipline(ShaderStage::CS);
+
+    sdfBuffer->BindUAV(4);
+    volumeBuffer->BindUAV(5);
+}
+
+void Obstacle::ClearObstacleBuffer()
+{
+    sdfBuffer->Clear();
+    volumeBuffer->Clear();
 }

@@ -9,6 +9,7 @@ public:
 
 	void Init();
 	float GetTimeScale() { return mTimeScale; }
+	float GetCPUFreq() { return static_cast<float>(mCpuFrequency.QuadPart); }
 	void SetTimeScale(float timeScale) { mTimeScale = timeScale; }
 	void Update();
 

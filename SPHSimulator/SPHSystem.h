@@ -4,11 +4,12 @@
 struct SPHSettings
 {
 	SPHSettings(
-		float restDensity, float gasConst, float viscosity,
-		float h, float g, float tension);
+		float restDensity, float viscosity,
+		float h, float g, float tension, bool useDivergenceSolver = false);
 
 	Matrix sphereScale;
-	float gasConstant, h2, restDensity, viscosity, h, g, tension;
+	float h2, restDensity, viscosity, h, g, tension; 
+	bool useDivergenceSolver;
 };
 
 class StructuredBuffer;
@@ -37,6 +38,7 @@ public:
 private:
 	SPHSettings settings;
 	size_t particleCubeWidth;
+
 	
 
 	bool started;
@@ -55,13 +57,16 @@ private:
 	unique_ptr<StructuredBuffer> boundaryParticleBuffer;
 	unique_ptr<StructuredBuffer> hashToBoundaryIndexTable;
 
-	unique_ptr<Texture> SceneFrontDepth;
-	unique_ptr<Texture> SceneBackwardDepth;
+	unique_ptr<StructuredBuffer> errorBuffer;
 
+	unique_ptr<Texture> SceneFrontDepth;
 	unique_ptr<Texture> horizontalBlurredFrontDepth;
-	unique_ptr<Texture> horizontalBlurredBackwardDepth;
+
+	unique_ptr<Texture> thicknessTexture;
+	unique_ptr<Texture> horizontalBlurredThickness;
 
 	unique_ptr<Texture> backgroundTexture;
+
 	unique_ptr<Texture> normalMap;
 	unique_ptr<Texture> obstacleDepth;
 
@@ -72,16 +77,13 @@ private:
 	int filterRadius = 30;
 	Vector3 SpecularColor = Vector3::One;
 	float absorbanceCoff = 0.1f;
-	Vector3 FluidColor = Vector3(0.0, 0.5, 0.9);
+	Vector3 FluidColor = Vector3(0.f, 0.5f, 0.9f);
 
 	Vector3 boundaryCentor = Vector3(0, 0, 0);
 	Vector3 boundarySize = Vector3(10, 10, 10);
 
 	Matrix View;
 	Matrix Projection;
-
-	Particle GPUSortedParticle[1 << 18];
-	//UINT Table[1 << 18];
 
 	float WinX = 4;
 	float WinY = 3;

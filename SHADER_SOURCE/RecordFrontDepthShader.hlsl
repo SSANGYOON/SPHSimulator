@@ -11,7 +11,6 @@ struct PSIn
 {
     float4 Pos : SV_Position;
     float3 ViewPos : ViewPostion;
-    float4 Color : Color;
     float2 UV : TEXCOORD;
 };
 
@@ -21,10 +20,9 @@ PSIn VS_MAIN(ParticleVSIn In)
     Out.UV = In.UV;
 
     float4 worldPos = float4(In.InstancePos, 1.f);
-    float4 viewPos = mul(worldPos, view) + float4(In.Pos.xy * radius, 0, 0);
-    Out.Pos = mul(viewPos, projection);
-    Out.ViewPos = mul(float4(In.InstancePos, 1.f), view).xyz;
-    Out.Color = In.Color;
+    float4 viewPos = mul(worldPos, view);
+    Out.Pos = mul(viewPos + float4(In.Pos.xy * radius, 0, 0), projection);
+    Out.ViewPos = viewPos.xyz;
 
     return Out;
 }
@@ -41,7 +39,7 @@ PS_OUT PS_MAIN(PSIn In)
     N.z = -sqrt(1.0 - r2);
 
     // calculate depth
-    float4 pixelPos = float4(In.ViewPos + N * radius / 2, 1.0);
+    float4 pixelPos = float4(In.ViewPos + N * radius * 0.5f, 1.0);
     float4 clipSpacePos = mul(pixelPos, projection);
 
     OUT.depth = clipSpacePos.z / clipSpacePos.w;

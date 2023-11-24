@@ -14,6 +14,12 @@
 #include <algorithm>
 
 SY::TestLayer::TestLayer()
+	: MouseX(-1)
+	, MouseY(-1)
+	, currentTime(0)
+	, deltaTime(0.f)
+	, prevTime(0)
+	, sphSystem{}
 {
 }
 
@@ -23,7 +29,7 @@ SY::TestLayer::~TestLayer()
 
 void SY::TestLayer::OnAttach()
 {
-	SPHSettings sphSettings(1, 1, 1.f, 0.15f, -9.8f, 0.2f);
+	SPHSettings sphSettings(1, 1.f, 0.15f, -9.8f, 0.2f);
 	sphSystem = new SPHSystem(30, sphSettings);
 	Cam = make_unique<Camera>();
 }
@@ -48,6 +54,8 @@ void SY::TestLayer::OnImGuiRender()
 	static float nVisco = 1.f;
 	static float gasConst = 1.f;
 	static int counter = 0;
+	static bool useDivergenceSolver = false;
+
 
 	ImGui::Begin("SPH debug");                          // Create GUI window
 
@@ -57,17 +65,17 @@ void SY::TestLayer::OnImGuiRender()
 	ImGui::DragFloat("Support Radius", &nh, 0.001f, 1.f);
 	ImGui::DragFloat("Rest Density", &nRest, 1.f, 200.f);
 	ImGui::DragFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
-	ImGui::DragFloat("Gas Constant", &gasConst, 0.001f, 5.f);
+	ImGui::Checkbox("DivergenceSolver", &useDivergenceSolver);
 
 	if (ImGui::Button("RESET")) {
 		delete sphSystem;
-		SPHSettings sphSettings(nRest, gasConst, nVisco, nh, -9.8, 1.f);
+		SPHSettings sphSettings(nRest, nVisco, nh, -9.8f, 1.f, useDivergenceSolver);
 		sphSystem = new SPHSystem(numParticles, sphSettings);
 		Cam->SetAspect(WinX / WinY);
 		Cam->SetRotation(Quaternion::Identity);
 	}
 
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
 
 	sphSystem->ImGUIRender();
@@ -83,12 +91,12 @@ void SY::TestLayer::OnEvent(Event& e)
 
 bool SY::TestLayer::OnWindowResize(WindowResizeEvent& e)
 {
-	WinX = e.GetWidth();
-	WinY = e.GetHeight();
+	WinX = (float)e.GetWidth();
+	WinY = (float)e.GetHeight();
 	Cam->SetAspect(WinX / WinY);
 	WindowInfo Info = GEngine->GetWindow();
-	Info.width = WinX;
-	Info.height = WinY;
+	Info.width = e.GetWidth();
+	Info.height = e.GetHeight();
 	GEngine->SetWindow(Info);
 	return false;
 }

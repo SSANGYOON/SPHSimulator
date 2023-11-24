@@ -3,13 +3,16 @@
 void BitonicSortStep(uint i, uint j, uint k)
 {
     uint l = i ^ j;
+
+    Particle pi = Particles[i];
+    Particle pl = Particles[l];
     if (l > i)
     {
-        if (((i & k) == 0) && (Particles[i].hash > Particles[l].hash) ||
-            ((i & k) != 0) && (Particles[i].hash < Particles[l].hash))
+        if (((i & k) == 0) && (pi.hash > pl.hash) ||
+            ((i & k) != 0) && (pi.hash < pl.hash))
         {
-            Particle temp = Particles[i];
-            Particles[i] = Particles[l];
+            Particle temp = pi;
+            Particles[i] = pl;
             Particles[l] = temp;
         }
     }
