@@ -141,11 +141,50 @@ stiffness를 크게 했을 때도 아래와 같이 유체가 압축되었을 때
 #### 11/17
 DFSPH 구현 완료
 
-<img src="./Images/dfsph.gif">
+각 업데이트 루프에서
 
-밀도가 restDensity인 1.0에 가깝게 나오는 것을 확인함
+1. 인접한 입자의 목록을 구할 수 있도록 해싱 및 정렬
+2. 입자의 밀도 및 alpha 값 구하기
+
+$$p_{i} =  \sum_{j = 0}^n {mass_{j} * W(x_i - x_j)}$$
+
+$$a_i = p_i / ( \sum_{j = 0}^{n} (mass_j *  \bigtriangledown W(xi - xj))^2 + (\sum_{j = 0}^{n} mass_j *  \bigtriangledown W(xi - xj) )^2 )$$
+
+3. 속도의 발산이 0이 되도록 iteration
+
+$$\bigtriangledown  \bullet  v_i =  \sum_{j = 0}^{n} ((v_i - v_j) * w(x_i - x_k) )$$
+
+$$ dp_i /dt = -pi  \bigtriangledown  \bullet  v_i $$
+
+$$ k_i^v = \frac{1}{ \bigtriangleup t} \frac{dp_i}{dt} a_i $$
+
+$$ v_i = v_i - \Delta t \sum_j m_j  (\frac{k_{i}^{v}}{p_{i}} + \frac{k_{j}^v}{p_j}) * \bigtriangledown W(xi - xj) $$
+
+dp/dt의 평균이 일정 값 이하가 되도록 반복
+
+
+
+4. 압력 이외의 힘 계산(점성, 중력)
+
+5. 밀도가 restDensity에 가까워 지도록 iteration
+
+$$ p_i^{*} =  p_i + \Delta t \sum_{j} mass_j * \bigtriangledown W(xi - xj)$$
+
+$$ k_i^v =  \frac{p_i^{*} - p_0}{ (\Delta t)^2} a_i $$
+
+$$ v_i = v_i - \Delta t \sum_j m_j  (\frac{k_{i}^{v}}{p_{i}} + \frac{k_{j}^v}{p_j}) * \bigtriangledown W(xi - xj) $$
+
+6. 입자 위치 갱신
+
+ $$ x_i(t + \Delta t) = x_i(t) $$
+
+   <img src="./Images/dfsph.gif">
+
+
 
 <img src="./Images/incompress.png">
+
+밀도가 거의 restDensity(1.00)에 가깝게 나오는 것을 확인함
 
 ## 참고문헌 :
 
