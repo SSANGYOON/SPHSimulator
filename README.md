@@ -219,7 +219,7 @@ sph에서 한 입자의 밀도는 다음과 같이 정의됨
 
  viscos force는 논문에 구체적으로 나오지는 않았지만
 
- $$ f_{bi} = \frac{\mu *  V(X) * (x_i - x^*) \bullet v_i * W(x- x*)} {||x_i - x_j||^2 + 0.01supportradius^2} $$
+ $$ \frac{dv_i}{dt} = \frac{\mu *  V(x_i) * (x_i - x_i^*) \bullet v_i W(x_i- x_i^{\*})}{||x_i - x_i^{\*}||^2 + 0.01supportradius^2}$$
 
  와 같이 사용
 
