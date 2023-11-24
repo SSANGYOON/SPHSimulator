@@ -186,6 +186,43 @@ $$ v_i = v_i - \Delta t \sum_j m_j  (\frac{k_{i}^{v}}{p_{i}} + \frac{k_{j}^v}{p_
 
 밀도가 거의 restDensity(1.00)에 가깝게 나오는 것을 확인함
 
+### 7주차
+#### 11/21
+
+triangle mesh로부터 discrete sdf를 생성하는 알고리즘을 구현
+[https://animation.rwth-aachen.de/media/papers/2015-SCA-DFSPH.pdf]
+
+#### 11/22
+sph simulation에서 임의 경계를 랜더링 하는 기법에 관한 논문을 구현 [https://animation.rwth-aachen.de/media/papers/65/2019-MIG-VolumeMaps.pdf] 
+
+sph에서 한 입자의 밀도는 다음과 같이 정의됨
+
+ $$ p_i = p_f(fluid tern) + p_b(Boundary term) $$
+
+ $$ p_f =  \sum_{j = 0}^n {mass_{j} * W(x_i - x_j)} $$
+ 
+ $$ p_b = ?? $$
+
+  p_b를 boundary object를 particle로 샘플링 해서 p_f처럼 구할 수도 있지만
+
+ $$ \phi (x) = SDF(X) $$
+
+ $$ \gamma (X) = \begin{cases} \frac{C(X)}{C(0)} & 0 < x < r \ {1} & {x <= 0} \ {0} & {x >= r} \end{cases}  $$
+
+ $$ V(x) = \int_{N(x)} {\gamma ( \phi (t)) dt} $$
+
+ $$ p_b(x) = V(x) p_0 W(x - x^*) $$ 
+ x^*는 x에서 가장가까운 object위의 점
+
+ V(X)를 미리 한번만 directe한 격자에 구해서 사용함 적분은 Gauss-Legendre 구적법을 사용함
+ 임의의 위치에 대해서는 trilinear sampling을 사용
+
+ viscos force는 논문에 구체적으로 나오지는 않았지만
+
+ $$ f_{bi} = \frac{\mu *  V(X) * (x_i - x_j) \bullet v_i * W(x- x*)} {||x_i - x_j|| + 0.01supportradius^2} $$
+
+ 와 같이 사용
+
 ## 참고문헌 :
 
 (SPH Fluids in Computer Graphics)[https://cg.informatik.uni-freiburg.de/publications/2014_EG_SPH_STAR.pdf]
