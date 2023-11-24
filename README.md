@@ -141,6 +141,11 @@ stiffness를 크게 했을 때도 아래와 같이 유체가 압축되었을 때
 #### 11/17
 DFSPH 구현 완료
 
+<img src="./Images/dfsph.gif">
+
+밀도가 restDensity인 1.0에 가깝게 나오는 것을 확인함
+
+<img src="./Images/incompress.png">
 
 ## 참고문헌 :
 
