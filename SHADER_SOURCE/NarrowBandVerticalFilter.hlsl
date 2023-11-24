@@ -84,7 +84,7 @@ void CS_MAIN(uint3 DTid : SV_DispatchThreadID)
 		float thickness = horizontalBlurredThicknessMap[DTid.xy].x;
 
 		//커널 크기 정하기
-		float threshold = radius * 0.5f * thresholdRatio;
+		float threshold = radius * 0.125f * thresholdRatio;
 		float ratio = viewPort.y / 2.0 / tan(PI_OVER_8);
 		float K = filterRadius * ratio * radius * 0.5f * 0.1f;
 		int filterSize = min(10, int(ceil(K / thickness)));

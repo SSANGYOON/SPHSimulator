@@ -5,10 +5,11 @@ struct SPHSettings
 {
 	SPHSettings(
 		float restDensity, float viscosity,
-		float h, float g, float tension);
+		float h, float g, float tension, bool useDivergenceSolver = false);
 
 	Matrix sphereScale;
-	float h2, restDensity, viscosity, h, g, tension;
+	float h2, restDensity, viscosity, h, g, tension; 
+	bool useDivergenceSolver;
 };
 
 class StructuredBuffer;
@@ -37,6 +38,8 @@ public:
 private:
 	SPHSettings settings;
 	size_t particleCubeWidth;
+
+	
 
 	bool started;
 	void InitParticles();

@@ -49,7 +49,8 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
             }
         }
         //boundary handling
-        float3 boundaryLocal = (pi.position - obstaclePos - obstacleOffset) / radius;
+        row_major matrix rotationTranspose = transpose(obstacleRotation);
+        float3 boundaryLocal = (mul(float4(pi.position - obstaclePos, 1.f), rotationTranspose).xyz  - obstacleOffset) / radius;
 
         if ((boundaryLocal.x > 0 && boundaryLocal.x < obstacleSize.x - 1) &&
             (boundaryLocal.y > 0 && boundaryLocal.y < obstacleSize.y - 1) &&
@@ -62,6 +63,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
             if (length(grad) > 1e-3)
             {
                 float3 normal = normalize(grad);
+                normal = mul(float4(normal, 0.f), obstacleRotation).xyz;
 
                 float3 diff = clamp(boundarySDF, 1e-3, 3 * radius) * normal;
                 float dist = length(diff);

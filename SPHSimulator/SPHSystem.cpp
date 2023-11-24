@@ -21,12 +21,13 @@
 
 SPHSettings::SPHSettings(
     float restDensity, float viscosity, float h,
-    float g, float tension)
+    float g, float tension, bool useDivergenceSolver)
     : restDensity(restDensity)
     , viscosity(viscosity)
     , h(h)
     , g(g)
     , tension(tension)
+    , useDivergenceSolver(useDivergenceSolver)
 {
     h2 = h * h;
     sphereScale = Matrix::CreateScale(Vector3(h/2.f));
@@ -238,28 +239,37 @@ void SPHSystem::updateParticles(float deltaTime)
     ComputeDensityAndAlpha->SetThreadGroups(groups, 1, 1);
     ComputeDensityAndAlpha->Dispatch();
 
-    //Step 3 Correct Divergence error
-    auto CorrectDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDivergenceError");
-    auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
-    CorrectDivergenceError->SetThreadGroups(groups, 1, 1);
-    ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
-
-    //Step 4 Correct Divergence error
     auto ParallelReductionOnGroup = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroup");
     ParallelReductionOnGroup->SetThreadGroups(groups, 1, 1);
 
     auto ParallelReductionOnGroupSum = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroupSum");
     ParallelReductionOnGroupSum->SetThreadGroups(1, 1, 1);
 
-    //iteration
-    for (int i = 0; i < 1; i++)
+    if (settings.useDivergenceSolver)
     {
-        ComputeDivergenceError->Dispatch();
-        
-        ParallelReductionOnGroup->Dispatch();
-        ParallelReductionOnGroupSum->Dispatch();
+        //Step 3 Correct Divergence error
+        auto CorrectDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDivergenceError");
+        auto ComputeDivergenceError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDivergenceError");
+        CorrectDivergenceError->SetThreadGroups(groups, 1, 1);
+        ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
 
-        CorrectDivergenceError->Dispatch();
+        //Step 4 Correct Divergence error
+        auto ParallelReductionOnGroup = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroup");
+        ParallelReductionOnGroup->SetThreadGroups(groups, 1, 1);
+
+        auto ParallelReductionOnGroupSum = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroupSum");
+        ParallelReductionOnGroupSum->SetThreadGroups(1, 1, 1);
+
+        //iteration
+        for (int i = 0; i < 1; i++)
+        {
+            ComputeDivergenceError->Dispatch();
+
+            ParallelReductionOnGroup->Dispatch();
+            ParallelReductionOnGroupSum->Dispatch();
+
+            CorrectDivergenceError->Dispatch();
+        }
     }
 
     //Step 5 non-pressure force

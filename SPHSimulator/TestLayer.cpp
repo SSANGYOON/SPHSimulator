@@ -54,6 +54,8 @@ void SY::TestLayer::OnImGuiRender()
 	static float nVisco = 1.f;
 	static float gasConst = 1.f;
 	static int counter = 0;
+	static bool useDivergenceSolver = false;
+
 
 	ImGui::Begin("SPH debug");                          // Create GUI window
 
@@ -63,10 +65,11 @@ void SY::TestLayer::OnImGuiRender()
 	ImGui::DragFloat("Support Radius", &nh, 0.001f, 1.f);
 	ImGui::DragFloat("Rest Density", &nRest, 1.f, 200.f);
 	ImGui::DragFloat("Viscosity Constant", &nVisco, 0.001f, 5.f);
+	ImGui::Checkbox("DivergenceSolver", &useDivergenceSolver);
 
 	if (ImGui::Button("RESET")) {
 		delete sphSystem;
-		SPHSettings sphSettings(nRest, nVisco, nh, -9.8f, 1.f);
+		SPHSettings sphSettings(nRest, nVisco, nh, -9.8f, 1.f, useDivergenceSolver);
 		sphSystem = new SPHSystem(numParticles, sphSettings);
 		Cam->SetAspect(WinX / WinY);
 		Cam->SetRotation(Quaternion::Identity);

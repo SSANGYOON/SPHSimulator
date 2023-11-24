@@ -193,9 +193,9 @@ void SDF::build(const shared_ptr<class Mesh> mesh, VoxelGrid<float>& sdf, const 
 		double cy = ((double)cPos.y - origin.y) / h;
 		double cz = ((double)cPos.z - origin.z) / h;
 
-		int i0 = clamp(int(std::min(ax, std::min(bx, cx))) - 2, 0, sizex - 1), i1 = clamp(int(std::max(ax, std::max(bx, cx))) + 2 + 1, 0, sizex - 1);
-		int j0 = clamp(int(std::min(ay, std::min(by, cy))) - 2, 0, sizey - 1), j1 = clamp(int(std::max(ay, std::max(by, cy))) + 2 + 1, 0, sizey - 1);
-		int k0 = clamp(int(std::min(az, std::min(bz, cz))) - 2, 0, sizez - 1), k1 = clamp(int(std::max(az, std::max(bz, cz))) + 2 + 1, 0, sizez - 1);
+		int i0 = clamp(int(std::min(ax, std::min(bx, cx))) - 2, 0, sizex - 1), i1 = clamp(int(std::max(ax, std::max(bx, cx))) + 2, 0, sizex - 1);
+		int j0 = clamp(int(std::min(ay, std::min(by, cy))) - 2, 0, sizey - 1), j1 = clamp(int(std::max(ay, std::max(by, cy))) + 2, 0, sizey - 1);
+		int k0 = clamp(int(std::min(az, std::min(bz, cz))) - 2, 0, sizez - 1), k1 = clamp(int(std::max(az, std::max(bz, cz))) + 2, 0, sizez - 1);
 
 		for (int k = k0; k <= k1; ++k) {
 			for (int j = j0; j <= j1; ++j) {

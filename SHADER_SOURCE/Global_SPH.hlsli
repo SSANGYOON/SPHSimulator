@@ -77,6 +77,7 @@ cbuffer ObstacleCB : register(b6)
 	float obsPadding2;
 	uint3 obstacleSize;
 	float obsPadding3;
+	row_major matrix obstacleRotation;
 };
 
 uint toLinear(uint x, uint y, uint z)

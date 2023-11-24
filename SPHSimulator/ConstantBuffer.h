@@ -81,7 +81,9 @@ CBUFFER(ParticleRenderCB, CBSLOT_PARTICLERENDER)
 };
 CBUFFER(SDFPropertyCB, CBSLOT_SDFPROPERTY)
 {
-	tuple<UINT, UINT, UINT> size;
+	UINT size_x;
+	UINT size_y;
+	UINT size_z;
 	float cellSize;
 };
 
@@ -91,8 +93,11 @@ CBUFFER(ObstacleCB, CBSLOT_OBSTACLEBUFFER)
 	float padding1;
 	Vector3 offset;
 	float padding2;
-	tuple<UINT, UINT, UINT> size;
+	UINT size_x;
+	UINT size_y;
+	UINT size_z;
 	float padding3;
+	Matrix rotation;
 };
 
 

@@ -58,7 +58,9 @@ void Obstacle::ComputeVolumeMap(float h)
 
     SDFPropertyCB sdfProperty;
 
-    sdfProperty.size = sizexyz;
+    sdfProperty.size_x = get<0>(sizexyz);
+    sdfProperty.size_y = get<1>(sizexyz);
+    sdfProperty.size_z = get<2>(sizexyz);
 
     sdfProperty.cellSize = h;
 
@@ -87,7 +89,12 @@ void Obstacle::BindObstacleBuffer()
     ObstacleCB obstacleCB;
     obstacleCB.origin = position;
     obstacleCB.offset = sdf.origin();
-    obstacleCB.size = sdf.size();
+    auto size = sdf.size();
+
+    obstacleCB.size_x = get<0>(size);
+    obstacleCB.size_y = get<1>(size);
+    obstacleCB.size_z = get<2>(size);
+    obstacleCB.rotation = Matrix::CreateFromQuaternion(rotation);
     
     shared_ptr<ConstantBuffer> cb = GEngine->GetConstantBuffer(Constantbuffer_Type::OBSTACLE);
     cb->SetData(&obstacleCB);
