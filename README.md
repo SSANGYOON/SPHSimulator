@@ -211,7 +211,7 @@ sph에서 한 입자의 밀도는 다음과 같이 정의됨
 
  $$ V(x) = \int_{N(x)} {\gamma ( \phi (t)) dt} $$
 
- $$ p_b(x) = V(x) p_0 W(x - x^*) $$ 
+ $$ p_b(x) = V(x) p_0 W(x - x^{\*}) $$ 
  x^*는 x에서 가장가까운 object위의 점
 
  V(X)를 미리 한번만 directe한 격자에 구해서 사용함 적분은 Gauss-Legendre 구적법을 사용함
@@ -219,7 +219,7 @@ sph에서 한 입자의 밀도는 다음과 같이 정의됨
 
  viscos force는 논문에 구체적으로 나오지는 않았지만
 
- $$ \frac{dv_i}{dt} = \frac{\mu *  V(x_i) * (x_i - x_i^*) \bullet v_i W(x_i- x_i^{\*})}{||x_i - x_i^{\*}||^2 + 0.01supportradius^2}$$
+ $$ \frac{dv_i}{dt} = \frac{\mu *  V(x_i) * (x_i - x_i^{\*}) \bullet v_i W(x_i- x_i^{\*})}{||x_i - x_i^{\*}||^2 + 0.01supportradius^2}$$
 
  와 같이 사용
 
