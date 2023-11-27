@@ -165,7 +165,7 @@ void SPHSystem::update(float deltaTime)
     }
     if (!started) return;
     // To increase system stability, a fixed deltaTime is set
-    deltaTime = 0.006f;
+    deltaTime = 0.003f;
     
     updateParticles(deltaTime);
 }
@@ -253,7 +253,6 @@ void SPHSystem::updateParticles(float deltaTime)
         CorrectDivergenceError->SetThreadGroups(groups, 1, 1);
         ComputeDivergenceError->SetThreadGroups(groups, 1, 1);
 
-        //Step 4 Correct Divergence error
         auto ParallelReductionOnGroup = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParallelReductionOnGroup");
         ParallelReductionOnGroup->SetThreadGroups(groups, 1, 1);
 
@@ -272,7 +271,7 @@ void SPHSystem::updateParticles(float deltaTime)
         }
     }
 
-    //Step 5 non-pressure force
+    //Step 4 non-pressure force
     auto ComputeNonpressureForce = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeNonpressureForce");
     ComputeNonpressureForce->SetThreadGroups(groups, 1, 1);
     ComputeNonpressureForce->Dispatch();
@@ -282,7 +281,7 @@ void SPHSystem::updateParticles(float deltaTime)
     applyAcceleration->Dispatch();
 
 
-    //Step 6 Correct Density error
+    //Step 5 Correct Density error
     auto CorrectDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"CorrectDensityError");
     auto ComputeDensityError = GET_SINGLE(Resources)->Find<ComputeShader>(L"ComputeDensityError");
     CorrectDensityError->SetThreadGroups(groups, 1, 1);
@@ -299,7 +298,7 @@ void SPHSystem::updateParticles(float deltaTime)
         ParallelReductionOnGroupSum->Dispatch();
     }
 
-    //Step 7 move particles
+    //Step 6 move particles
     auto ParticleAdvect = GET_SINGLE(Resources)->Find<ComputeShader>(L"ParticleAdvect");
     ParticleAdvect->SetThreadGroups(groups, 1, 1);
     ParticleAdvect->Dispatch();
@@ -377,7 +376,8 @@ void SPHSystem::draw(Camera* Cam)
     auto RectMesh = GET_SINGLE(Resources)->Find<Mesh>(L"RectMesh");
     
     //Scene Front Depth Rendering;
-    CONTEXT->ClearRenderTargetView(SceneFrontDepth->GetRTV(), &farClip);
+    const float farDepth[] = { farClip, farClip, farClip, 1};
+    CONTEXT->ClearRenderTargetView(SceneFrontDepth->GetRTV(), farDepth);
     CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
     CONTEXT->OMSetRenderTargets(1, SceneFrontDepth->GetRTVRef(), commonDepth);
 
@@ -394,7 +394,7 @@ void SPHSystem::draw(Camera* Cam)
 
     //배경 텍스쳐 바인딩
     CONTEXT->ClearRenderTargetView(backgroundTexture->GetRTV(), zero);
-    CONTEXT->ClearRenderTargetView(obstacleDepth->GetRTV(), &farClip);
+    CONTEXT->ClearRenderTargetView(obstacleDepth->GetRTV(), farDepth);
     CONTEXT->ClearDepthStencilView(commonDepth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
     CONTEXT->OMSetRenderTargets(2, backgroundRTVS, commonDepth);
 
