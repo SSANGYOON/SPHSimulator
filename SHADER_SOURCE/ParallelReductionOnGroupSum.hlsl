@@ -38,7 +38,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadId :
 	if (gid < 1)	groupSum[gid] += groupSum[gid + 1];
 
 	if (gid == 0) {
-		if (groupSum[0] < restDensity * 0.01f)
+		if (groupSum[0] < restDensity * 0.01f * particlesNum)
 		{
 			target[0] = ITERATIONEND;
 		}

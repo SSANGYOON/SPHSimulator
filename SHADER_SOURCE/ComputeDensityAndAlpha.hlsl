@@ -36,7 +36,7 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
                         float dist = length(diff);
                         if (dist < 2.f * radius) {
                             pDensity += mass * cubic_spline_kernel(dist);
-                            if (dist > 1e-3) {
+                            if (dist > 1e-5){
                                 float3 temp = mass * cubic_spline_kernel_gradient(diff);
                                 gradientSum += temp;
                                 gradientProduct += dot(temp, temp);

@@ -58,12 +58,12 @@ void CS_MAIN(uint3 DispatchThreadID : SV_DispatchThreadID)
 		float boundaryVolume = triLinearVolume(boundaryLocal);
 		float3 grad = sdfGradient(boundaryLocal);
 
-		if (length(grad) > 1e-3)
+		if (length(grad) > 1e-5)
 		{
 			float3 normal = normalize(grad);
 			normal = mul(float4(normal, 0.f), obstacleRotation).xyz;
 
-			float3 diff = clamp(boundarySDF, 1e-3, 3 * radius) * normal;
+			float3 diff = clamp(boundarySDF, 1e-5, 3 * radius) * normal;
 			float dist = length(diff);
 
 			error += boundaryVolume * restDensity * dot(pi.velocity, cubic_spline_kernel_gradient(diff));

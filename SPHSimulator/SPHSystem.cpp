@@ -165,7 +165,7 @@ void SPHSystem::update(float deltaTime)
     }
     if (!started) return;
     // To increase system stability, a fixed deltaTime is set
-    deltaTime = 0.003f;
+    deltaTime = 0.001f;
     
     updateParticles(deltaTime);
 }
